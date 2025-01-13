@@ -86,6 +86,11 @@
   }
 }
 
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 1s ease-in forwards;
+}
+
 .typewriter {
   font-family: monospace;
   white-space: nowrap;

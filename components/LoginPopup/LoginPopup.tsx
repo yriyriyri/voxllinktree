@@ -1,9 +1,4 @@
-import React, {
-  createRef,
-  FormEvent,
-  useEffect,
-  useState,
-} from "react";
+import React, { createRef, FormEvent, useEffect, useState } from "react";
 // import "./LoginPopup.css";
 
 const generateRandomHex = (length: number): string => {
@@ -23,55 +18,41 @@ const LoginPopup = () => {
   const [showVoxl, setShowVoxl] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showInitialOk, setShowInitialOk] = useState(false);
-
   const [showUsernameOk, setShowUsernameOk] = useState(false);
   const [showPasswordOk, setShowPasswordOk] = useState(false);
+  const [showLoadingBar, setShowLoadingBar] = useState(false);
 
-  // Refs to focus fields in sequence
   const inputUsernameRef = createRef<HTMLInputElement>();
   const inputPasswordRef = createRef<HTMLInputElement>();
 
-  // Password field visibility
   const [showPasswordField, setShowPasswordField] = useState(false);
-  const togglePasswordVisibility = () => {
-    setShowPasswordField(!showPasswordField);
-  };
+  const togglePasswordVisibility = () => setShowPasswordField((prev) => !prev);
 
-  // On mount, show the animations step by step
+  const [typewriterFinished, setTypewriterFinished] = useState(false);
+
   useEffect(() => {
-    // Show initial [OK] after 1.5s
     setTimeout(() => setShowInitialOk(true), 1500);
-
-    // Show VOXL after 2.5 seconds
-    setTimeout(() => {
-      setShowVoxl(true);
-    }, 2500);
-
-    // Show login prompt after 4 seconds
+    setTimeout(() => setShowVoxl(true), 2500);
     setTimeout(() => {
       setAnimation(2);
       setShowLoginForm(true);
     }, 4000);
   }, []);
 
-  // Show [OK] if username has text
   useEffect(() => {
     setShowUsernameOk(username.length > 0);
   }, [username]);
 
-  // Show [OK] if password has text
   useEffect(() => {
     setShowPasswordOk(password.length > 0);
   }, [password]);
 
   useEffect(() => {
-    // Only run this effect after the login form is visible
     if (!showLoginForm) return;
   
-    // Introduce a 1-second delay before starting the typewriter effect
     const delayTimeout = setTimeout(() => {
-      const fullUsername = generateRandomHex(20); // longer string for username
-      const fullPassword = generateRandomHex(12); // shorter string for password
+      const fullUsername = generateRandomHex(20);
+      const fullPassword = generateRandomHex(12);
   
       let userIndex = 0;
       let passIndex = 0;
@@ -81,39 +62,69 @@ const LoginPopup = () => {
           setUsername(fullUsername.slice(0, userIndex));
           userIndex++;
         }
-  
         if (userIndex > fullUsername.length && passIndex <= fullPassword.length) {
           setPassword(fullPassword.slice(0, passIndex));
           passIndex++;
         }
-  
         if (userIndex > fullUsername.length && passIndex > fullPassword.length) {
           clearInterval(typingInterval);
+        
+          setTimeout(() => {
+            setTypewriterFinished(true);
+            setShowLoadingBar(true); 
+          }, 500);
         }
-      }, 100);
+      }, 40);
   
-      // Clean up both intervals on component unmount or effect re-run
       return () => {
         clearInterval(typingInterval);
         clearTimeout(delayTimeout);
       };
-    }, 1000); // 1-second delay before starting the typing effect
+    }, 1000);
   
-    // Clear delayTimeout if component unmounts before timeout completes
     return () => clearTimeout(delayTimeout);
   }, [showLoginForm]);
 
-  // Dummy submit to do nothing, purely cosmetic
+  const loadingSteps = [
+    { bar: "[------------------------------]", label: "[00]", color: "#ff0000" },
+    { bar: "[===---------------------------]", label: "[10]", color: "#ff0000" },
+    { bar: "[======------------------------]", label: "[20]", color: "#ffa700" },
+    { bar: "[=========---------------------]", label: "[30]", color: "#ffa700" },
+    { bar: "[============------------------]", label: "[40]", color: "#fff400" },
+    { bar: "[===============---------------]", label: "[50]", color: "#fff400" },
+    { bar: "[==================------------]", label: "[60]", color: "#a3ff00" },
+    { bar: "[=====================---------]", label: "[70]", color: "#a3ff00" },
+    { bar: "[========================------]", label: "[80]", color: "#4AF626" },
+    { bar: "[===========================---]", label: "[90]", color: "#4AF626" },
+    { bar: "[==============================]", label: "[OK]", color: "#4AF626" },
+  ];
+
+  const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    if (!typewriterFinished) return; 
+  
+    const interval = setInterval(() => {
+      setCurrentStep((prev) => {
+        if (prev >= loadingSteps.length - 1) {
+          clearInterval(interval); 
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 500);
+  
+    return () => clearInterval(interval);
+  }, [typewriterFinished]); 
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // No real authentication; just log it for fun
     console.log("Submitted:", { username, password });
   };
 
   return (
     <div className="login-popup-overlay">
       <div className="login-popup-content">
-        {/* First "Initializing" line */}
         <div className="typewriter">
           <span
             className="text1"
@@ -121,22 +132,12 @@ const LoginPopup = () => {
             onAnimationEnd={() => setAnimation(2)}
           >
             {`> Initializing VOXL terminal...`}{" "}
-            {showInitialOk && (
-              <div className="voxl-login-ok"> [OK]</div>
-            )}
+            {showInitialOk && <div className="voxl-login-ok"> [OK]</div>}
           </span>
-          {/* Cursor blink only shows during the first animation */}
-          <span
-            className="cursor"
-            style={{ display: animation === 1 ? "" : "none" }}
-          ></span>
+          <span className="cursor" style={{ display: animation === 1 ? "" : "none" }}></span>
         </div>
 
-        {/* VOXL logo (only visible after a few seconds) */}
-        <div
-          className="typewriter"
-          style={{ display: animation >= 2 ? "" : "none" }}
-        >
+        <div className="typewriter" style={{ display: animation >= 2 ? "" : "none" }}>
           <span
             className="voxl-text"
             style={{
@@ -155,11 +156,7 @@ const LoginPopup = () => {
           </span>
         </div>
 
-        {/* After the initial animations, show the login form */}
-        <div
-          className="typewriter"
-          style={{ display: showLoginForm ? "block" : "none" }}
-        >
+        <div className="typewriter" style={{ display: showLoginForm ? "block" : "none" }}>
           <span
             className="text2"
             onAnimationEnd={() => {
@@ -192,14 +189,7 @@ const LoginPopup = () => {
               {showUsernameOk && <div className="voxl-login-ok">[OK]</div>}
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                height: 20,
-                marginTop: 20,
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "center", height: 20, marginTop: 20 }}>
               &gt;
               <input
                 ref={inputPasswordRef}
@@ -209,7 +199,6 @@ const LoginPopup = () => {
                 style={{ marginTop: 18 }}
                 readOnly
               />
-              {/* Toggle visibility icon */}
               <img
                 src={
                   showPasswordField
@@ -226,11 +215,26 @@ const LoginPopup = () => {
               />
               {showPasswordOk && <div className="voxl-login-ok">[OK]</div>}
             </div>
-
-            {/* "Login" button just logs to console */}
-            <div style={{ marginTop: 20, color: "white", cursor: "pointer" }}>
-              <div onClick={handleSubmit}>&gt; login</div>
-            </div>
+            {showLoadingBar && loadingSteps[currentStep] && (
+              <div
+                className="fade-in"
+                style={{
+                  marginTop: 50,
+                  textAlign: "left",
+                  color: "white",
+                }}
+              >
+                <div>
+                  {loadingSteps[currentStep].bar}{" "}
+                  <span
+                    className="voxl-login-ok"
+                    style={{ color: loadingSteps[currentStep].color }}
+                  >
+                    {loadingSteps[currentStep].label}
+                  </span>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>
