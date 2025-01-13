@@ -3,7 +3,7 @@ import React, { createRef, FormEvent, useEffect, useState } from "react";
 
 const generateRandomHex = (length: number): string => {
   let result = '';
-  const characters = 'abcdef0123456789';
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;:,.<>?/~`-=';
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -51,8 +51,8 @@ const LoginPopup = () => {
     if (!showLoginForm) return;
   
     const delayTimeout = setTimeout(() => {
-      const fullUsername = generateRandomHex(20);
-      const fullPassword = generateRandomHex(12);
+      const fullUsername = generateRandomHex(8);
+      const fullPassword = generateRandomHex(20);
   
       let userIndex = 0;
       let passIndex = 0;
@@ -61,17 +61,20 @@ const LoginPopup = () => {
         if (userIndex <= fullUsername.length) {
           setUsername(fullUsername.slice(0, userIndex));
           userIndex++;
-        }
-        if (userIndex > fullUsername.length && passIndex <= fullPassword.length) {
+        } else if (userIndex > fullUsername.length && passIndex === 0) {
+          setTimeout(() => {
+            passIndex = 1; 
+          }, 500); 
+        } else if (passIndex > 0 && passIndex <= fullPassword.length) {
           setPassword(fullPassword.slice(0, passIndex));
           passIndex++;
         }
+  
         if (userIndex > fullUsername.length && passIndex > fullPassword.length) {
           clearInterval(typingInterval);
-        
           setTimeout(() => {
             setTypewriterFinished(true);
-            setShowLoadingBar(true); 
+            setShowLoadingBar(true);
           }, 500);
         }
       }, 40);
@@ -102,20 +105,26 @@ const LoginPopup = () => {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {
-    if (!typewriterFinished) return; 
+    if (!typewriterFinished) return;
   
-    const interval = setInterval(() => {
+    let interval: NodeJS.Timeout;
+    
+    const updateStep = () => {
       setCurrentStep((prev) => {
         if (prev >= loadingSteps.length - 1) {
           clearInterval(interval); 
           return prev;
         }
+        const nextDelay = Math.random() * 1000 + 300; 
+        interval = setTimeout(updateStep, nextDelay); 
         return prev + 1;
       });
-    }, 500);
+    };
   
-    return () => clearInterval(interval);
-  }, [typewriterFinished]); 
+    updateStep();
+  
+    return () => clearInterval(interval); 
+  }, [typewriterFinished]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -159,6 +168,7 @@ const LoginPopup = () => {
         <div className="typewriter" style={{ display: showLoginForm ? "block" : "none" }}>
           <span
             className="text2"
+            style={{ marginLeft: "30px" }}
             onAnimationEnd={() => {
               setAnimation(3);
               inputUsernameRef.current?.focus();
@@ -176,7 +186,7 @@ const LoginPopup = () => {
           }}
         >
           <form onSubmit={handleSubmit} style={{ marginTop: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", height: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", height: 20, marginLeft:"30px" }}>
               &gt;
               <input
                 ref={inputUsernameRef}
@@ -186,10 +196,14 @@ const LoginPopup = () => {
                 value={username}
                 readOnly
               />
-              {showUsernameOk && <div className="voxl-login-ok">[OK]</div>}
+              {showUsernameOk && (
+                <div className="voxl-login-ok" style={{ marginRight: "30px" }}>
+                  [OK]
+                </div>
+              )}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", height: 20, marginTop: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", height: 20, marginTop: 20, marginLeft:"30px" }}>
               &gt;
               <input
                 ref={inputPasswordRef}
@@ -213,8 +227,13 @@ const LoginPopup = () => {
                 alt="Toggle password visibility"
                 onClick={togglePasswordVisibility}
               />
-              {showPasswordOk && <div className="voxl-login-ok">[OK]</div>}
+              {showPasswordOk && (
+                <div className="voxl-login-ok" style={{ marginRight: "30px" }}>
+                  [OK]
+                </div>
+              )}
             </div>
+
             {showLoadingBar && loadingSteps[currentStep] && (
               <div
                 className="fade-in"
