@@ -4,7 +4,7 @@ import React, {
   useEffect,
   useState,
 } from "react";
-import "./LoginPopup.css";
+// import "./LoginPopup.css";
 
 const LoginPopup = () => {
   // Basic states to show typed input, purely cosmetic
