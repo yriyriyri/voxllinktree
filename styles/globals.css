@@ -1,42 +1,98 @@
+
+
+@import url("https://p.typekit.net/p.css?s=1&k=tqc7cwb&ht=tk&f=45638.45639.45640.45641&a=87003040&app=typekit&e=css");
+
+@font-face {
+font-family:"dico-code-two";
+src:url("https://use.typekit.net/af/fc58a1/00000000000000007735c4e1/30/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("woff2"),url("https://use.typekit.net/af/fc58a1/00000000000000007735c4e1/30/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("woff"),url("https://use.typekit.net/af/fc58a1/00000000000000007735c4e1/30/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("opentype");
+font-display:auto;font-style:italic;font-weight:400;font-stretch:normal;
+}
+
+@font-face {
+font-family:"dico-code-two";
+src:url("https://use.typekit.net/af/b7783f/00000000000000007735c4e7/30/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff2"),url("https://use.typekit.net/af/b7783f/00000000000000007735c4e7/30/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff"),url("https://use.typekit.net/af/b7783f/00000000000000007735c4e7/30/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("opentype");
+font-display:auto;font-style:normal;font-weight:400;font-stretch:normal;
+}
+
+@font-face {
+font-family:"dico-code-two";
+src:url("https://use.typekit.net/af/59552f/00000000000000007735c4eb/30/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"),url("https://use.typekit.net/af/59552f/00000000000000007735c4eb/30/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"),url("https://use.typekit.net/af/59552f/00000000000000007735c4eb/30/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+font-display:auto;font-style:normal;font-weight:700;font-stretch:normal;
+}
+
+@font-face {
+font-family:"dico-code-two";
+src:url("https://use.typekit.net/af/598d1e/00000000000000007735c4ef/30/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("woff2"),url("https://use.typekit.net/af/598d1e/00000000000000007735c4ef/30/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("woff"),url("https://use.typekit.net/af/598d1e/00000000000000007735c4ef/30/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("opentype");
+font-display:auto;font-style:italic;font-weight:700;font-stretch:normal;
+}
+
+
+
+/* remove default margin and padding */
+html, body { 
+
+    padding: 0; 
+    
+    margin: 0;
+    
+    }
+
+.tk-dico-code-two { font-family: "dico-code-two",mono; }
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+    --accent-orange: #fc5533;
+    --accent-blue: #7387dc;
+    --accent-yellow: #ffd25a;
+    
+    --black: #000000;
+    --off-black: #323232;
+    
+    --white: #ffffff;
+    --off-white-1: #faf8f3;
+    --off-white-2: #edece7;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+    height: 100%;
+    background-color: var(--black);
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+body, input::placeholder {
+    font-family: "dico-code-two", mono !important;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 16px;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.home {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+  
+.dico-code-normal {
+    font-family: "dico-code-two", mono;
+    font-weight: 400;
+    font-style: normal;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+.dico-code-italic {
+    font-family: "dico-code-two", mono;
+    font-weight: 400;
+    font-style: italic;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.dico-code-bold {
+    font-family: "dico-code-two", mono;
+    font-weight: 700;
+    font-style: normal;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+.dico-code-bold-italic {
+    font-family: "dico-code-two", mono;
+    font-weight: 700;
+    font-style: italic;
 }
+
+
+
+

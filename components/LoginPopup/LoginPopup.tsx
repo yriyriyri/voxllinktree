@@ -6,8 +6,16 @@ import React, {
 } from "react";
 // import "./LoginPopup.css";
 
+const generateRandomHex = (length: number): string => {
+  let result = '';
+  const characters = 'abcdef0123456789';
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return result;
+};
+
 const LoginPopup = () => {
-  // Basic states to show typed input, purely cosmetic
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -16,7 +24,6 @@ const LoginPopup = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [showInitialOk, setShowInitialOk] = useState(false);
 
-  // For the text "OK" indicators next to username/password
   const [showUsernameOk, setShowUsernameOk] = useState(false);
   const [showPasswordOk, setShowPasswordOk] = useState(false);
 
@@ -56,6 +63,45 @@ const LoginPopup = () => {
   useEffect(() => {
     setShowPasswordOk(password.length > 0);
   }, [password]);
+
+  useEffect(() => {
+    // Only run this effect after the login form is visible
+    if (!showLoginForm) return;
+  
+    // Introduce a 1-second delay before starting the typewriter effect
+    const delayTimeout = setTimeout(() => {
+      const fullUsername = generateRandomHex(20); // longer string for username
+      const fullPassword = generateRandomHex(12); // shorter string for password
+  
+      let userIndex = 0;
+      let passIndex = 0;
+  
+      const typingInterval = setInterval(() => {
+        if (userIndex <= fullUsername.length) {
+          setUsername(fullUsername.slice(0, userIndex));
+          userIndex++;
+        }
+  
+        if (userIndex > fullUsername.length && passIndex <= fullPassword.length) {
+          setPassword(fullPassword.slice(0, passIndex));
+          passIndex++;
+        }
+  
+        if (userIndex > fullUsername.length && passIndex > fullPassword.length) {
+          clearInterval(typingInterval);
+        }
+      }, 100);
+  
+      // Clean up both intervals on component unmount or effect re-run
+      return () => {
+        clearInterval(typingInterval);
+        clearTimeout(delayTimeout);
+      };
+    }, 1000); // 1-second delay before starting the typing effect
+  
+    // Clear delayTimeout if component unmounts before timeout completes
+    return () => clearTimeout(delayTimeout);
+  }, [showLoginForm]);
 
   // Dummy submit to do nothing, purely cosmetic
   const handleSubmit = (e: FormEvent) => {
@@ -141,14 +187,7 @@ const LoginPopup = () => {
                 placeholder="username"
                 style={{ marginTop: 18 }}
                 value={username}
-                maxLength={24}
-                onChange={(e) => setUsername(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === "Tab") {
-                    e.preventDefault();
-                    inputPasswordRef.current?.focus();
-                  }
-                }}
+                readOnly
               />
               {showUsernameOk && <div className="voxl-login-ok">[OK]</div>}
             </div>
@@ -167,11 +206,8 @@ const LoginPopup = () => {
                 type={showPasswordField ? "text" : "password"}
                 placeholder="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 style={{ marginTop: 18 }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSubmit(e);
-                }}
+                readOnly
               />
               {/* Toggle visibility icon */}
               <img
