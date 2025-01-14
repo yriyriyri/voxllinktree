@@ -83,7 +83,7 @@ const LoginPopup = () => {
         clearInterval(typingInterval);
         clearTimeout(delayTimeout);
       };
-    }, 1000);
+    }, 750);
   
     return () => clearTimeout(delayTimeout);
   }, [showLoginForm]);
@@ -168,14 +168,14 @@ const LoginPopup = () => {
         <div className="typewriter" style={{ display: showLoginForm ? "block" : "none" }}>
           <span
             className="text2"
-            style={{ marginLeft: "30px" }}
+            style={{ marginLeft: "20px" }}
             onAnimationEnd={() => {
               setAnimation(3);
               inputUsernameRef.current?.focus();
             }}
           >
             <br />
-            {`$ voxl.login start`}
+            {`$ voxl.autologin start`}
           </span>
         </div>
 
@@ -186,7 +186,7 @@ const LoginPopup = () => {
           }}
         >
           <form onSubmit={handleSubmit} style={{ marginTop: 20 }}>
-            <div style={{ display: "flex", alignItems: "center", height: 20, marginLeft:"30px" }}>
+            <div style={{ display: "flex", alignItems: "center", height: 20, marginLeft:"40px" }}>
               &gt;
               <input
                 ref={inputUsernameRef}
@@ -197,13 +197,13 @@ const LoginPopup = () => {
                 readOnly
               />
               {showUsernameOk && (
-                <div className="voxl-login-ok" style={{ marginRight: "30px" }}>
+                <div className="voxl-login-ok" style={{ marginRight: "40px" }}>
                   [OK]
                 </div>
               )}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", height: 20, marginTop: 20, marginLeft:"30px" }}>
+            <div style={{ display: "flex", alignItems: "center", height: 20, marginTop: 20, marginLeft:"40px" }}>
               &gt;
               <input
                 ref={inputPasswordRef}
@@ -228,7 +228,7 @@ const LoginPopup = () => {
                 onClick={togglePasswordVisibility}
               />
               {showPasswordOk && (
-                <div className="voxl-login-ok" style={{ marginRight: "30px" }}>
+                <div className="voxl-login-ok" style={{ marginRight: "40px" }}>
                   [OK]
                 </div>
               )}
