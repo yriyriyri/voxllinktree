@@ -20,46 +20,52 @@ const MainSite: React.FC = () => {
     const ctx = htmlCanvas.getContext("2d", { willReadFrequently: true })!;
     if (!ctx) return;
 
-    // Initialize canvas size
-    htmlCanvas.width = window.innerWidth;
-    htmlCanvas.height = window.innerHeight;
+    const setCanvasSize = () => {
+      const dpr = window.devicePixelRatio || 1; 
+      htmlCanvas.width = window.innerWidth * dpr; 
+      htmlCanvas.height = window.innerHeight * dpr; 
+      htmlCanvas.style.width = `${window.innerWidth}px`; 
+      htmlCanvas.style.height = `${window.innerHeight}px`; 
+      ctx.scale(dpr, dpr); 
+    };
 
-    // Variables and settings
+    setCanvasSize();
+
     const sizeFactor = 80;
     const lineOpacityFactor = 2.5;
     let sizeMultiplier = Math.min(htmlCanvas.width, htmlCanvas.height) / sizeFactor;
     let lineOpacityMultiplier = htmlCanvas.width / lineOpacityFactor;
 
-    let nodes: Node[] = [];
-    let textArray = ["Trailer", "Instagram", "X", "Discord", "Facebook", "Youtube", "About Us", "Contact"];
-    const numNodes = 7;
-    let hoveredNodeIndex = -1;
+    const spawnWidth = window.innerWidth * 0.5;
+    const spawnHeight = window.innerHeight * 0.6;
+    const spawnXStart = (window.innerWidth - spawnWidth) / 2;
+    const spawnYStart = (window.innerHeight - spawnHeight) / 2;
+    const spawnXEnd = spawnXStart + spawnWidth;
+    const spawnYEnd = spawnYStart + spawnHeight;
 
-    function generateRandomHex(length: number): string {
-      let result = "";
-      const characters = "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;:,.<>?/~`-=";
-      for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      return result;
-    }
+    let nodes: Node[] = [];
+    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact"];
+    const numNodes = 7;
 
     function createNodes() {
       nodes = [];
       for (let i = 0; i < numNodes; i++) {
+        const x = Math.random() * (spawnWidth - 20) + spawnXStart + 10; 
+        const y = Math.random() * (spawnHeight - 20) + spawnYStart + 10; 
+    
         nodes.push({
-          x: Math.random() * htmlCanvas.width,
-          y: Math.random() * htmlCanvas.height,
-          z: Math.random() * (70 - 10),
-          dx: (Math.random() - 0.5) * 2,
-          dy: (Math.random() - 0.5) * 2,
-          boundingBox: { left: 0, right: 0, top: 0, bottom: 0 },
+          x: x,
+          y: y,
+          z: Math.random() * (70 - 10), 
+          dx: (Math.random() - 0.5) * 2, 
+          dy: (Math.random() - 0.5) * 2, 
+          boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
         });
       }
-
+    
       nodes.push({
-        x: htmlCanvas.width / 2,
-        y: htmlCanvas.height / 2,
+        x: (spawnXStart + spawnXEnd) / 2,
+        y: (spawnYStart + spawnYEnd) / 2,
         z: 0.1,
         dx: 0,
         dy: 0,
@@ -69,73 +75,42 @@ const MainSite: React.FC = () => {
 
     function drawWireframe() {
       ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
-      ctx.lineWidth = 3;
-
-      // Draw lines between nodes
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const z1 = nodes[i].z;
-          const z2 = nodes[j].z;
-
-          const dx = nodes[j].x - nodes[i].x;
-          const dy = nodes[j].y - nodes[i].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-
-          const lineOpacity = Math.max(0, 1 - distance / lineOpacityMultiplier);
-          const opacity1 = Math.max(0.2, 1 - z1 / 100);
-          const opacity2 = Math.max(0.2, 1 - z2 / 100);
-          const finalOpacity1 = Math.min(lineOpacity, opacity1);
-          const finalOpacity2 = Math.min(lineOpacity, opacity2);
-
-          const gradient = ctx.createLinearGradient(nodes[i].x, nodes[i].y, nodes[j].x, nodes[j].y);
-          gradient.addColorStop(0, `rgba(255, 255, 255, ${finalOpacity1})`);
-          gradient.addColorStop(1, `rgba(255, 255, 255, ${finalOpacity2})`);
-          ctx.strokeStyle = gradient;
-
-          ctx.beginPath();
-          ctx.moveTo(nodes[i].x, nodes[i].y);
-          ctx.lineTo(nodes[j].x, nodes[j].y);
-          ctx.stroke();
-        }
-      }
-
-      // Draw nodes with text
+      ctx.imageSmoothingEnabled = false; 
+      ctx.globalCompositeOperation = "source-over"; 
+    
+      const defaultFontSize = 16;
+      const smallFontSize = 10; 
+      ctx.fillStyle = "#FFFFFF"; 
+    
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         const text = textArray[i] || "";
-        const size = Math.max(5 * sizeMultiplier * (1 - node.z / 100), 1);
-        const height = size;
-        ctx.font = `${height}px "Courier New"`;
-        const textWidth = ctx.measureText(text).width;
-        const width = textWidth + 10;
-
-        let boxColor = "rgb(3, 10, 16)";
-        let textColor = `rgba(255, 255, 255, ${Math.max(0.2, 1 - node.z / 100)})`;
-        let borderOpacity = Math.max(0.2, 1 - node.z / 100);
-
-        if (i === hoveredNodeIndex) {
-          boxColor = "white";
-          textColor = "rgb(3, 10, 16)";
-          borderOpacity = 1;
-        }
-
-        ctx.fillStyle = boxColor;
-        ctx.fillRect(node.x - width / 2, node.y - height / 2, width, height);
-        ctx.strokeStyle = `rgba(255, 255, 255, ${borderOpacity})`;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(node.x - width / 2, node.y - height / 2, width, height);
-        ctx.fillStyle = textColor;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(text, node.x, node.y);
-
+    
+        const fontSize = i >= nodes.length - 2 ? smallFontSize : defaultFontSize;
+        ctx.font = `${fontSize}px "dico-code-two", monospace`;
+    
+        const charWidth = fontSize * 0.6;
+        const boxWidth = (text.length + 4) * charWidth;
+        const boxHeight = fontSize * 3;
+    
+        const x = node.x - boxWidth / 2;
+        const y = node.y - boxHeight / 2;
+    
+        const topBorder = `+${"-".repeat(text.length + 2)}+`;
+        const bottomBorder = topBorder;
+        const paddedText = `| ${text} |`;
+    
+        ctx.fillText(topBorder, x, y);
+        ctx.fillText(paddedText, x, y + fontSize);
+        ctx.fillText(bottomBorder, x, y + fontSize * 2);
+    
         node.boundingBox = {
-          left: node.x - width / 2,
-          right: node.x + width / 2,
-          top: node.y - height / 2,
-          bottom: node.y + height / 2,
-          width,
-          height,
+          left: x,
+          right: x + boxWidth,
+          top: y,
+          bottom: y + boxHeight,
+          width: boxWidth,
+          height: boxHeight,
         };
       }
     }
@@ -144,6 +119,7 @@ const MainSite: React.FC = () => {
       const maxSpeed = 2;
       const restitution = 1;
       const passes = 2;
+      const fontSize = 20;
       const now = performance.now();
 
       for (let i = 0; i < nodes.length; i++) {
@@ -158,10 +134,10 @@ const MainSite: React.FC = () => {
         }
 
         const edgeRepulsionStrength = 0.02;
-        if (node.x < 150) node.dx += edgeRepulsionStrength;
-        else if (node.x > htmlCanvas.width - 50) node.dx -= edgeRepulsionStrength;
-        if (node.y < 100) node.dy += edgeRepulsionStrength;
-        else if (node.y > htmlCanvas.height - 50) node.dy -= edgeRepulsionStrength;
+        if (node.x < spawnXStart) node.dx += edgeRepulsionStrength;
+        else if (node.x > spawnXEnd) node.dx -= edgeRepulsionStrength;
+        if (node.y < spawnYStart) node.dy += edgeRepulsionStrength;
+        else if (node.y > spawnYEnd) node.dy -= edgeRepulsionStrength;
 
         const speed = Math.sqrt(node.dx * node.dx + node.dy * node.dy);
         if (speed > maxSpeed) {
@@ -173,32 +149,30 @@ const MainSite: React.FC = () => {
       for (let pass = 0; pass < passes; pass++) {
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];
-          ctx.font = `${Math.max(5 * sizeMultiplier * (1 - node.z / 100), 1)}px "Courier New"`;
-          const textWidth = ctx.measureText(textArray[i] || "").width;
-          const nodeWidth = textWidth + 10;
-          const nodeHeight = Math.max(5 * sizeMultiplier * (1 - node.z / 100), 1);
+          const text = textArray[i] || "";
+          const charWidth = fontSize * 0.6;
+          const boxWidth = (text.length + 4) * charWidth;
+          const boxHeight = fontSize * 3;
 
           const nodeBounds = {
-            left: node.x - nodeWidth / 2,
-            right: node.x + nodeWidth / 2,
-            top: node.y - nodeHeight / 2,
-            bottom: node.y + nodeHeight / 2,
+            left: node.x - boxWidth / 2,
+            right: node.x + boxWidth / 2,
+            top: node.y - boxHeight / 2,
+            bottom: node.y + boxHeight / 2,
           };
 
           for (let j = 0; j < nodes.length; j++) {
             if (i === j) continue;
             const otherNode = nodes[j];
-
-            ctx.font = `${Math.max(5 * sizeMultiplier * (1 - otherNode.z / 100), 1)}px "Courier New"`;
-            const otherTextWidth = ctx.measureText(textArray[j] || "").width;
-            const otherNodeWidth = otherTextWidth + 10;
-            const otherNodeHeight = Math.max(5 * sizeMultiplier * (1 - otherNode.z / 100), 1);
+            const otherText = textArray[j] || "";
+            const otherBoxWidth = (otherText.length + 4) * charWidth;
+            const otherBoxHeight = fontSize * 3;
 
             const otherNodeBounds = {
-              left: otherNode.x - otherNodeWidth / 2,
-              right: otherNode.x + otherNodeWidth / 2,
-              top: otherNode.y - otherNodeHeight / 2,
-              bottom: otherNode.y + otherNodeHeight / 2,
+              left: otherNode.x - otherBoxWidth / 2,
+              right: otherNode.x + otherBoxWidth / 2,
+              top: otherNode.y - otherBoxHeight / 2,
+              bottom: otherNode.y + otherBoxHeight / 2,
             };
 
             if (
@@ -261,8 +235,7 @@ const MainSite: React.FC = () => {
     animate();
 
     const handleResize = () => {
-      htmlCanvas.width = window.innerWidth;
-      htmlCanvas.height = window.innerHeight;
+      setCanvasSize(); 
       sizeMultiplier = Math.min(htmlCanvas.width, htmlCanvas.height) / sizeFactor;
       lineOpacityMultiplier = htmlCanvas.width / lineOpacityFactor;
       createNodes();
