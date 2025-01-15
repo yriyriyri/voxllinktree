@@ -1,6 +1,10 @@
 import React, { createRef, FormEvent, useEffect, useState } from "react";
 // import "./LoginPopup.css";
 
+interface LoginPopupProps {
+  onComplete?: () => void;
+}
+
 const generateRandomHex = (length: number): string => {
   let result = '';
   const characters = 'abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;:,.<>?/~`-=';
@@ -10,7 +14,7 @@ const generateRandomHex = (length: number): string => {
   return result;
 };
 
-const LoginPopup = () => {
+const LoginPopup: React.FC<LoginPopupProps> = ({ onComplete }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -106,25 +110,28 @@ const LoginPopup = () => {
 
   useEffect(() => {
     if (!typewriterFinished) return;
-  
-    let interval: NodeJS.Timeout;
+    
+    let timeoutHandle: NodeJS.Timeout;
     
     const updateStep = () => {
       setCurrentStep((prev) => {
         if (prev >= loadingSteps.length - 1) {
-          clearInterval(interval); 
+          clearTimeout(timeoutHandle); 
+          setTimeout(() => {
+            if (onComplete) onComplete();
+          }, 1000); 
           return prev;
         }
         const nextDelay = Math.random() * 1000 + 300; 
-        interval = setTimeout(updateStep, nextDelay); 
+        timeoutHandle = setTimeout(updateStep, nextDelay); 
         return prev + 1;
       });
     };
-  
+    
     updateStep();
-  
-    return () => clearInterval(interval); 
-  }, [typewriterFinished]);
+    
+    return () => clearTimeout(timeoutHandle); 
+  }, [typewriterFinished, onComplete]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
