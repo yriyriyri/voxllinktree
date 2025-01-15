@@ -134,7 +134,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ onComplete }) => {
             if (timeoutHandleRef.current) clearTimeout(timeoutHandleRef.current);
             setTimeout(() => {
               if (!canceledRef.current && onComplete) onComplete();
-            }, 1000);
+            }, 50);
           }
           return prev;
         }
