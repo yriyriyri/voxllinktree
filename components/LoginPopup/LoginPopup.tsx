@@ -110,12 +110,14 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ onComplete }) => {
 
   useEffect(() => {
     if (!typewriterFinished) return;
+    console.log("Typewriter finished, starting loading steps")
     
     let timeoutHandle: NodeJS.Timeout;
     
     const updateStep = () => {
       setCurrentStep((prev) => {
         if (prev >= loadingSteps.length - 1) {
+          console.log("loading completed, invoking onComplete")
           clearTimeout(timeoutHandle); 
           setTimeout(() => {
             if (onComplete) onComplete();
@@ -131,7 +133,7 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ onComplete }) => {
     updateStep();
     
     return () => clearTimeout(timeoutHandle); 
-  }, [typewriterFinished, onComplete]);
+  }, [typewriterFinished]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

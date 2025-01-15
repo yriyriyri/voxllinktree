@@ -11,6 +11,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const completedRef = useRef(false);
 
   const handleComplete = useCallback(() => {
+    console.log("handleComplete called")
     if (!completedRef.current) {
       completedRef.current = true;
       setLoading(false);
