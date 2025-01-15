@@ -1,4 +1,4 @@
-import React, { createRef, FormEvent, useEffect, useState } from "react";
+import React, { createRef, FormEvent, useEffect, useState, useRef } from "react";
 // import "./LoginPopup.css";
 
 interface LoginPopupProps {
@@ -15,6 +15,14 @@ const generateRandomHex = (length: number): string => {
 };
 
 const LoginPopup: React.FC<LoginPopupProps> = ({ onComplete }) => {
+  useEffect(() => {
+    console.log("LoginPopup mounted");
+    return () => console.log("LoginPopup unmounted");
+  }, []);
+
+  const timeoutHandleRef = useRef<NodeJS.Timeout | null>(null);
+  const canceledRef = useRef(false);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -110,30 +118,42 @@ const LoginPopup: React.FC<LoginPopupProps> = ({ onComplete }) => {
 
   useEffect(() => {
     if (!typewriterFinished) return;
-    console.log("Typewriter finished, starting loading steps")
-    
-    let timeoutHandle: NodeJS.Timeout;
-    
+    console.log("Typewriter finished, starting loading steps");
+
+    canceledRef.current = false;
+
     const updateStep = () => {
       setCurrentStep((prev) => {
-        if (prev >= loadingSteps.length - 1) {
-          console.log("loading completed, invoking onComplete")
-          clearTimeout(timeoutHandle); 
-          setTimeout(() => {
-            if (onComplete) onComplete();
-          }, 1000); 
+        if (canceledRef.current) {
           return prev;
         }
-        const nextDelay = Math.random() * 1000 + 300; 
-        timeoutHandle = setTimeout(updateStep, nextDelay); 
+
+        if (prev >= loadingSteps.length - 1) {
+          console.log("loading completed, invoking onComplete");
+          if (!canceledRef.current) {
+            if (timeoutHandleRef.current) clearTimeout(timeoutHandleRef.current);
+            setTimeout(() => {
+              if (!canceledRef.current && onComplete) onComplete();
+            }, 1000);
+          }
+          return prev;
+        }
+
+        const nextDelay = Math.random() * 500 + 50;
+        timeoutHandleRef.current = setTimeout(updateStep, nextDelay);
         return prev + 1;
       });
     };
-    
+
     updateStep();
-    
-    return () => clearTimeout(timeoutHandle); 
-  }, [typewriterFinished]);
+
+    return () => {
+      canceledRef.current = true;
+      if (timeoutHandleRef.current) {
+        clearTimeout(timeoutHandleRef.current);
+      }
+    };
+  }, [typewriterFinished, onComplete, loadingSteps.length]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();

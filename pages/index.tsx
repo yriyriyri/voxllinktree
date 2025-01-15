@@ -5,10 +5,9 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>Voxllinktree</title>
+        <title>VOXL.OS</title>
         <meta name="description" content="Cosmetic Login Popup Demo" />
       </Head>
-      <LoginPopup />
     </>
   );
 }
