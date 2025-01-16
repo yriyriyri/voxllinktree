@@ -46,6 +46,11 @@ const MainSite: React.FC = () => {
     let nodes: Node[] = [];
     let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact"];
     const numNodes = 7;
+    const svgIcons = {
+      "./instagram": "/images/icons/instagram.svg",
+      "./X": "/images/icons/x.svg",
+      "./youtube": "/images/icons/youtube.svg",
+    };
 
     function createNodes() {
       nodes = [];
@@ -85,6 +90,17 @@ const MainSite: React.FC = () => {
     
       ctx.lineWidth = lineWidth;
       ctx.strokeStyle = "#FFFFFF";
+
+      function drawSVG(svgPath: string, x: number, y: number, width: number, height: number) {
+        const img = new Image();
+        img.src = svgPath;
+        img.onload = () => {
+          ctx.drawImage(img, x, y, width, height);
+        };
+        img.onerror = (err) => {
+          console.error(`Failed to load SVG at ${svgPath}:`, err);
+        };
+      }
     
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
@@ -149,6 +165,13 @@ const MainSite: React.FC = () => {
           height: boxHeight,
         };
       }
+
+      const svgPath = "/images/icons/instagram.svg";
+      const svgWidth = 32; // Fixed width for the SVG
+      const svgHeight = 32; // Fixed height for the SVG
+      const x = htmlCanvas.width - svgWidth - 10; // 10px padding from the right
+      const y = 10; // 10px padding from the top
+      drawSVG(svgPath, x, y, svgWidth, svgHeight);
     }
 
     function updateNodes() {
