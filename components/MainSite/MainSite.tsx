@@ -32,7 +32,7 @@ const MainSite: React.FC = () => {
     setCanvasSize();
 
     const sizeFactor = 80;
-    const lineOpacityFactor = 2.5;
+    const lineOpacityFactor = 12;
     let sizeMultiplier = Math.min(htmlCanvas.width, htmlCanvas.height) / sizeFactor;
     let lineOpacityMultiplier = htmlCanvas.width / lineOpacityFactor;
 
@@ -75,30 +75,66 @@ const MainSite: React.FC = () => {
 
     function drawWireframe() {
       ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
-      ctx.imageSmoothingEnabled = false; 
-      ctx.globalCompositeOperation = "source-over"; 
+      ctx.imageSmoothingEnabled = false;
+      ctx.globalCompositeOperation = "source-over";
     
       const defaultFontSize = 16;
-      const smallFontSize = 10; 
-      ctx.fillStyle = "#FFFFFF"; 
+      const smallFontSize = 10;
+      ctx.fillStyle = "#FFFFFF";
+      const lineWidth = defaultFontSize / 12;
+    
+      ctx.lineWidth = lineWidth;
+      ctx.strokeStyle = "#FFFFFF";
     
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
-        const text = textArray[i] || "";
-    
         const fontSize = i >= nodes.length - 2 ? smallFontSize : defaultFontSize;
-        ctx.font = `${fontSize}px "dico-code-two", monospace`;
-    
         const charWidth = fontSize * 0.6;
-        const boxWidth = (text.length + 4) * charWidth;
+        const boxWidth = (textArray[i]?.length + 4 || 0) * charWidth;
         const boxHeight = fontSize * 3;
     
         const x = node.x - boxWidth / 2;
         const y = node.y - boxHeight / 2;
     
-        const topBorder = `+${"-".repeat(text.length + 2)}+`;
+        for (let j = i + 1; j < nodes.length; j++) {
+          const targetNode = nodes[j];
+          const targetFontSize = j >= nodes.length - 2 ? smallFontSize : defaultFontSize;
+          const targetCharWidth = targetFontSize * 0.6;
+          const targetBoxWidth = (textArray[j]?.length + 4 || 0) * targetCharWidth;
+          const endX = targetNode.x - targetBoxWidth / 2;
+          const endY = targetNode.y;
+    
+          const dx = endX - node.x;
+          const dy = endY - node.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+    
+          const lineOpacity = Math.max(0, 1 - distance / lineOpacityMultiplier);
+          if (lineOpacity > 0) {
+            const whiteRatio = Math.max(1, Math.round(10 * lineOpacity));
+            const blackRatio = Math.max(1, Math.round(10 * (1 - lineOpacity)));
+    
+            ctx.setLineDash([whiteRatio, blackRatio]);
+            ctx.globalAlpha = 1;
+    
+            ctx.beginPath();
+            ctx.moveTo(node.x, node.y);
+            ctx.lineTo(targetNode.x, targetNode.y);
+            ctx.stroke();
+    
+            ctx.setLineDash([]);
+          }
+        }
+    
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(x, y, boxWidth, boxHeight);
+    
+        ctx.fillStyle = "#FFFFFF";
+        ctx.font = `${fontSize}px "dico-code-two", monospace`;
+        ctx.textBaseline = "top";
+    
+        const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
         const bottomBorder = topBorder;
-        const paddedText = `| ${text} |`;
+        const paddedText = `| ${textArray[i] || ""} |`;
     
         ctx.fillText(topBorder, x, y);
         ctx.fillText(paddedText, x, y + fontSize);
