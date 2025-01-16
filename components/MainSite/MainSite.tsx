@@ -44,13 +44,26 @@ const MainSite: React.FC = () => {
     const spawnYEnd = spawnYStart + spawnHeight;
 
     let nodes: Node[] = [];
-    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact"];
+    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebooooooooook", "./youtube", "./about us", "./contact"];
     const numNodes = 7;
     const svgIcons = {
-      "./instagram": "/images/icons/instagram.svg",
-      "./X": "/images/icons/x.svg",
-      "./youtube": "/images/icons/youtube.svg",
+      "./instagram": {
+        img: new Image(),
+        color: "#0000FF", 
+      },
+      "./X": {
+        img: new Image(),
+        color: "#1DA1F2", 
+      },
+      "./youtube": {
+        img: new Image(),
+        color: "#FF0000", 
+      },
     };
+    
+    svgIcons["./instagram"].img.src = "/images/icons/instagram.svg";
+    // svgIcons["./X"].src = "/images/icons/x.svg";
+    // svgIcons["./youtube"].src = "/images/icons/youtube.svg";
 
     function createNodes() {
       nodes = [];
@@ -90,15 +103,13 @@ const MainSite: React.FC = () => {
     
       ctx.lineWidth = lineWidth;
       ctx.strokeStyle = "#FFFFFF";
+  
     
-      const img = new Image();
-      img.src = "/images/icons/instagram.svg";
-    
-      function drawSVG(x: number, y: number, width: number, height: number) {
+      function drawSVG(img: HTMLImageElement, x: number, y: number, width: number, height: number) {
         if (img.complete) {
-          ctx.drawImage(img, x, y, width, height);
+          ctx.drawImage(img, x, y, width, height); 
         } else {
-          console.log("Image not ready yet");
+          console.log("svg not ready yet");
         }
       }
     
@@ -141,36 +152,90 @@ const MainSite: React.FC = () => {
           }
         }
     
-        ctx.fillStyle = "#000000";
+        ctx.fillStyle = "#0000FF";
         ctx.fillRect(x, y, boxWidth, boxHeight);
-    
+
         ctx.fillStyle = "#FFFFFF";
         ctx.font = `${fontSize}px "dico-code-two", monospace`;
         ctx.textBaseline = "top";
-    
-        const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
-        const bottomBorder = topBorder;
-        const paddedText = `| ${textArray[i] || ""} |`;
-    
-        ctx.fillText(topBorder, x, y);
-        ctx.fillText(paddedText, x, y + fontSize);
-        ctx.fillText(bottomBorder, x, y + fontSize * 2);
-    
-        node.boundingBox = {
-          left: x,
-          right: x + boxWidth,
-          top: y,
-          bottom: y + boxHeight,
-          width: boxWidth,
-          height: boxHeight,
-        };
+
+        if (Object.keys(svgIcons).includes(textArray[i])) {
+          const svgEntry = svgIcons[textArray[i] as keyof typeof svgIcons]; 
+          const svgColor = svgEntry.color || "#FFFFFF"; 
+
+          const topBorder = `+${"-".repeat(textArray[i]?.length + 7 || 0)}+`; 
+          const bottomBorder = topBorder;
+
+          ctx.fillStyle = "#FFFFFF"; 
+          ctx.fillText(topBorder, x, y);
+          ctx.fillText(bottomBorder, x, y + fontSize * 2);
+
+          const textBeforeBrackets = `| ${textArray[i] || ""} `;
+          ctx.fillText(textBeforeBrackets, x, y + fontSize); 
+
+          ctx.fillStyle = svgColor; 
+          ctx.fillText("[  ]", x + ctx.measureText(textBeforeBrackets).width, y + fontSize); 
+
+          ctx.fillStyle = "#FFFFFF"; 
+          ctx.fillText("|", x + ctx.measureText(`${textBeforeBrackets}[  ] `).width, y + fontSize); 
+
+          const fullText = `${textBeforeBrackets}[  ] |`;
+
+          node.boundingBox = {
+            left: x,
+            right: x + ctx.measureText(fullText).width,
+            top: y,
+            bottom: y + boxHeight,
+            width: ctx.measureText(fullText).width,
+            height: boxHeight,
+          };
+
+          ctx.lineWidth = 1;
+          ctx.strokeRect(
+            node.boundingBox.left,
+            node.boundingBox.top,
+            node.boundingBox.width || 0,
+            node.boundingBox.height || 0 
+          );
+
+        } else {
+          const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
+          const bottomBorder = topBorder;
+          const paddedText = `| ${textArray[i] || ""} |`;
+        
+          ctx.fillText(topBorder, x, y);
+          ctx.fillText(paddedText, x, y + fontSize);
+          ctx.fillText(bottomBorder, x, y + fontSize * 2);
+        
+          node.boundingBox = {
+            left: x,
+            right: x + boxWidth,
+            top: y,
+            bottom: y + boxHeight,
+            width: boxWidth,
+            height: boxHeight,
+          };
+
+          ctx.lineWidth = 1;
+          ctx.strokeRect(
+            node.boundingBox.left,
+            node.boundingBox.top,
+            node.boundingBox.width || 0,
+            node.boundingBox.height || 0 
+          );
+
+        }
       }
     
       const svgX = 100;
       const svgY = 100;
-      const svgWidth = 32;
-      const svgHeight = 32;
-      drawSVG(svgX, svgY, svgWidth, svgHeight);
+      const svgWidth = 19.2;
+      const svgHeight = 19.2;
+
+      ctx.strokeStyle = "red";
+      ctx.strokeRect(svgX, svgY, svgWidth, svgHeight);
+
+      drawSVG(svgIcons["./instagram"].img,svgX, svgY, svgWidth, svgHeight);
     }
 
     function updateNodes() {
