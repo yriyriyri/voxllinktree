@@ -90,16 +90,16 @@ const MainSite: React.FC = () => {
     
       ctx.lineWidth = lineWidth;
       ctx.strokeStyle = "#FFFFFF";
-
-      function drawSVG(svgPath: string, x: number, y: number, width: number, height: number) {
-        const img = new Image();
-        img.src = svgPath;
-        img.onload = () => {
+    
+      const img = new Image();
+      img.src = "/images/icons/instagram.svg";
+    
+      function drawSVG(x: number, y: number, width: number, height: number) {
+        if (img.complete) {
           ctx.drawImage(img, x, y, width, height);
-        };
-        img.onerror = (err) => {
-          console.error(`Failed to load SVG at ${svgPath}:`, err);
-        };
+        } else {
+          console.log("Image not ready yet");
+        }
       }
     
       for (let i = 0; i < nodes.length; i++) {
@@ -165,13 +165,12 @@ const MainSite: React.FC = () => {
           height: boxHeight,
         };
       }
-
-      const svgPath = "/images/icons/instagram.svg";
-      const svgWidth = 32; // Fixed width for the SVG
-      const svgHeight = 32; // Fixed height for the SVG
-      const x = htmlCanvas.width - svgWidth - 10; // 10px padding from the right
-      const y = 10; // 10px padding from the top
-      drawSVG(svgPath, x, y, svgWidth, svgHeight);
+    
+      const svgX = 100;
+      const svgY = 100;
+      const svgWidth = 32;
+      const svgHeight = 32;
+      drawSVG(svgX, svgY, svgWidth, svgHeight);
     }
 
     function updateNodes() {
