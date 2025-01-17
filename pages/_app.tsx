@@ -5,6 +5,7 @@ import type { AppProps } from "next/app";
 import React, { useState, useRef, useCallback } from "react";
 import LoginPopup from "../components/LoginPopup/LoginPopup";
 import MainSite from "../components/MainSite/MainSite";
+import Clock from "../components/Clock/Clock"
 
 let hasRunLoginPopup = false;
 
@@ -29,6 +30,7 @@ export default function App({ Component, pageProps }: AppProps) {
         <>
           <MainSite />
           <Component {...pageProps} />
+          <Clock />
         </>
       )}
     </>
