@@ -81,21 +81,20 @@ const MainSite: React.FC = () => {
 
     setCanvasSize();
 
-    const lineOpacityFactor = 20;
+    const lineOpacityFactor = 18;
     let lineOpacityMultiplier = (htmlCanvas.width / lineOpacityFactor) + 100;
-    console.log(lineOpacityMultiplier)
 
-    let spawnWidth = window.innerWidth * 0.5;
+    let spawnWidth = window.innerWidth * 0.6;
     let spawnHeight = window.innerHeight * 0.6;
-    let spawnXStart = (window.innerWidth - spawnWidth) / 2;
+    let spawnXStart = (window.innerWidth - spawnWidth) / 2 + window.innerHeight * 0.1;
     let spawnYStart = (window.innerHeight - spawnHeight) / 2;
     let spawnXEnd = spawnXStart + spawnWidth;
     let spawnYEnd = spawnYStart + spawnHeight;
 
     let nodes: Node[] = [];
-    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact"];
-    let linkArray = [null,"https://www.instagram.com/voxl.online/","https://x.com/voxldev",null,null,"https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",null,null]
-    const numNodes = 7;
+    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact","l","./TimeUntilRelease()"];
+    let linkArray = [null,"https://www.instagram.com/voxl.online/","https://x.com/voxldev",null,null,"https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",null,null,null]
+    const numNodes = 8;
     const svgIcons = {
       "./instagram": {
         img: new Image(),
@@ -119,7 +118,7 @@ const MainSite: React.FC = () => {
 
     function createNodes() {
       nodes = [];
-      for (let i = 0; i < numNodes + 1; i++) {
+      for (let i = 0; i < numNodes; i++) {
         const x = Math.random() * (spawnWidth - 20) + spawnXStart + 10; 
         const y = Math.random() * (spawnHeight - 20) + spawnYStart + 10; 
     
@@ -132,6 +131,25 @@ const MainSite: React.FC = () => {
           boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
         });
       }
+
+      nodes.push({
+        x: spawnXEnd + -250,
+        y: spawnYStart - 30,
+        z: Math.random() * (70 - 10), 
+        dx: 0, 
+        dy: 0, 
+        boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
+      });
+
+      nodes.push({
+        x: spawnXEnd + -280,
+        y: spawnYStart - 50,
+        z: Math.random() * (70 - 10), 
+        dx: 0, 
+        dy: 0, 
+        boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
+      });
+
     }
 
     function drawWireframe() {
@@ -158,7 +176,7 @@ const MainSite: React.FC = () => {
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         const fontSize = i >= nodes.length - 2 ? smallFontSize : defaultFontSize;
-    
+      
         for (let j = i + 1; j < nodes.length; j++) {
           const targetNode = nodes[j];
           const targetFontSize = j >= nodes.length - 2 ? smallFontSize : defaultFontSize;
@@ -171,8 +189,15 @@ const MainSite: React.FC = () => {
           const dx = endX - node.x;
           const dy = endY - node.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-          const lineOpacity = Math.max(0, 1 - distance / lineOpacityMultiplier);
-    
+      
+          let lineOpacity;
+          
+          if ((i === numNodes && j === numNodes + 1) || (i === numNodes + 1 && j === numNodes)) {
+            lineOpacity = Math.max(0.5, 1 - distance / lineOpacityMultiplier);
+          } else {
+            lineOpacity = Math.max(0, 1 - distance / lineOpacityMultiplier);
+          }
+      
           if (lineOpacity > 0) {
             const whiteRatio = Math.max(1, Math.round(10 * lineOpacity));
             const blackRatio = Math.max(1, Math.round(10 * (1 - lineOpacity)));
@@ -189,59 +214,173 @@ const MainSite: React.FC = () => {
     
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
-        const fontSize = i >= nodes.length - 2 ? smallFontSize : defaultFontSize;
+        const isSpecialNode = i > numNodes -1; 
+        const fontSize = isSpecialNode
+          ? i === numNodes + 1 
+            ? 14 
+            : 16 
+          : i >= nodes.length - 4
+          ? smallFontSize
+          : defaultFontSize;
         ctx.font = `${fontSize}px "dico-code-two", monospace`;
+      
         ctx.textBaseline = "top";
-    
+      
         const charWidth = fontSize * 0.6;
         let boxWidth = (textArray[i]?.length + 4 || 0) * charWidth;
         const boxHeight = fontSize * 3;
-    
+      
         let x = node.x - boxWidth / 2;
         let y = node.y - boxHeight / 2;
-    
-        if (Object.keys(svgIcons).includes(textArray[i])) {
-          const svgEntry = svgIcons[textArray[i] as keyof typeof svgIcons]; 
-          const svgColor = svgEntry.color || "#FFFFFF"; 
-    
+      
+        if (isSpecialNode) {
+          if (i === numNodes) {
+            const leftWall = `| `
+            const loadingBar = `█████▓▓▓▒▒▒▒▒▒▒░░░░░░░░░░░░░░░░`;
+            const statsLeft = ` [`;
+            const statsMiddle = `???`;
+            const statsRight = `/304]`;
+            const rightWall = ` |`;
+            const textWidth = ctx.measureText(`${leftWall}${loadingBar}${statsLeft}${statsMiddle}${statsRight}${rightWall}`).width;
+            const topBorder = `+${"-".repeat(leftWall.length + loadingBar.length + statsLeft.length + statsMiddle.length + statsRight.length + rightWall.length - 2 || 0)}+`;
+            const bottomBorder = topBorder;
+        
+            ctx.fillStyle = "#000000"; 
+            ctx.fillRect(x, y, textWidth, boxHeight);
+
+            ctx.fillStyle = "#FFFFFF"; 
+            ctx.fillText(topBorder, x, y);
+            ctx.fillText(leftWall, x, y + fontSize);
+
+            const leftWallWidth = ctx.measureText(leftWall).width;
+            const loadingBarWidth = ctx.measureText(loadingBar).width;
+
+            ctx.fillStyle = "red"
+            ctx.fillRect(x + leftWallWidth, y + fontSize, loadingBarWidth, fontSize);
+
+            ctx.fillStyle = "purple"; 
+            ctx.fillText(loadingBar, x + leftWallWidth, y + fontSize);
+        
+            ctx.fillStyle = "#4AF626"; 
+            ctx.fillText(statsLeft, x + leftWallWidth + loadingBarWidth, y + fontSize);
+        
+            const statsLeftWidth = ctx.measureText(statsLeft).width;
+            ctx.fillStyle = "#FF0000"; 
+            ctx.fillText(statsMiddle, x + leftWallWidth + loadingBarWidth + statsLeftWidth, y + fontSize);
+        
+            const statsMiddleWidth = ctx.measureText(statsMiddle).width;
+            ctx.fillStyle = "#4AF626"; 
+            ctx.fillText(statsRight, x + leftWallWidth + loadingBarWidth + statsLeftWidth + statsMiddleWidth, y + fontSize);
+        
+            const statsRightWidth = ctx.measureText(statsRight).width;
+            ctx.fillStyle = "#FFFFFF"; 
+            ctx.fillText(rightWall, x + leftWallWidth + loadingBarWidth + statsLeftWidth + statsMiddleWidth + statsRightWidth, y + fontSize);
+        
+            ctx.fillStyle = "#FFFFFF"; 
+            ctx.fillText(bottomBorder, x, y + fontSize * 2);
+        
+            node.boundingBox = {
+              left: x,
+              right: x + textWidth,
+              top: y,
+              bottom: y + boxHeight,
+              width: textWidth,
+              height: boxHeight,
+            }
+
+            // ctx.strokeStyle = "yellow"; 
+            // ctx.lineWidth = 1;
+            // ctx.strokeRect(node.boundingBox.left, node.boundingBox.top, node.boundingBox.width || 0, node.boundingBox.height|| 0); 
+
+          } else if (i === numNodes + 1) {
+            const paddedText = `| ${textArray[i] || ""} `;
+            const returnValue = `[UNDEFINED]`
+            const rightWall = ` |`;
+            const textWidth = ctx.measureText(`${paddedText}${returnValue}${rightWall}`).width
+            const topBorder = `+${"-".repeat(paddedText.length+returnValue.length+rightWall.length-2)}+`;
+            const bottomBorder = topBorder;
+        
+            ctx.fillStyle = "#000000";
+            ctx.fillRect(x, y, textWidth, boxHeight);
+        
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(topBorder, x, y);
+            ctx.fillText(paddedText, x, y + fontSize);
+            ctx.fillText(bottomBorder, x, y + fontSize * 2);
+
+            const paddedTextWidth = ctx.measureText(paddedText).width
+            const returnValueWidth = ctx.measureText(returnValue).width
+            ctx.fillStyle =`#0000FF`
+            ctx.fillRect(x + paddedTextWidth, y + fontSize, returnValueWidth, fontSize);
+            ctx.fillStyle = "#FF0000"
+            ctx.fillText(returnValue, x + paddedTextWidth,y+fontSize)
+
+            
+            ctx.fillStyle = "#FFFFFF"
+            ctx.fillText(rightWall, x + paddedTextWidth+returnValueWidth,y+fontSize)
+        
+            if (i === hoveredNodeIndex) {
+              const underlineY = y + fontSize * 2;
+              const textWidth = ctx.measureText(textArray[i] || "").width;
+              ctx.strokeStyle = "#FFFFFF";
+              ctx.lineWidth = 1.2;
+              ctx.beginPath();
+              ctx.moveTo(x + ctx.measureText("--").width, underlineY);
+              ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
+              ctx.stroke();
+            }
+        
+            node.boundingBox = {
+              left: x,
+              right: x + textWidth,
+              top: y,
+              bottom: y + boxHeight,
+              width: textWidth,
+              height: boxHeight,
+            };
+          }
+        } else if (Object.keys(svgIcons).includes(textArray[i])) {
+          const svgEntry = svgIcons[textArray[i] as keyof typeof svgIcons];
+          const svgColor = svgEntry.color || "#FFFFFF";
+      
           const topBorderStr = `+${"-".repeat(textArray[i]?.length + 7 || 0)}+`;
           const bottomBorderStr = topBorderStr;
           const textBeforeBrackets = `| ${textArray[i] || ""} `;
           const brackets = "[  ]";
           const rightWall = "|";
-    
+      
           const measurementString = `${textBeforeBrackets}${brackets} ${rightWall}`;
           const measuredWidth = ctx.measureText(measurementString).width;
-    
+      
           boxWidth = measuredWidth;
           x = node.x - measuredWidth / 2;
           y = node.y - boxHeight / 2;
-    
-          ctx.fillStyle = "#000000"; 
+      
+          ctx.fillStyle = "#000000";
           ctx.fillRect(x, y, measuredWidth, boxHeight);
-    
-          ctx.fillStyle = "#FFFFFF"; 
+      
+          ctx.fillStyle = "#FFFFFF";
           ctx.fillText(topBorderStr, x, y);
           ctx.fillText(bottomBorderStr, x, y + fontSize * 2);
-    
+      
           ctx.fillStyle = "#FFFFFF";
-          ctx.fillText(textBeforeBrackets, x, y + fontSize); 
-    
-          ctx.fillStyle = svgColor; 
+          ctx.fillText(textBeforeBrackets, x, y + fontSize);
+      
+          ctx.fillStyle = svgColor;
           const bracketsX = x + ctx.measureText(textBeforeBrackets).width;
-          ctx.fillText(brackets, bracketsX, y + fontSize); 
-    
+          ctx.fillText(brackets, bracketsX, y + fontSize);
+      
           const svgWidth = 19.2;
           const svgHeight = 19.2;
           const svgIconX = bracketsX + ctx.measureText("-").width;
           drawSVG(svgEntry.img, svgIconX, y + fontSize - 3.2, svgWidth, svgHeight);
-    
-          ctx.fillStyle = "#FFFFFF"; 
+      
+          ctx.fillStyle = "#FFFFFF";
           const rightWallX = bracketsX + ctx.measureText(brackets).width + ctx.measureText(" ").width;
-          ctx.fillText(rightWall, rightWallX, y + fontSize); 
-
+          ctx.fillText(rightWall, rightWallX, y + fontSize);
+      
           if (i === hoveredNodeIndex) {
-            const underlineY = y + fontSize * 2; 
+            const underlineY = y + fontSize * 2;
             const textWidth = ctx.measureText(textArray[i] || "").width;
             ctx.strokeStyle = "#FFFFFF";
             ctx.lineWidth = 1.2;
@@ -250,7 +389,7 @@ const MainSite: React.FC = () => {
             ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
             ctx.stroke();
           }
-    
+      
           node.boundingBox = {
             left: x,
             right: x + measuredWidth,
@@ -263,17 +402,17 @@ const MainSite: React.FC = () => {
           const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
           const bottomBorder = topBorder;
           const paddedText = `| ${textArray[i] || ""} |`;
-    
+      
           ctx.fillStyle = "#000000";
           ctx.fillRect(x, y, boxWidth, boxHeight);
-    
+      
           ctx.fillStyle = "#FFFFFF";
           ctx.fillText(topBorder, x, y);
           ctx.fillText(paddedText, x, y + fontSize);
           ctx.fillText(bottomBorder, x, y + fontSize * 2);
-
+      
           if (i === hoveredNodeIndex) {
-            const underlineY = y + fontSize * 2; 
+            const underlineY = y + fontSize * 2;
             const textWidth = ctx.measureText(textArray[i] || "").width;
             ctx.strokeStyle = "#FFFFFF";
             ctx.lineWidth = 1.2;
@@ -282,7 +421,7 @@ const MainSite: React.FC = () => {
             ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
             ctx.stroke();
           }
-    
+      
           node.boundingBox = {
             left: x,
             right: x + boxWidth,
@@ -293,34 +432,51 @@ const MainSite: React.FC = () => {
           };
         }
       }
-      // ctx.strokeStyle = "red";   
-      // ctx.lineWidth = 2;          
-      // ctx.strokeRect(spawnXStart, spawnYStart, spawnWidth, spawnHeight);
+
+      
+      // ctx.strokeStyle = "red"; 
+      // ctx.lineWidth = 2; 
+
+    
+      // const debugWidth = spawnXEnd - spawnXStart;
+      // const debugHeight = spawnYEnd - spawnYStart;
+
+      // ctx.strokeRect(spawnXStart, spawnYStart, debugWidth, debugHeight);
     }
 
     function updateNodes() {
       const maxSpeed = 2;
       const restitution = 1;
       const passes = 2;
-      const fontSize = 20;
+      const edgeRepulsionStrength = 0.02;
       const now = performance.now();
     
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
+    
         if (node.nextChange === undefined) {
           node.nextChange = now + Math.random() * 3000 + 1000;
         }
+    
         if (now > node.nextChange) {
           node.dx += (Math.random() - 0.5) * 0.3;
           node.dy += (Math.random() - 0.5) * 0.3;
           node.nextChange = now + Math.random() * 3000 + 1000;
         }
     
-        const edgeRepulsionStrength = 0.02;
-        if (node.x < spawnXStart) node.dx += edgeRepulsionStrength;
-        else if (node.x > spawnXEnd) node.dx -= edgeRepulsionStrength;
-        if (node.y < spawnYStart) node.dy += edgeRepulsionStrength;
-        else if (node.y > spawnYEnd) node.dy -= edgeRepulsionStrength;
+        if (i < numNodes) {
+          if (node.x < spawnXStart) node.dx += edgeRepulsionStrength;
+          else if (node.x > spawnXEnd) node.dx -= edgeRepulsionStrength;
+          if (node.y < spawnYStart) node.dy += edgeRepulsionStrength;
+          else if (node.y > spawnYEnd) node.dy -= edgeRepulsionStrength;
+        } else {
+          const { left, right, top, bottom } = node.boundingBox;
+        
+          if (left < 0) node.dx += edgeRepulsionStrength;
+          else if (right > window.innerWidth) node.dx -= edgeRepulsionStrength;
+          if (top < 0) node.dy += edgeRepulsionStrength;
+          else if (bottom > window.innerHeight) node.dy -= edgeRepulsionStrength;
+        }
     
         const speed = Math.sqrt(node.dx * node.dx + node.dy * node.dy);
         if (speed > maxSpeed) {
@@ -332,13 +488,13 @@ const MainSite: React.FC = () => {
       for (let pass = 0; pass < passes; pass++) {
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];
-          const nodeBounds = node.boundingBox; 
-          if (!nodeBounds) continue; 
+          const nodeBounds = node.boundingBox;
+          if (!nodeBounds) continue;
     
           for (let j = 0; j < nodes.length; j++) {
             if (i === j) continue;
             const otherNode = nodes[j];
-            const otherNodeBounds = otherNode.boundingBox; 
+            const otherNodeBounds = otherNode.boundingBox;
             if (!otherNodeBounds) continue;
     
             if (
@@ -437,14 +593,12 @@ const MainSite: React.FC = () => {
       setCanvasSize(); 
       let lineOpacityMultiplier = (htmlCanvas.width / lineOpacityFactor) + 100;
 
-      console.log(lineOpacityMultiplier)
-
-      spawnWidth = window.innerWidth * 0.5;
-      spawnHeight = window.innerHeight * 0.6;
-      spawnXStart = (window.innerWidth - spawnWidth) / 2;
-      spawnYStart = (window.innerHeight - spawnHeight) / 2;
-      spawnXEnd = spawnXStart + spawnWidth;
-      spawnYEnd = spawnYStart + spawnHeight;
+      let spawnWidth = window.innerWidth * 0.6;
+      let spawnHeight = window.innerHeight * 0.6;
+      let spawnXStart = (window.innerWidth - spawnWidth) / 2 + window.innerHeight * 0.1;
+      let spawnYStart = (window.innerHeight - spawnHeight) / 2;
+      let spawnXEnd = spawnXStart + spawnWidth;
+      let spawnYEnd = spawnYStart + spawnHeight;
 
       createNodes();
     };
