@@ -65,6 +65,8 @@ const MainSite: React.FC = () => {
     svgIcons["./X"].img.src = "/images/icons/x.svg";
     svgIcons["./youtube"].img.src = "/images/icons/youtube.svg";
 
+    let hoveredNodeIndex: number | null = null;
+
     function createNodes() {
       nodes = [];
       for (let i = 0; i < numNodes; i++) {
@@ -115,83 +117,99 @@ const MainSite: React.FC = () => {
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         const fontSize = i >= nodes.length - 2 ? smallFontSize : defaultFontSize;
-        const charWidth = fontSize * 0.6;
-        const boxWidth = (textArray[i]?.length + 4 || 0) * charWidth;
-        const boxHeight = fontSize * 3;
-    
-        const x = node.x - boxWidth / 2;
-        const y = node.y - boxHeight / 2;
     
         for (let j = i + 1; j < nodes.length; j++) {
           const targetNode = nodes[j];
           const targetFontSize = j >= nodes.length - 2 ? smallFontSize : defaultFontSize;
+          const charWidth = fontSize * 0.6;
           const targetCharWidth = targetFontSize * 0.6;
+          const boxWidth = (textArray[i]?.length + 4 || 0) * charWidth;
           const targetBoxWidth = (textArray[j]?.length + 4 || 0) * targetCharWidth;
           const endX = targetNode.x - targetBoxWidth / 2;
           const endY = targetNode.y;
-    
           const dx = endX - node.x;
           const dy = endY - node.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
-    
           const lineOpacity = Math.max(0, 1 - distance / lineOpacityMultiplier);
+    
           if (lineOpacity > 0) {
             const whiteRatio = Math.max(1, Math.round(10 * lineOpacity));
             const blackRatio = Math.max(1, Math.round(10 * (1 - lineOpacity)));
-    
             ctx.setLineDash([whiteRatio, blackRatio]);
             ctx.globalAlpha = 1;
-    
             ctx.beginPath();
             ctx.moveTo(node.x, node.y);
             ctx.lineTo(targetNode.x, targetNode.y);
             ctx.stroke();
-    
             ctx.setLineDash([]);
           }
         }
-
+      }
+    
+      for (let i = 0; i < nodes.length; i++) {
+        const node = nodes[i];
+        const fontSize = i >= nodes.length - 2 ? smallFontSize : defaultFontSize;
+        ctx.font = `${fontSize}px "dico-code-two", monospace`;
+        ctx.textBaseline = "top";
+    
+        const charWidth = fontSize * 0.6;
+        let boxWidth = (textArray[i]?.length + 4 || 0) * charWidth;
+        const boxHeight = fontSize * 3;
+    
+        let x = node.x - boxWidth / 2;
+        let y = node.y - boxHeight / 2;
+    
         if (Object.keys(svgIcons).includes(textArray[i])) {
           const svgEntry = svgIcons[textArray[i] as keyof typeof svgIcons]; 
           const svgColor = svgEntry.color || "#FFFFFF"; 
-        
+    
           const topBorderStr = `+${"-".repeat(textArray[i]?.length + 7 || 0)}+`;
           const bottomBorderStr = topBorderStr;
           const textBeforeBrackets = `| ${textArray[i] || ""} `;
           const brackets = "[  ]";
           const rightWall = "|";
-        
-          ctx.font = `${fontSize}px "dico-code-two", monospace`;
-          ctx.textBaseline = "top";
-        
+    
           const measurementString = `${textBeforeBrackets}${brackets} ${rightWall}`;
           const measuredWidth = ctx.measureText(measurementString).width;
-          
-          const boxHeight = fontSize * 3; 
-          const x = node.x - measuredWidth / 2;
-          const y = node.y - boxHeight / 2;
-        
+    
+          boxWidth = measuredWidth;
+          x = node.x - measuredWidth / 2;
+          y = node.y - boxHeight / 2;
+    
           ctx.fillStyle = "#000000"; 
           ctx.fillRect(x, y, measuredWidth, boxHeight);
-        
+    
           ctx.fillStyle = "#FFFFFF"; 
           ctx.fillText(topBorderStr, x, y);
           ctx.fillText(bottomBorderStr, x, y + fontSize * 2);
-        
+    
           ctx.fillStyle = "#FFFFFF";
           ctx.fillText(textBeforeBrackets, x, y + fontSize); 
-        
+    
           ctx.fillStyle = svgColor; 
           const bracketsX = x + ctx.measureText(textBeforeBrackets).width;
           ctx.fillText(brackets, bracketsX, y + fontSize); 
-
+    
+          const svgWidth = 19.2;
+          const svgHeight = 19.2;
           const svgIconX = bracketsX + ctx.measureText("-").width;
-          drawSVG(svgEntry.img,svgIconX, y + fontSize - 3.2, 19.2, 19.2);
-        
+          drawSVG(svgEntry.img, svgIconX, y + fontSize - 3.2, svgWidth, svgHeight);
+    
           ctx.fillStyle = "#FFFFFF"; 
           const rightWallX = bracketsX + ctx.measureText(brackets).width + ctx.measureText(" ").width;
           ctx.fillText(rightWall, rightWallX, y + fontSize); 
-        
+
+          if (i === hoveredNodeIndex) {
+            const underlineY = y + fontSize * 2; 
+            const textWidth = ctx.measureText(textArray[i] || "").width;
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(x + ctx.measureText("--").width, underlineY);
+            ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
+            ctx.stroke();
+          }
+    
           node.boundingBox = {
             left: x,
             right: x + measuredWidth,
@@ -200,23 +218,30 @@ const MainSite: React.FC = () => {
             width: measuredWidth,
             height: boxHeight,
           };
-      
         } else {
           const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
           const bottomBorder = topBorder;
           const paddedText = `| ${textArray[i] || ""} |`;
-
+    
           ctx.fillStyle = "#000000";
           ctx.fillRect(x, y, boxWidth, boxHeight);
-        
-          ctx.font = `${fontSize}px "dico-code-two", monospace`;
-          ctx.textBaseline = "top";
+    
           ctx.fillStyle = "#FFFFFF";
-
           ctx.fillText(topBorder, x, y);
           ctx.fillText(paddedText, x, y + fontSize);
           ctx.fillText(bottomBorder, x, y + fontSize * 2);
-        
+
+          if (i === hoveredNodeIndex) {
+            const underlineY = y + fontSize * 2; 
+            const textWidth = ctx.measureText(textArray[i] || "").width;
+            ctx.strokeStyle = "#FFFFFF";
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(x + ctx.measureText("--").width, underlineY);
+            ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
+            ctx.stroke();
+          }
+    
           node.boundingBox = {
             left: x,
             right: x + boxWidth,
@@ -225,23 +250,8 @@ const MainSite: React.FC = () => {
             width: boxWidth,
             height: boxHeight,
           };
-
         }
       }
-    
-      // const svgX = 100;
-      // const svgY = 100;
-      // const svgWidth = 19.2;
-      // const svgHeight = 19.2;
-
-      // ctx.strokeStyle = "red";
-      // ctx.strokeRect(svgX, svgY, svgWidth, svgHeight);
-      // ctx.strokeRect(svgX + 20, svgY + 20, svgWidth, svgHeight);
-      // ctx.strokeRect(svgX + 40, svgY + 40, svgWidth, svgHeight);
-
-      // drawSVG(svgIcons["./youtube"].img,svgX, svgY, svgWidth, svgHeight);
-      // drawSVG(svgIcons["./instagram"].img,svgX + 20, svgY + 20, svgWidth, svgHeight);
-      // drawSVG(svgIcons["./X"].img,svgX + 40, svgY + 40, svgWidth, svgHeight);
     }
 
     function updateNodes() {
@@ -352,6 +362,26 @@ const MainSite: React.FC = () => {
       lineOpacityMultiplier = htmlCanvas.width / lineOpacityFactor;
       createNodes();
     };
+
+    htmlCanvas.addEventListener("mousemove", (event) => {
+      const rect = htmlCanvas.getBoundingClientRect();
+      const mouseX = event.clientX - rect.left;
+      const mouseY = event.clientY - rect.top;
+      
+      hoveredNodeIndex = null;
+      for (let i = 0; i < nodes.length; i++) {
+        const bb = nodes[i].boundingBox;
+        if (
+          mouseX >= bb.left &&
+          mouseX <= bb.right &&
+          mouseY >= bb.top &&
+          mouseY <= bb.bottom
+        ) {
+          hoveredNodeIndex = i;
+          break;
+        }
+      }
+    });
 
     window.addEventListener("resize", handleResize);
     return () => {
