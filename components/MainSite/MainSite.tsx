@@ -197,15 +197,7 @@ const MainSite: React.FC = () => {
             width: measuredWidth,
             height: boxHeight,
           };
-        
-          // ctx.lineWidth = 1;
-          // ctx.strokeRect(
-          //   node.boundingBox.left,
-          //   node.boundingBox.top,
-          //   node.boundingBox.width || 0,
-          //   node.boundingBox.height || 0
-          // );
-
+      
         } else {
           const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
           const bottomBorder = topBorder;
@@ -231,14 +223,6 @@ const MainSite: React.FC = () => {
             height: boxHeight,
           };
 
-          // ctx.lineWidth = 1;
-          // ctx.strokeRect(
-          //   node.boundingBox.left,
-          //   node.boundingBox.top,
-          //   node.boundingBox.width || 0,
-          //   node.boundingBox.height || 0 
-          // );
-
         }
       }
     
@@ -250,7 +234,7 @@ const MainSite: React.FC = () => {
       ctx.strokeStyle = "red";
       ctx.strokeRect(svgX, svgY, svgWidth, svgHeight);
 
-      drawSVG(svgIcons["./instagram"].img,svgX, svgY, svgWidth, svgHeight);
+      drawSVG(svgIcons["./youtube"].img,svgX, svgY, svgWidth, svgHeight);
     }
 
     function updateNodes() {
