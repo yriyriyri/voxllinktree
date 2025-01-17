@@ -44,7 +44,7 @@ const MainSite: React.FC = () => {
     const spawnYEnd = spawnYStart + spawnHeight;
 
     let nodes: Node[] = [];
-    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebooooooooook", "./youtube", "./about us", "./contact"];
+    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact"];
     const numNodes = 7;
     const svgIcons = {
       "./instagram": {
@@ -103,7 +103,6 @@ const MainSite: React.FC = () => {
     
       ctx.lineWidth = lineWidth;
       ctx.strokeStyle = "#FFFFFF";
-  
     
       function drawSVG(img: HTMLImageElement, x: number, y: number, width: number, height: number) {
         if (img.complete) {
@@ -151,58 +150,74 @@ const MainSite: React.FC = () => {
             ctx.setLineDash([]);
           }
         }
-    
-        ctx.fillStyle = "#0000FF";
-        ctx.fillRect(x, y, boxWidth, boxHeight);
-
-        ctx.fillStyle = "#FFFFFF";
-        ctx.font = `${fontSize}px "dico-code-two", monospace`;
-        ctx.textBaseline = "top";
 
         if (Object.keys(svgIcons).includes(textArray[i])) {
           const svgEntry = svgIcons[textArray[i] as keyof typeof svgIcons]; 
           const svgColor = svgEntry.color || "#FFFFFF"; 
-
-          const topBorder = `+${"-".repeat(textArray[i]?.length + 7 || 0)}+`; 
-          const bottomBorder = topBorder;
-
-          ctx.fillStyle = "#FFFFFF"; 
-          ctx.fillText(topBorder, x, y);
-          ctx.fillText(bottomBorder, x, y + fontSize * 2);
-
+        
+          const topBorderStr = `+${"-".repeat(textArray[i]?.length + 7 || 0)}+`;
+          const bottomBorderStr = topBorderStr;
           const textBeforeBrackets = `| ${textArray[i] || ""} `;
-          ctx.fillText(textBeforeBrackets, x, y + fontSize); 
-
-          ctx.fillStyle = svgColor; 
-          ctx.fillText("[  ]", x + ctx.measureText(textBeforeBrackets).width, y + fontSize); 
-
+          const brackets = "[  ]";
+          const rightWall = "|";
+        
+          ctx.font = `${fontSize}px "dico-code-two", monospace`;
+          ctx.textBaseline = "top";
+        
+          const measurementString = `${textBeforeBrackets}${brackets} ${rightWall}`;
+          const measuredWidth = ctx.measureText(measurementString).width;
+          
+          const boxHeight = fontSize * 3; 
+          const x = node.x - measuredWidth / 2;
+          const y = node.y - boxHeight / 2;
+        
+          ctx.fillStyle = "#000000"; 
+          ctx.fillRect(x, y, measuredWidth, boxHeight);
+        
           ctx.fillStyle = "#FFFFFF"; 
-          ctx.fillText("|", x + ctx.measureText(`${textBeforeBrackets}[  ] `).width, y + fontSize); 
-
-          const fullText = `${textBeforeBrackets}[  ] |`;
-
+          ctx.fillText(topBorderStr, x, y);
+          ctx.fillText(bottomBorderStr, x, y + fontSize * 2);
+        
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillText(textBeforeBrackets, x, y + fontSize); 
+        
+          ctx.fillStyle = svgColor; 
+          const bracketsX = x + ctx.measureText(textBeforeBrackets).width;
+          ctx.fillText(brackets, bracketsX, y + fontSize); 
+        
+          ctx.fillStyle = "#FFFFFF"; 
+          const rightWallX = bracketsX + ctx.measureText(brackets).width + ctx.measureText(" ").width;
+          ctx.fillText(rightWall, rightWallX, y + fontSize); 
+        
           node.boundingBox = {
             left: x,
-            right: x + ctx.measureText(fullText).width,
+            right: x + measuredWidth,
             top: y,
             bottom: y + boxHeight,
-            width: ctx.measureText(fullText).width,
+            width: measuredWidth,
             height: boxHeight,
           };
-
-          ctx.lineWidth = 1;
-          ctx.strokeRect(
-            node.boundingBox.left,
-            node.boundingBox.top,
-            node.boundingBox.width || 0,
-            node.boundingBox.height || 0 
-          );
+        
+          // ctx.lineWidth = 1;
+          // ctx.strokeRect(
+          //   node.boundingBox.left,
+          //   node.boundingBox.top,
+          //   node.boundingBox.width || 0,
+          //   node.boundingBox.height || 0
+          // );
 
         } else {
           const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
           const bottomBorder = topBorder;
           const paddedText = `| ${textArray[i] || ""} |`;
+
+          ctx.fillStyle = "#000000";
+          ctx.fillRect(x, y, boxWidth, boxHeight);
         
+          ctx.font = `${fontSize}px "dico-code-two", monospace`;
+          ctx.textBaseline = "top";
+          ctx.fillStyle = "#FFFFFF";
+
           ctx.fillText(topBorder, x, y);
           ctx.fillText(paddedText, x, y + fontSize);
           ctx.fillText(bottomBorder, x, y + fontSize * 2);
@@ -216,13 +231,13 @@ const MainSite: React.FC = () => {
             height: boxHeight,
           };
 
-          ctx.lineWidth = 1;
-          ctx.strokeRect(
-            node.boundingBox.left,
-            node.boundingBox.top,
-            node.boundingBox.width || 0,
-            node.boundingBox.height || 0 
-          );
+          // ctx.lineWidth = 1;
+          // ctx.strokeRect(
+          //   node.boundingBox.left,
+          //   node.boundingBox.top,
+          //   node.boundingBox.width || 0,
+          //   node.boundingBox.height || 0 
+          // );
 
         }
       }
@@ -244,7 +259,7 @@ const MainSite: React.FC = () => {
       const passes = 2;
       const fontSize = 20;
       const now = performance.now();
-
+    
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         if (node.nextChange === undefined) {
@@ -255,49 +270,32 @@ const MainSite: React.FC = () => {
           node.dy += (Math.random() - 0.5) * 0.3;
           node.nextChange = now + Math.random() * 3000 + 1000;
         }
-
+    
         const edgeRepulsionStrength = 0.02;
         if (node.x < spawnXStart) node.dx += edgeRepulsionStrength;
         else if (node.x > spawnXEnd) node.dx -= edgeRepulsionStrength;
         if (node.y < spawnYStart) node.dy += edgeRepulsionStrength;
         else if (node.y > spawnYEnd) node.dy -= edgeRepulsionStrength;
-
+    
         const speed = Math.sqrt(node.dx * node.dx + node.dy * node.dy);
         if (speed > maxSpeed) {
           node.dx = (node.dx / speed) * maxSpeed;
           node.dy = (node.dy / speed) * maxSpeed;
         }
       }
-
+    
       for (let pass = 0; pass < passes; pass++) {
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];
-          const text = textArray[i] || "";
-          const charWidth = fontSize * 0.6;
-          const boxWidth = (text.length + 4) * charWidth;
-          const boxHeight = fontSize * 3;
-
-          const nodeBounds = {
-            left: node.x - boxWidth / 2,
-            right: node.x + boxWidth / 2,
-            top: node.y - boxHeight / 2,
-            bottom: node.y + boxHeight / 2,
-          };
-
+          const nodeBounds = node.boundingBox; 
+          if (!nodeBounds) continue; 
+    
           for (let j = 0; j < nodes.length; j++) {
             if (i === j) continue;
             const otherNode = nodes[j];
-            const otherText = textArray[j] || "";
-            const otherBoxWidth = (otherText.length + 4) * charWidth;
-            const otherBoxHeight = fontSize * 3;
-
-            const otherNodeBounds = {
-              left: otherNode.x - otherBoxWidth / 2,
-              right: otherNode.x + otherBoxWidth / 2,
-              top: otherNode.y - otherBoxHeight / 2,
-              bottom: otherNode.y + otherBoxHeight / 2,
-            };
-
+            const otherNodeBounds = otherNode.boundingBox; 
+            if (!otherNodeBounds) continue;
+    
             if (
               nodeBounds.left < otherNodeBounds.right &&
               nodeBounds.right > otherNodeBounds.left &&
@@ -307,29 +305,29 @@ const MainSite: React.FC = () => {
               const dx = node.x - otherNode.x;
               const dy = node.y - otherNode.y;
               const distance = Math.sqrt(dx * dx + dy * dy) || 1;
-
+    
               const nx = dx / distance;
               const ny = dy / distance;
-
+    
               const dvx = node.dx - otherNode.dx;
               const dvy = node.dy - otherNode.dy;
               const dotProduct = dvx * nx + dvy * ny;
-
+    
               if (dotProduct < 0) {
-                const j = -(1 + restitution) * dotProduct / 2;
-                node.dx += j * nx;
-                node.dy += j * ny;
-                otherNode.dx -= j * nx;
-                otherNode.dy -= j * ny;
+                const impulse = -(1 + restitution) * dotProduct / 2;
+                node.dx += impulse * nx;
+                node.dy += impulse * ny;
+                otherNode.dx -= impulse * nx;
+                otherNode.dy -= impulse * ny;
               }
-
+    
               const overlap = Math.min(
                 nodeBounds.right - otherNodeBounds.left,
                 otherNodeBounds.right - nodeBounds.left,
                 nodeBounds.bottom - otherNodeBounds.top,
                 otherNodeBounds.bottom - nodeBounds.top
               );
-
+    
               node.x += (nx * overlap) / 2;
               node.y += (ny * overlap) / 2;
               otherNode.x -= (nx * overlap) / 2;
@@ -338,7 +336,7 @@ const MainSite: React.FC = () => {
           }
         }
       }
-
+    
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         node.x += node.dx;
