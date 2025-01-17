@@ -59,6 +59,15 @@ const Clock: React.FC = () => {
 const MainSite: React.FC = () => {
   const wireframeCanvasRef = useRef<HTMLCanvasElement>(null);
 
+  const spawnZone = useRef({
+    spawnWidth: 0,
+    spawnHeight: 0,
+    spawnXStart: 0,
+    spawnYStart: 0,
+    spawnXEnd: 0,
+    spawnYEnd: 0,
+  });
+
   useLayoutEffect(() => {
     const htmlCanvas = wireframeCanvasRef.current!;
     if (!htmlCanvas) return;
@@ -67,16 +76,22 @@ const MainSite: React.FC = () => {
     if (!ctx) return;
 
     const setCanvasSize = () => {
-      const dpr = window.devicePixelRatio || 1; 
-
+      const dpr = window.devicePixelRatio || 1;
       ctx.setTransform(1, 0, 0, 1, 0, 0);
-
-      htmlCanvas.width = window.innerWidth * dpr; 
-      htmlCanvas.height = window.innerHeight * dpr; 
-      htmlCanvas.style.width = `${window.innerWidth}px`; 
-      htmlCanvas.style.height = `${window.innerHeight}px`; 
-
-      ctx.scale(dpr, dpr); 
+      htmlCanvas.width = window.innerWidth * dpr;
+      htmlCanvas.height = window.innerHeight * dpr;
+      htmlCanvas.style.width = `${window.innerWidth}px`;
+      htmlCanvas.style.height = `${window.innerHeight}px`;
+      ctx.scale(dpr, dpr);
+  
+      const spawnWidth = window.innerWidth * 0.6;
+      const spawnHeight = window.innerHeight * 0.6;
+      const spawnXStart = (window.innerWidth - spawnWidth) / 2 + window.innerHeight * 0.1;
+      const spawnYStart = (window.innerHeight - spawnHeight) / 2;
+      const spawnXEnd = spawnXStart + spawnWidth;
+      const spawnYEnd = spawnYStart + spawnHeight;
+  
+      spawnZone.current = { spawnWidth, spawnHeight, spawnXStart, spawnYStart, spawnXEnd, spawnYEnd };
     };
 
     setCanvasSize();
@@ -84,15 +99,8 @@ const MainSite: React.FC = () => {
     const lineOpacityFactor = 18;
     let lineOpacityMultiplier = (htmlCanvas.width / lineOpacityFactor) + 100;
 
-    let spawnWidth = window.innerWidth * 0.6;
-    let spawnHeight = window.innerHeight * 0.6;
-    let spawnXStart = (window.innerWidth - spawnWidth) / 2 + window.innerHeight * 0.1;
-    let spawnYStart = (window.innerHeight - spawnHeight) / 2;
-    let spawnXEnd = spawnXStart + spawnWidth;
-    let spawnYEnd = spawnYStart + spawnHeight;
-
     let nodes: Node[] = [];
-    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact","l","./TimeUntilRelease()"];
+    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./steam", "./youtube", "./about us", "./contact","l","./TimeUntilRelease()"];
     let linkArray = [null,"https://www.instagram.com/voxl.online/","https://x.com/voxldev",null,null,"https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",null,null,null]
     const numNodes = 8;
     const svgIcons = {
@@ -116,41 +124,41 @@ const MainSite: React.FC = () => {
 
     let hoveredNodeIndex: number | null = null;
 
-    function createNodes() {
+    const createNodes = () => {
       nodes = [];
       for (let i = 0; i < numNodes; i++) {
-        const x = Math.random() * (spawnWidth - 20) + spawnXStart + 10; 
-        const y = Math.random() * (spawnHeight - 20) + spawnYStart + 10; 
-    
+        const { spawnWidth, spawnHeight, spawnXStart, spawnYStart } = spawnZone.current;
+        const x = Math.random() * (spawnWidth - 20) + spawnXStart + 10;
+        const y = Math.random() * (spawnHeight - 20) + spawnYStart + 10;
+  
         nodes.push({
-          x: x,
-          y: y,
-          z: Math.random() * (70 - 10), 
-          dx: (Math.random() - 0.5) * 2, 
-          dy: (Math.random() - 0.5) * 2, 
-          boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
+          x,
+          y,
+          z: Math.random() * (70 - 10),
+          dx: (Math.random() - 0.5) * 2,
+          dy: (Math.random() - 0.5) * 2,
+          boundingBox: { left: 0, right: 0, top: 0, bottom: 0 },
         });
       }
-
+  
       nodes.push({
-        x: spawnXEnd + -250,
-        y: spawnYStart - 30,
-        z: Math.random() * (70 - 10), 
-        dx: 0, 
-        dy: 0, 
-        boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
+        x: window.innerWidth - 450,
+        y: spawnZone.current.spawnYStart,
+        z: Math.random() * (70 - 10),
+        dx: 0,
+        dy: 0,
+        boundingBox: { left: 0, right: 0, top: 0, bottom: 0 },
       });
-
+  
       nodes.push({
-        x: spawnXEnd + -280,
-        y: spawnYStart - 50,
-        z: Math.random() * (70 - 10), 
-        dx: 0, 
-        dy: 0, 
-        boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
+        x: spawnZone.current.spawnXEnd - 280,
+        y: spawnZone.current.spawnYStart - 50,
+        z: Math.random() * (70 - 10),
+        dx: 0,
+        dy: 0,
+        boundingBox: { left: 0, right: 0, top: 0, bottom: 0 },
       });
-
-    }
+    };
 
     function drawWireframe() {
       ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
@@ -217,7 +225,7 @@ const MainSite: React.FC = () => {
         const isSpecialNode = i > numNodes -1; 
         const fontSize = isSpecialNode
           ? i === numNodes + 1 
-            ? 14 
+            ? 12 
             : 16 
           : i >= nodes.length - 4
           ? smallFontSize
@@ -287,10 +295,6 @@ const MainSite: React.FC = () => {
               width: textWidth,
               height: boxHeight,
             }
-
-            // ctx.strokeStyle = "yellow"; 
-            // ctx.lineWidth = 1;
-            // ctx.strokeRect(node.boundingBox.left, node.boundingBox.top, node.boundingBox.width || 0, node.boundingBox.height|| 0); 
 
           } else if (i === numNodes + 1) {
             const paddedText = `| ${textArray[i] || ""} `;
@@ -437,7 +441,7 @@ const MainSite: React.FC = () => {
       // ctx.strokeStyle = "red"; 
       // ctx.lineWidth = 2; 
 
-    
+      // const { spawnXStart, spawnXEnd, spawnYStart, spawnYEnd } = spawnZone.current;
       // const debugWidth = spawnXEnd - spawnXStart;
       // const debugHeight = spawnYEnd - spawnYStart;
 
@@ -445,6 +449,7 @@ const MainSite: React.FC = () => {
     }
 
     function updateNodes() {
+      const { spawnXStart, spawnXEnd, spawnYStart, spawnYEnd } = spawnZone.current;
       const maxSpeed = 2;
       const restitution = 1;
       const passes = 2;
@@ -592,14 +597,6 @@ const MainSite: React.FC = () => {
     const handleResize = () => {
       setCanvasSize(); 
       let lineOpacityMultiplier = (htmlCanvas.width / lineOpacityFactor) + 100;
-
-      let spawnWidth = window.innerWidth * 0.6;
-      let spawnHeight = window.innerHeight * 0.6;
-      let spawnXStart = (window.innerWidth - spawnWidth) / 2 + window.innerHeight * 0.1;
-      let spawnYStart = (window.innerHeight - spawnHeight) / 2;
-      let spawnXEnd = spawnXStart + spawnWidth;
-      let spawnYEnd = spawnYStart + spawnHeight;
-
       createNodes();
     };
 
