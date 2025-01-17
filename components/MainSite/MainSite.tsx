@@ -38,6 +38,9 @@ const TerminalBar: React.FC = () => {
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
 
+  const [dynamicMessage, setDynamicMessage] = useState<string>("");
+  const [dynamicMessageActive, setDynamicMessageActive] = useState(false);
+
   const typewriterMessages = useRef<string[]>([
     `boxy@voxlshell~$ welcome to the VOXLos kernel!`,
     "   ",
@@ -89,11 +92,21 @@ const TerminalBar: React.FC = () => {
     <pre style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: line }} />
   );
 
-  const outputToTerminal = (message: string) => {
-    typewriterMessages.current.push("   ");
-    typewriterMessages.current.push(`usr@voxlshell~$ ${message}`);
-    if (currentLineIndex === typewriterMessages.current.length - 2) {
-      setCurrentLineIndex(typewriterMessages.current.length - 2); // Continue the typewriter effect if idle
+  const outputToTerminal = (message: string, isDynamic: boolean = false) => {
+    if (isDynamic) {
+      if (dynamicMessageActive) {
+        setDynamicMessage(message);
+      } else {
+        setDynamicMessageActive(true);
+        typewriterMessages.current.push(`usr@voxlshell~$ ${message}`);
+        setCurrentLineIndex(typewriterMessages.current.length - 1);
+      }
+    } else {
+      typewriterMessages.current.push("   ");
+      typewriterMessages.current.push(`usr@voxlshell~$ ${message}`);
+      if (currentLineIndex === typewriterMessages.current.length - 2) {
+        setCurrentLineIndex(typewriterMessages.current.length - 2);
+      }
     }
   };
 
@@ -103,7 +116,15 @@ const TerminalBar: React.FC = () => {
         {lines.map((line, index) => (
           <div key={index}>{formatLineWithStyles(line)}</div>
         ))}
-        {currentLine && <div>{formatLineWithStyles(currentLine)}</div>}
+        {dynamicMessageActive && (
+          <div>
+            {currentLine && <div>{formatLineWithStyles(currentLine)}</div>}
+            {!currentLine && <div>{formatLineWithStyles(dynamicMessage)}</div>}
+          </div>
+        )}
+        {!dynamicMessageActive && currentLine && (
+          <div>{formatLineWithStyles(currentLine)}</div>
+        )}
       </div>
     </TerminalBarContext.Provider>
   );
@@ -157,6 +178,7 @@ const Clock: React.FC = () => {
 
 
 const MainSite: React.FC = () => {
+  const { outputToTerminal } = useTerminal();
   const wireframeCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const spawnZone = useRef({
