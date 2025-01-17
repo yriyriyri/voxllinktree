@@ -178,7 +178,6 @@ const Clock: React.FC = () => {
 
 
 const MainSite: React.FC = () => {
-  const { outputToTerminal } = useTerminal();
   const wireframeCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const spawnZone = useRef({
