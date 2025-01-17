@@ -62,8 +62,8 @@ const MainSite: React.FC = () => {
     };
     
     svgIcons["./instagram"].img.src = "/images/icons/instagram.svg";
-    // svgIcons["./X"].src = "/images/icons/x.svg";
-    // svgIcons["./youtube"].src = "/images/icons/youtube.svg";
+    svgIcons["./X"].img.src = "/images/icons/x.svg";
+    svgIcons["./youtube"].img.src = "/images/icons/youtube.svg";
 
     function createNodes() {
       nodes = [];
@@ -184,6 +184,9 @@ const MainSite: React.FC = () => {
           ctx.fillStyle = svgColor; 
           const bracketsX = x + ctx.measureText(textBeforeBrackets).width;
           ctx.fillText(brackets, bracketsX, y + fontSize); 
+
+          const svgIconX = bracketsX + ctx.measureText("-").width;
+          drawSVG(svgEntry.img,svgIconX, y + fontSize - 3.2, 19.2, 19.2);
         
           ctx.fillStyle = "#FFFFFF"; 
           const rightWallX = bracketsX + ctx.measureText(brackets).width + ctx.measureText(" ").width;
@@ -226,15 +229,19 @@ const MainSite: React.FC = () => {
         }
       }
     
-      const svgX = 100;
-      const svgY = 100;
-      const svgWidth = 19.2;
-      const svgHeight = 19.2;
+      // const svgX = 100;
+      // const svgY = 100;
+      // const svgWidth = 19.2;
+      // const svgHeight = 19.2;
 
-      ctx.strokeStyle = "red";
-      ctx.strokeRect(svgX, svgY, svgWidth, svgHeight);
+      // ctx.strokeStyle = "red";
+      // ctx.strokeRect(svgX, svgY, svgWidth, svgHeight);
+      // ctx.strokeRect(svgX + 20, svgY + 20, svgWidth, svgHeight);
+      // ctx.strokeRect(svgX + 40, svgY + 40, svgWidth, svgHeight);
 
-      drawSVG(svgIcons["./youtube"].img,svgX, svgY, svgWidth, svgHeight);
+      // drawSVG(svgIcons["./youtube"].img,svgX, svgY, svgWidth, svgHeight);
+      // drawSVG(svgIcons["./instagram"].img,svgX + 20, svgY + 20, svgWidth, svgHeight);
+      // drawSVG(svgIcons["./X"].img,svgX + 40, svgY + 40, svgWidth, svgHeight);
     }
 
     function updateNodes() {
