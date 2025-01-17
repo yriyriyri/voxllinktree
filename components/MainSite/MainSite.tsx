@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef, useEffect, useState } from "react";
 
 interface Node {
   x: number;
@@ -9,6 +9,52 @@ interface Node {
   boundingBox: { left: number; right: number; top: number; bottom: number; width?: number; height?: number };
   nextChange?: number;
 }
+
+const Clock: React.FC = () => {
+  const [time, setTime] = useState(new Date());
+  const [dotCount, setDotCount] = useState(0);
+
+  useEffect(() => {
+    const timerId = setInterval(() => {
+      setTime(new Date());
+      setDotCount(prev => (prev + 1) % 4); 
+    }, 250);
+    return () => clearInterval(timerId);
+  }, []);
+
+  const clockStyle: React.CSSProperties = {
+    position: "fixed",
+    bottom: "70px",
+    right: "70px",
+    background: "rgba(0, 0, 0, 0.5)",
+    color: "white",
+    padding: "5px 10px",
+    borderRadius: "4px",
+    fontFamily: '"dico-code-two", monospace',
+    fontSize: "14px"
+  };
+
+  const isAM = time.getHours() < 12;
+  const timeStringWithoutPeriod = time.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  }).replace(/AM|PM/, '').trim();
+
+  const dots = ".".repeat(dotCount);  
+
+  return (
+    <div style={clockStyle}>
+      {">"} {time.toLocaleDateString()} {dots}<br />
+      {">"} {timeStringWithoutPeriod}{" "}
+      <span style={{ color: isAM ? "#4AF626" : "red" }}>[AM]</span>
+      <span style={{ color: "#FFFFFF" }}> / </span>
+      <span style={{ color: !isAM ? "#4AF626" : "red" }}>[PM]</span>
+    </div>
+  );
+};
+
 
 const MainSite: React.FC = () => {
   const wireframeCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -22,29 +68,33 @@ const MainSite: React.FC = () => {
 
     const setCanvasSize = () => {
       const dpr = window.devicePixelRatio || 1; 
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+
       htmlCanvas.width = window.innerWidth * dpr; 
       htmlCanvas.height = window.innerHeight * dpr; 
       htmlCanvas.style.width = `${window.innerWidth}px`; 
       htmlCanvas.style.height = `${window.innerHeight}px`; 
+
       ctx.scale(dpr, dpr); 
     };
 
     setCanvasSize();
 
-    const sizeFactor = 80;
-    const lineOpacityFactor = 12;
-    let sizeMultiplier = Math.min(htmlCanvas.width, htmlCanvas.height) / sizeFactor;
-    let lineOpacityMultiplier = htmlCanvas.width / lineOpacityFactor;
+    const lineOpacityFactor = 20;
+    let lineOpacityMultiplier = (htmlCanvas.width / lineOpacityFactor) + 100;
+    console.log(lineOpacityMultiplier)
 
-    const spawnWidth = window.innerWidth * 0.5;
-    const spawnHeight = window.innerHeight * 0.6;
-    const spawnXStart = (window.innerWidth - spawnWidth) / 2;
-    const spawnYStart = (window.innerHeight - spawnHeight) / 2;
-    const spawnXEnd = spawnXStart + spawnWidth;
-    const spawnYEnd = spawnYStart + spawnHeight;
+    let spawnWidth = window.innerWidth * 0.5;
+    let spawnHeight = window.innerHeight * 0.6;
+    let spawnXStart = (window.innerWidth - spawnWidth) / 2;
+    let spawnYStart = (window.innerHeight - spawnHeight) / 2;
+    let spawnXEnd = spawnXStart + spawnWidth;
+    let spawnYEnd = spawnYStart + spawnHeight;
 
     let nodes: Node[] = [];
     let textArray = ["./trailer", "./instagram", "./X", "./discord", "./facebook", "./youtube", "./about us", "./contact"];
+    let linkArray = [null,"https://www.instagram.com/voxl.online/","https://x.com/voxldev",null,null,"https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",null,null]
     const numNodes = 7;
     const svgIcons = {
       "./instagram": {
@@ -69,7 +119,7 @@ const MainSite: React.FC = () => {
 
     function createNodes() {
       nodes = [];
-      for (let i = 0; i < numNodes; i++) {
+      for (let i = 0; i < numNodes + 1; i++) {
         const x = Math.random() * (spawnWidth - 20) + spawnXStart + 10; 
         const y = Math.random() * (spawnHeight - 20) + spawnYStart + 10; 
     
@@ -82,15 +132,6 @@ const MainSite: React.FC = () => {
           boundingBox: { left: 0, right: 0, top: 0, bottom: 0 }, 
         });
       }
-    
-      nodes.push({
-        x: (spawnXStart + spawnXEnd) / 2,
-        y: (spawnYStart + spawnYEnd) / 2,
-        z: 0.1,
-        dx: 0,
-        dy: 0,
-        boundingBox: { left: 0, right: 0, top: 0, bottom: 0 },
-      });
     }
 
     function drawWireframe() {
@@ -110,7 +151,7 @@ const MainSite: React.FC = () => {
         if (img.complete) {
           ctx.drawImage(img, x, y, width, height); 
         } else {
-          console.log("svg not ready yet");
+          return
         }
       }
     
@@ -252,6 +293,9 @@ const MainSite: React.FC = () => {
           };
         }
       }
+      // ctx.strokeStyle = "red";   
+      // ctx.lineWidth = 2;          
+      // ctx.strokeRect(spawnXStart, spawnYStart, spawnWidth, spawnHeight);
     }
 
     function updateNodes() {
@@ -356,13 +400,6 @@ const MainSite: React.FC = () => {
     createNodes();
     animate();
 
-    const handleResize = () => {
-      setCanvasSize(); 
-      sizeMultiplier = Math.min(htmlCanvas.width, htmlCanvas.height) / sizeFactor;
-      lineOpacityMultiplier = htmlCanvas.width / lineOpacityFactor;
-      createNodes();
-    };
-
     htmlCanvas.addEventListener("mousemove", (event) => {
       const rect = htmlCanvas.getBoundingClientRect();
       const mouseX = event.clientX - rect.left;
@@ -383,6 +420,35 @@ const MainSite: React.FC = () => {
       }
     });
 
+    htmlCanvas.addEventListener("click", (event) => {
+      if (hoveredNodeIndex !== null && hoveredNodeIndex < nodes.length) {
+        const link = linkArray[hoveredNodeIndex];
+        if (link) {
+          window.open(link, '_blank');  
+        } else {
+          console.log("No link for this node.");
+        }
+      } else {
+        console.log("No node clicked");
+      }
+    });
+
+    const handleResize = () => {
+      setCanvasSize(); 
+      let lineOpacityMultiplier = (htmlCanvas.width / lineOpacityFactor) + 100;
+
+      console.log(lineOpacityMultiplier)
+
+      spawnWidth = window.innerWidth * 0.5;
+      spawnHeight = window.innerHeight * 0.6;
+      spawnXStart = (window.innerWidth - spawnWidth) / 2;
+      spawnYStart = (window.innerHeight - spawnHeight) / 2;
+      spawnXEnd = spawnXStart + spawnWidth;
+      spawnYEnd = spawnYStart + spawnHeight;
+
+      createNodes();
+    };
+
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -396,6 +462,7 @@ const MainSite: React.FC = () => {
         id="wireframeCanvas"
         style={{ position: "absolute", top: 0, left: 0 }}
       />
+      <Clock />
     </div>
   );
 };
