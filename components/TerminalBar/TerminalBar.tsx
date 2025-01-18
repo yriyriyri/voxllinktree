@@ -85,13 +85,14 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
     left: 30,
     width: "400px",
     height: "80vh",
-    backgroundColor: "#000000",
     color: "#FFFFFF",
     fontFamily: '"dico-code-two", monospace',
     fontSize: "12px",
     padding: "10px",
     overflowY: "auto",
     lineHeight: "2.1",
+    zIndex: 1000,
+    pointerEvents: "none",
   };
 
   useEffect(() => {
@@ -144,9 +145,15 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
         paddingLeft: "7.1em", 
         textIndent: "-7.1em", 
       }}
-    >
+      >
       {sections.map((section, index) => (
-        <span key={index} style={{ color: section.color }}>
+        <span
+          key={index}
+          style={{
+            color: section.color,
+            backgroundColor: "#000000", 
+          }}
+        >
           {section.text}
         </span>
       ))}

@@ -104,8 +104,8 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
           x,
           y,
           z: Math.random() * (70 - 10),
-          dx: (Math.random() - 0.5) * 2,
-          dy: (Math.random() - 0.5) * 2,
+          dx: (Math.random() - 0.5) * 1,
+          dy: (Math.random() - 0.5) * 1,
           boundingBox: { left: 0, right: 0, top: 0, bottom: 0 },
         });
       }
