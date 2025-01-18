@@ -550,7 +550,7 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
         if (link) {
           window.open(link, '_blank');  
         } else {
-          addLine("noLinkNode","No link for this node.");
+          addLine("noLinkNode",`<span style="color:#FFFFFF">no linked node</span>`);
         }
       } else {
         console.log("No node clicked");

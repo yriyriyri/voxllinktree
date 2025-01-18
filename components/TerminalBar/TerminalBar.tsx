@@ -92,18 +92,21 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
   const addLine = (id: string, content: string) => {
     setLines(prevLines => {
       const newLines = [...prevLines];
-  
       newLines.push({ id: id + "_blank", content: "   ", typed: false });
-  
       let finalId = id;
       let counter = 1;
       while (newLines.find(line => line.id === finalId)) {
         finalId = id + counter;
         counter++;
       }
-  
-      newLines.push({ id: finalId, content: `usr@voxlshell~$ ${content}`, typed: false });
-  
+      const styledPrefix = `<span style="color:#8AE234">usr@voxlshell</span>` +
+                           `<span style="color:#729FCF">~</span>` +
+                           `<span style="color:#3465A4">$</span> `;
+      newLines.push({ 
+        id: finalId, 
+        content: `${styledPrefix}${content}`, 
+        typed: false 
+      });
       return newLines;
     });
   };
