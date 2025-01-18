@@ -1,19 +1,24 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 
-interface TerminalBarProps {
-    messages: string[];
-    children: (addLine: (id: string, content: string) => void) => React.ReactNode;
-  }
-
-interface TerminalContextProps {
-  addLine: (id: string, content: string) => void;
-  updateLine: (id: string, content: string) => void;
+export interface Section {
+  text: string;
+  color: string;
 }
 
 interface Line {
   id: string;
-  content: string;
+  content: Section[];
   typed: boolean;
+}
+
+interface TerminalBarProps {
+  messages: string[];
+  children: (addLine: (id: string, content: Section[]) => void) => React.ReactNode;
+}
+
+interface TerminalContextProps {
+  addLine: (id: string, content: Section[]) => void;
+  updateLine: (id: string, content: Section[]) => void;
 }
 
 const TerminalBarContext = createContext<TerminalContextProps | null>(null);
@@ -27,17 +32,42 @@ export const useTerminal = () => {
 };
 
 const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
-    const [lines, setLines] = useState<Line[]>([
-    { id: "welcome", content: `boxy@voxlshell~$ welcome to the VOXLos kernel!`, typed: false },
-    { id: "spacer1", content: "   ", typed: false },
-    { id: "boot", content: `      >wireFrameBooted <span style="color:#4AF626">✔</span>`, typed: false },
-    { id: "spacer2", content: "   ", typed: false },
-    { id: "available", content: `      >boxyAvailable <span style="color:#4AF626">✔</span>`, typed: false },
-    { id: "spacer3", content: "   ", typed: false },
-    { id: "resources", content: `      >resourcesLocated <span style="color:#4AF626">✔</span>`, typed: false },
+  const [lines, setLines] = useState<Line[]>([
+    {
+      id: "welcome",
+      content: [{ text: "boxy@voxlshell~$ welcome to the VOXLos kernel!", color: "#FFFFFF" }],
+      typed: false,
+    },
+    { id: "spacer1", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
+    {
+      id: "boot",
+      content: [
+        { text: "      >wireFrameBooted ", color: "#FFFFFF" },
+        { text: "✔", color: "#4AF626" },
+      ],
+      typed: false,
+    },
+    { id: "spacer2", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
+    {
+      id: "available",
+      content: [
+        { text: "      >boxyAvailable ", color: "#FFFFFF" },
+        { text: "✔", color: "#4AF626" },
+      ],
+      typed: false,
+    },
+    { id: "spacer3", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
+    {
+      id: "resources",
+      content: [
+        { text: "      >resourcesLocated ", color: "#FFFFFF" },
+        { text: "✔", color: "#4AF626" },
+      ],
+      typed: false,
+    },
   ]);
 
-  const [currentLine, setCurrentLine] = useState<string>("");
+  const [currentLine, setCurrentLine] = useState<Section[]>([]);
   const [currentCharIndex, setCurrentCharIndex] = useState(0);
   const [currentAnimatingLineId, setCurrentAnimatingLineId] = useState<string | null>(null);
 
@@ -60,7 +90,7 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
 
     if (!currentAnimatingLineId && lineToAnimate) {
       setCurrentAnimatingLineId(lineToAnimate.id);
-      setCurrentLine("");
+      setCurrentLine([]);
       setCurrentCharIndex(0);
     }
 
@@ -68,9 +98,20 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
       const animatingLine = lines.find(line => line.id === currentAnimatingLineId);
       if (!animatingLine) return;
 
-      if (currentCharIndex < animatingLine.content.length) {
+      const totalChars = animatingLine.content.reduce((acc, section) => acc + section.text.length, 0);
+
+      if (currentCharIndex < totalChars) {
         const timeout = setTimeout(() => {
-          setCurrentLine(prev => prev + animatingLine.content[currentCharIndex]);
+          let charsToRender = currentCharIndex + 1;
+          const newLine: Section[] = [];
+          animatingLine.content.forEach(section => {
+            if (charsToRender > 0) {
+              const visibleText = section.text.slice(0, Math.min(charsToRender, section.text.length));
+              newLine.push({ text: visibleText, color: section.color });
+              charsToRender -= section.text.length;
+            }
+          });
+          setCurrentLine(newLine);
           setCurrentCharIndex(prev => prev + 1);
         }, 20);
         return () => clearTimeout(timeout);
@@ -85,33 +126,32 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
     }
   }, [lines, currentCharIndex, currentAnimatingLineId]);
 
-  const formatLineWithStyles = (line: string) => (
-    <pre style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: line }} />
+  const formatLineWithStyles = (sections: Section[]) => (
+    <pre style={{ margin: 0 }}>
+      {sections.map((section, index) => (
+        <span key={index} style={{ color: section.color }}>
+          {section.text}
+        </span>
+      ))}
+    </pre>
   );
 
-  const addLine = (id: string, content: string) => {
+  const addLine = (id: string, content: Section[]) => {
     setLines(prevLines => {
       const newLines = [...prevLines];
-      newLines.push({ id: id + "_blank", content: "   ", typed: false });
+      newLines.push({ id: id + "_blank", content: [{ text: "   ", color: "#FFFFFF" }], typed: false });
       let finalId = id;
       let counter = 1;
       while (newLines.find(line => line.id === finalId)) {
         finalId = id + counter;
         counter++;
       }
-      const styledPrefix = `<span style="color:#8AE234">usr@voxlshell</span>` +
-                           `<span style="color:#729FCF">~</span>` +
-                           `<span style="color:#3465A4">$</span> `;
-      newLines.push({ 
-        id: finalId, 
-        content: `${styledPrefix}${content}`, 
-        typed: false 
-      });
+      newLines.push({ id: finalId, content, typed: false });
       return newLines;
     });
   };
 
-  const updateLine = (id: string, content: string) => {
+  const updateLine = (id: string, content: Section[]) => {
     setLines(prevLines =>
       prevLines.map(line =>
         line.id === id ? { ...line, content } : line
