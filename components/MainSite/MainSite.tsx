@@ -5,6 +5,10 @@ import React, {
 
 } from "react";
 
+interface MainSiteProps {
+  addLine: (id: string, content: string) => void;
+}
+
 interface Node {
   x: number;
   y: number;
@@ -15,11 +19,9 @@ interface Node {
   nextChange?: number;
 }
 
-interface MainSiteProps {
-  onOutputToTerminal: (message: string) => void;
-}
 
-const MainSite: React.FC<MainSiteProps> = ({ onOutputToTerminal }) => {
+
+const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
   const wireframeCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const spawnZone = useRef({
@@ -438,7 +440,6 @@ const MainSite: React.FC<MainSiteProps> = ({ onOutputToTerminal }) => {
           else if (node.y > spawnYEnd) node.dy -= edgeRepulsionStrength;
         } else {
           const { left, right, top, bottom } = node.boundingBox;
-        
           if (left < 0) node.dx += edgeRepulsionStrength;
           else if (right > window.innerWidth) node.dx -= edgeRepulsionStrength;
           if (top < 0) node.dy += edgeRepulsionStrength;
@@ -549,7 +550,7 @@ const MainSite: React.FC<MainSiteProps> = ({ onOutputToTerminal }) => {
         if (link) {
           window.open(link, '_blank');  
         } else {
-          console.log("No link for this node.");
+          addLine("noLinkNode","No link for this node.");
         }
       } else {
         console.log("No node clicked");

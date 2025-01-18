@@ -1,12 +1,19 @@
-import React, { useState, useEffect, useRef, createContext, useContext } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 
 interface TerminalBarProps {
-  messages: string[]; 
-  onOutputToTerminal?: (message: string) => void; 
-}
+    messages: string[];
+    children: (addLine: (id: string, content: string) => void) => React.ReactNode;
+  }
 
 interface TerminalContextProps {
-  outputToTerminal: (message: string) => void;
+  addLine: (id: string, content: string) => void;
+  updateLine: (id: string, content: string) => void;
+}
+
+interface Line {
+  id: string;
+  content: string;
+  typed: boolean;
 }
 
 const TerminalBarContext = createContext<TerminalContextProps | null>(null);
@@ -19,21 +26,20 @@ export const useTerminal = () => {
   return context;
 };
 
-const TerminalBar: React.FC<TerminalBarProps> = ({ messages, onOutputToTerminal }) => {
-  const [lines, setLines] = useState<string[]>([]); 
-  const [currentLine, setCurrentLine] = useState<string>(""); 
-  const [currentCharIndex, setCurrentCharIndex] = useState(0); 
-  const [currentLineIndex, setCurrentLineIndex] = useState(0); 
-
-  const typewriterMessages = useRef<string[]>([
-    `boxy@voxlshell~$ welcome to the VOXLos kernel!`,
-    "   ",
-    `      >wireFrameBooted <span style="color:#4AF626">✔</span>`,
-    "   ",
-    `      >boxyAvailable <span style="color:#4AF626">✔</span>`,
-    "   ",
-    `      >resourcesLocated <span style="color:#4AF626">✔</span>`,
+const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
+    const [lines, setLines] = useState<Line[]>([
+    { id: "welcome", content: `boxy@voxlshell~$ welcome to the VOXLos kernel!`, typed: false },
+    { id: "spacer1", content: "   ", typed: false },
+    { id: "boot", content: `      >wireFrameBooted <span style="color:#4AF626">✔</span>`, typed: false },
+    { id: "spacer2", content: "   ", typed: false },
+    { id: "available", content: `      >boxyAvailable <span style="color:#4AF626">✔</span>`, typed: false },
+    { id: "spacer3", content: "   ", typed: false },
+    { id: "resources", content: `      >resourcesLocated <span style="color:#4AF626">✔</span>`, typed: false },
   ]);
+
+  const [currentLine, setCurrentLine] = useState<string>("");
+  const [currentCharIndex, setCurrentCharIndex] = useState(0);
+  const [currentAnimatingLineId, setCurrentAnimatingLineId] = useState<string | null>(null);
 
   const terminalStyle: React.CSSProperties = {
     position: "fixed",
@@ -49,59 +55,80 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, onOutputToTerminal 
     overflowY: "auto",
   };
 
-  // Typewriter effect
   useEffect(() => {
-    if (currentLineIndex < typewriterMessages.current.length) {
-      if (currentCharIndex < typewriterMessages.current[currentLineIndex].length) {
+    let lineToAnimate = lines.find(line => !line.typed && line.id !== currentAnimatingLineId);
+
+    if (!currentAnimatingLineId && lineToAnimate) {
+      setCurrentAnimatingLineId(lineToAnimate.id);
+      setCurrentLine("");
+      setCurrentCharIndex(0);
+    }
+
+    if (currentAnimatingLineId) {
+      const animatingLine = lines.find(line => line.id === currentAnimatingLineId);
+      if (!animatingLine) return;
+
+      if (currentCharIndex < animatingLine.content.length) {
         const timeout = setTimeout(() => {
-          setCurrentLine(
-            (prev) =>
-              prev + typewriterMessages.current[currentLineIndex][currentCharIndex]
-          );
-          setCurrentCharIndex((prev) => prev + 1);
+          setCurrentLine(prev => prev + animatingLine.content[currentCharIndex]);
+          setCurrentCharIndex(prev => prev + 1);
         }, 20);
         return () => clearTimeout(timeout);
       } else {
-        const timeout = setTimeout(() => {
-          setLines((prev) => [...prev, currentLine]);
-          setCurrentLine("");
-          setCurrentCharIndex(0);
-          setCurrentLineIndex((prev) => prev + 1);
-        }, 100);
-        return () => clearTimeout(timeout);
+        setLines(prev =>
+          prev.map(line =>
+            line.id === currentAnimatingLineId ? { ...line, typed: true } : line
+          )
+        );
+        setCurrentAnimatingLineId(null);
       }
     }
-  }, [currentCharIndex, currentLineIndex, currentLine]);
+  }, [lines, currentCharIndex, currentAnimatingLineId]);
 
   const formatLineWithStyles = (line: string) => (
     <pre style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: line }} />
   );
 
-  const outputToTerminal = (message: string) => {
-    typewriterMessages.current.push(`usr@voxlshell~$ ${message}`);
-    if (currentLineIndex === typewriterMessages.current.length - 1) {
-      setCurrentLineIndex(typewriterMessages.current.length - 1);
-    }
-    if (onOutputToTerminal) {
-      onOutputToTerminal(message);
-    }
+  const addLine = (id: string, content: string) => {
+    setLines(prevLines => {
+      const existing = prevLines.find(line => line.id === id);
+      if (!existing) {
+        return [...prevLines, { id, content, typed: false }];
+      } else {
+        return prevLines.map(line =>
+          line.id === id ? { ...line, content } : line
+        );
+      }
+    });
+  };
+
+  const updateLine = (id: string, content: string) => {
+    setLines(prevLines =>
+      prevLines.map(line =>
+        line.id === id ? { ...line, content } : line
+      )
+    );
   };
 
   return (
-    <TerminalBarContext.Provider value={{ outputToTerminal }}>
+    <>
       <div style={terminalStyle}>
-        {lines.map((line, index) => (
-          <div key={index}>{formatLineWithStyles(line)}</div>
-        ))}
-        {currentLine && <div>{formatLineWithStyles(currentLine)}</div>}
+        {lines.map(line =>
+          line.typed ? (
+            <div key={line.id}>{formatLineWithStyles(line.content)}</div>
+          ) : null
+        )}
+        {currentAnimatingLineId && formatLineWithStyles(currentLine)}
         {messages.map((message, index) => (
           <pre key={`message-${index}`} style={{ margin: 0 }}>
             {message}
           </pre>
         ))}
       </div>
-    </TerminalBarContext.Provider>
+      {children(addLine)}
+    </>
   );
 };
 
+export { TerminalBarContext };
 export default TerminalBar;

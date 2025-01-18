@@ -13,11 +13,9 @@ let hasRunLoginPopup = false;
 export default function App({ Component, pageProps }: AppProps) {
   const [loading, setLoading] = useState(!hasRunLoginPopup);
   const completedRef = useRef(false);
-
   const [terminalMessages, setTerminalMessages] = useState<string[]>([]);
 
   const handleComplete = useCallback(() => {
-    console.log("handleComplete called");
     if (!completedRef.current) {
       completedRef.current = true;
       hasRunLoginPopup = true; 
@@ -25,24 +23,20 @@ export default function App({ Component, pageProps }: AppProps) {
     }
   }, []);
 
-  const outputToTerminal = (message: string) => {
-    setTerminalMessages((prevMessages) => [...prevMessages, message]);
-  };
-
   return (
     <>
       {loading ? (
         <LoginPopup onComplete={handleComplete} />
       ) : (
-        <>
-          {/* Shared TerminalBar */}
-          <TerminalBar messages={terminalMessages} />
-          
-          <MainSite onOutputToTerminal={outputToTerminal} />
-          
-          <Component {...pageProps} />
-          <Clock />
-        </>
+        <TerminalBar messages={terminalMessages}>
+          {(addLine) => (
+            <>
+              <MainSite addLine={addLine} />
+              <Component {...pageProps} />
+              <Clock />
+            </>
+          )}
+        </TerminalBar>
       )}
     </>
   );
