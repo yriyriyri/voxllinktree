@@ -34,37 +34,48 @@ export const useTerminal = () => {
 const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
   const [lines, setLines] = useState<Line[]>([
     {
-      id: "welcome",
-      content: [{ text: "boxy@voxlshell~$ welcome to the VOXLos kernel!", color: "#FFFFFF" }],
-      typed: false,
-    },
-    { id: "spacer1", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
-    {
-      id: "boot",
-      content: [
-        { text: "      >wireFrameBooted ", color: "#FFFFFF" },
-        { text: "✔", color: "#4AF626" },
-      ],
-      typed: false,
-    },
-    { id: "spacer2", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
-    {
-      id: "available",
-      content: [
-        { text: "      >boxyAvailable ", color: "#FFFFFF" },
-        { text: "✔", color: "#4AF626" },
-      ],
-      typed: false,
-    },
-    { id: "spacer3", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
-    {
-      id: "resources",
-      content: [
-        { text: "      >resourcesLocated ", color: "#FFFFFF" },
-        { text: "✔", color: "#4AF626" },
-      ],
-      typed: false,
-    },
+        id: "welcome",
+        content: [
+          { text: "boxy@voxlshell", color: "#8AE234" },
+          { text: "~", color: "#729FCF" },
+          { text: "$", color: "#3465A4" },
+          { text: " welcome to the VOXLos kernel!", color: "#FFFFFF" }
+        ],
+        typed: false,
+      },
+      { id: "spacer1", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
+      {
+        id: "boot",
+        content: [
+          { text: "      ", color: "#FFFFFF" },
+          { text: ">", color: "#3465A4" },
+          { text: " wireFrameBooted ", color: "#FFFFFF" },
+          { text: "✔", color: "#4AF626" },
+        ],
+        typed: false,
+      },
+      { id: "spacer2", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
+      {
+        id: "available",
+        content: [
+          { text: "      ", color: "#FFFFFF" },
+          { text: ">", color: "#3465A4" },
+          { text: " boxyAvailable ", color: "#FFFFFF" },
+          { text: "✔", color: "#4AF626" },
+        ],
+        typed: false,
+      },
+      { id: "spacer3", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
+      {
+        id: "resources",
+        content: [
+          { text: "      ", color: "#FFFFFF" },
+          { text: ">", color: "#3465A4" },
+          { text: " resourcesLocated ", color: "#FFFFFF" },
+          { text: "✔", color: "#4AF626" },
+        ],
+        typed: false,
+      },
   ]);
 
   const [currentLine, setCurrentLine] = useState<Section[]>([]);
@@ -113,7 +124,7 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
           });
           setCurrentLine(newLine);
           setCurrentCharIndex(prev => prev + 1);
-        }, 20);
+        }, 10);
         return () => clearTimeout(timeout);
       } else {
         setLines(prev =>
@@ -140,13 +151,37 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
     setLines(prevLines => {
       const newLines = [...prevLines];
       newLines.push({ id: id + "_blank", content: [{ text: "   ", color: "#FFFFFF" }], typed: false });
+  
       let finalId = id;
       let counter = 1;
       while (newLines.find(line => line.id === finalId)) {
         finalId = id + counter;
         counter++;
       }
-      newLines.push({ id: finalId, content, typed: false });
+  
+      let prefixedContent;
+  
+      if (content.length > 0 && content[0].color === "#34E2E2") {
+        const fileSection = content[0];
+        const remainingContent = content.slice(1); 
+  
+        prefixedContent = [
+          { text: "usr@voxlshell", color: "#8AE234" },
+          { text: "~", color: "#729FCF" },
+          fileSection, 
+          { text: "$", color: "#3465A4" },
+          ...remainingContent 
+        ];
+      } else {
+        prefixedContent = [
+          { text: "usr@voxlshell", color: "#8AE234" },
+          { text: "~", color: "#729FCF" },
+          { text: "$", color: "#3465A4" },
+          ...content
+        ];
+      }
+  
+      newLines.push({ id: finalId, content: prefixedContent, typed: false });
       return newLines;
     });
   };

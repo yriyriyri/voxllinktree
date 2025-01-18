@@ -4,9 +4,12 @@ import React, {
   useRef,
 
 } from "react";
+import { Section } from "../TerminalBar/TerminalBar"; 
+
+
 
 interface MainSiteProps {
-  addLine: (id: string, content: string) => void;
+  addLine: (id: string, content: Section[]) => void;
 }
 
 interface Node {
@@ -547,11 +550,13 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
     htmlCanvas.addEventListener("click", (event) => {
       if (hoveredNodeIndex !== null && hoveredNodeIndex < nodes.length) {
         const link = linkArray[hoveredNodeIndex];
+        const text = textArray[hoveredNodeIndex];
         if (link) {
           window.open(link, '_blank');  
         } else {
           addLine("noLinkNode", [
-            { text: "no linked node", color: "#FFFFFF" }
+            {text: text, color: "#34E2E2"},
+            { text: " no linked node", color: "#FFFFFF" }
           ]);
         }
       } else {
