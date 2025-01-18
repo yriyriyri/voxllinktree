@@ -1,24 +1,29 @@
-import React, { useState, useEffect, useRef, createContext, useContext, ReactNode } from "react";
+import React, { useState, useEffect, useRef, createContext, useContext } from "react";
 
-interface TerminalBarContextProps {
+interface TerminalBarProps {
+  messages: string[]; 
+  onOutputToTerminal?: (message: string) => void; 
+}
+
+interface TerminalContextProps {
   outputToTerminal: (message: string) => void;
 }
 
-const TerminalBarContext = createContext<TerminalBarContextProps | null>(null);
+const TerminalBarContext = createContext<TerminalContextProps | null>(null);
 
 export const useTerminal = () => {
   const context = useContext(TerminalBarContext);
   if (!context) {
-    throw new Error("useTerminal must be used within TerminalBarProvider");
+    throw new Error("useTerminal must be used within TerminalBarContext.Provider");
   }
   return context;
 };
 
-const TerminalBar: React.FC = () => {
-  const [lines, setLines] = useState<string[]>([]);
-  const [currentLine, setCurrentLine] = useState<string>("");
-  const [currentCharIndex, setCurrentCharIndex] = useState(0);
-  const [currentLineIndex, setCurrentLineIndex] = useState(0);
+const TerminalBar: React.FC<TerminalBarProps> = ({ messages, onOutputToTerminal }) => {
+  const [lines, setLines] = useState<string[]>([]); 
+  const [currentLine, setCurrentLine] = useState<string>(""); 
+  const [currentCharIndex, setCurrentCharIndex] = useState(0); 
+  const [currentLineIndex, setCurrentLineIndex] = useState(0); 
 
   const typewriterMessages = useRef<string[]>([
     `boxy@voxlshell~$ welcome to the VOXLos kernel!`,
@@ -44,6 +49,7 @@ const TerminalBar: React.FC = () => {
     overflowY: "auto",
   };
 
+  // Typewriter effect
   useEffect(() => {
     if (currentLineIndex < typewriterMessages.current.length) {
       if (currentCharIndex < typewriterMessages.current[currentLineIndex].length) {
@@ -72,10 +78,12 @@ const TerminalBar: React.FC = () => {
   );
 
   const outputToTerminal = (message: string) => {
-    typewriterMessages.current.push("   ");
     typewriterMessages.current.push(`usr@voxlshell~$ ${message}`);
-    if (currentLineIndex === typewriterMessages.current.length - 2) {
-      setCurrentLineIndex(typewriterMessages.current.length - 2);
+    if (currentLineIndex === typewriterMessages.current.length - 1) {
+      setCurrentLineIndex(typewriterMessages.current.length - 1);
+    }
+    if (onOutputToTerminal) {
+      onOutputToTerminal(message);
     }
   };
 
@@ -86,6 +94,11 @@ const TerminalBar: React.FC = () => {
           <div key={index}>{formatLineWithStyles(line)}</div>
         ))}
         {currentLine && <div>{formatLineWithStyles(currentLine)}</div>}
+        {messages.map((message, index) => (
+          <pre key={`message-${index}`} style={{ margin: 0 }}>
+            {message}
+          </pre>
+        ))}
       </div>
     </TerminalBarContext.Provider>
   );
