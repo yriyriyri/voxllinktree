@@ -68,8 +68,9 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
     let lineOpacityMultiplier = (htmlCanvas.width / lineOpacityFactor) + 100;
 
     let nodes: Node[] = [];
-    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./steam", "./youtube", "./about us", "./contact","l","./TimeUntilRelease()"];
-    let linkArray = [null,"https://www.instagram.com/voxl.online/","https://x.com/voxldev",null,null,"https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",null,null,null]
+    let textArray = ["./trailer", "./instagram", "./X", "./discord", "./steam", "./youtube", "./about-us", "./contact","l","./TimeUntilRelease"];
+    let linkArray = ["placeholderlink","https://www.instagram.com/voxl.online/","https://x.com/voxldev","placeholderlink","placeholderlink","https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",null,null,null,null]
+    let functionArray = [null,null,null,null,null,null,"1","2",null,null]
     const numNodes = 8;
     const svgIcons = {
       "./instagram": {
@@ -78,11 +79,11 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
       },
       "./X": {
         img: new Image(),
-        color: "#1DA1F2", 
+        color: "#729FCF", 
       },
       "./youtube": {
         img: new Image(),
-        color: "#FF0000", 
+        color: "#CC0000", 
       },
     };
     
@@ -551,13 +552,47 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
       if (hoveredNodeIndex !== null && hoveredNodeIndex < nodes.length) {
         const link = linkArray[hoveredNodeIndex];
         const text = textArray[hoveredNodeIndex];
-        if (link) {
-          window.open(link, '_blank');  
-        } else {
+        const func = functionArray[hoveredNodeIndex];
+    
+        if (func !== null) {
+          if (func === "1") {
+            addLine("aboutusOutput", [
+              { text: text, color: "#34E2E2" },
+            ]);
+            addLine("aboutusOutput1", [
+              { text: "          >", color: "#3465A4" },
+              { text: " VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. ", color: "#FFFFFF" },
+            ]);
+            addLine("padding", [
+              { text: "   ", color: "#3465A4" },
+            ]);
+            addLine("aboutusOutput2", [
+              { text: "          >", color: "#3465A4" },
+              { text: " Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. ", color: "#FFFFFF" },
+            ]);
+            addLine("padding", [
+              { text: "   ", color: "#3465A4" },
+            ]);
+          }else{
+            addLine("contactOutput", [
+              { text: text, color: "#34E2E2" },
+            ]);
+            addLine("contactOutput1", [
+              { text: "          >", color: "#3465A4" },
+              { text: " dickheadtest@gmail.com", color : "#FFFFFF"},
+            ]);
+            addLine("padding", [
+              { text: "   ", color: "#3465A4" },
+            ]);
+          } 
+        } else if (link === null) {
+        } else if (link === "placeholderlink") {
           addLine("noLinkNode", [
-            {text: text, color: "#34E2E2"},
-            { text: " no linked node", color: "#FFFFFF" }
+            { text: text, color: "#AD7FA8" },
+            { text: " no linked node", color: "#FFFFFF" },
           ]);
+        } else {
+          window.open(link, "_blank");
         }
       } else {
         console.log("No node clicked");

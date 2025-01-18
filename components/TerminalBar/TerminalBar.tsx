@@ -43,7 +43,6 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
         ],
         typed: false,
       },
-      { id: "spacer1", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
       {
         id: "boot",
         content: [
@@ -54,7 +53,6 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
         ],
         typed: false,
       },
-      { id: "spacer2", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
       {
         id: "available",
         content: [
@@ -65,7 +63,6 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
         ],
         typed: false,
       },
-      { id: "spacer3", content: [{ text: "   ", color: "#FFFFFF" }], typed: false },
       {
         id: "resources",
         content: [
@@ -94,6 +91,7 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
     fontSize: "12px",
     padding: "10px",
     overflowY: "auto",
+    lineHeight: "2.1",
   };
 
   useEffect(() => {
@@ -138,7 +136,15 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
   }, [lines, currentCharIndex, currentAnimatingLineId]);
 
   const formatLineWithStyles = (sections: Section[]) => (
-    <pre style={{ margin: 0 }}>
+    <pre
+      style={{
+        margin: 0,
+        wordBreak: "break-all",
+        whiteSpace: "pre-wrap",
+        paddingLeft: "7.1em", 
+        textIndent: "-7.1em", 
+      }}
+    >
       {sections.map((section, index) => (
         <span key={index} style={{ color: section.color }}>
           {section.text}
@@ -150,7 +156,6 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
   const addLine = (id: string, content: Section[]) => {
     setLines(prevLines => {
       const newLines = [...prevLines];
-      newLines.push({ id: id + "_blank", content: [{ text: "   ", color: "#FFFFFF" }], typed: false });
   
       let finalId = id;
       let counter = 1;
@@ -159,29 +164,33 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
         counter++;
       }
   
-      let prefixedContent;
+      let finalContent;
   
-      if (content.length > 0 && content[0].color === "#34E2E2") {
-        const fileSection = content[0];
-        const remainingContent = content.slice(1); 
-  
-        prefixedContent = [
-          { text: "usr@voxlshell", color: "#8AE234" },
-          { text: "~", color: "#729FCF" },
-          fileSection, 
-          { text: "$", color: "#3465A4" },
-          ...remainingContent 
-        ];
+      if (content.length > 0 && content[0].color === "#3465A4") {
+        finalContent = content; 
       } else {
-        prefixedContent = [
-          { text: "usr@voxlshell", color: "#8AE234" },
-          { text: "~", color: "#729FCF" },
-          { text: "$", color: "#3465A4" },
-          ...content
-        ];
+        if (content.length > 0) {
+          const fileSection = content[0];
+          const remainingContent = content.slice(1);
+  
+          finalContent = [
+            { text: "    usr@voxlshell", color: "#8AE234" },
+            { text: "~", color: "#729FCF" },
+            fileSection,
+            { text: "$", color: "#3465A4" },
+            ...remainingContent
+          ];
+        } else {
+          finalContent = [
+            { text: "    usr@voxlshell", color: "#8AE234" },
+            { text: "~", color: "#729FCF" },
+            { text: "$", color: "#3465A4" },
+            ...content
+          ];
+        }
       }
   
-      newLines.push({ id: finalId, content: prefixedContent, typed: false });
+      newLines.push({ id: finalId, content: finalContent, typed: false });
       return newLines;
     });
   };

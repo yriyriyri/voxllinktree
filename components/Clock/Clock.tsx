@@ -42,9 +42,9 @@ const Clock: React.FC = () => {
       {">"} {time.toLocaleDateString()} {dots}
       <br />
       {">"} {timeStringWithoutPeriod}{" "}
-      <span style={{ color: isAM ? "#4AF626" : "red" }}>[AM]</span>
+      <span style={{ color: isAM ? "#4AF626" : "#FF0000" }}>[AM]</span>
       <span style={{ color: "#FFFFFF" }}> / </span>
-      <span style={{ color: !isAM ? "#4AF626" : "red" }}>[PM]</span>
+      <span style={{ color: !isAM ? "#4AF626" : "#FF0000" }}>[PM]</span>
     </div>
   );
 };
