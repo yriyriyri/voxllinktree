@@ -39,16 +39,16 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
           { text: "boxy@voxlshell", color: "#8AE234" },
           { text: "~", color: "#729FCF" },
           { text: "$", color: "#3465A4" },
-          { text: " welcome to the VOXLos kernel!", color: "#FFFFFF" }
+          { text: " welcome to the VOXLos kernel!", color: "#000000" } //
         ],
         typed: false,
       },
       {
         id: "boot",
         content: [
-          { text: "      ", color: "#FFFFFF" },
+          { text: "      ", color: "#FFFFFF" }, 
           { text: ">", color: "#3465A4" },
-          { text: " wireFrameBooted ", color: "#FFFFFF" },
+          { text: " wireFrameBooted ", color: "#000000" }, //
           { text: "✔", color: "#4AF626" },
         ],
         typed: false,
@@ -58,7 +58,7 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
         content: [
           { text: "      ", color: "#FFFFFF" },
           { text: ">", color: "#3465A4" },
-          { text: " boxyAvailable ", color: "#FFFFFF" },
+          { text: " boxyAvailable ", color: "#000000" }, //
           { text: "✔", color: "#4AF626" },
         ],
         typed: false,
@@ -68,7 +68,7 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
         content: [
           { text: "      ", color: "#FFFFFF" },
           { text: ">", color: "#3465A4" },
-          { text: " resourcesLocated ", color: "#FFFFFF" },
+          { text: " resourcesLocated ", color: "#000000" }, //
           { text: "✔", color: "#4AF626" },
         ],
         typed: false,
@@ -85,7 +85,7 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
     left: 30,
     width: "400px",
     height: "80vh",
-    color: "#FFFFFF",
+    color: "#000000", //
     fontFamily: '"dico-code-two", monospace',
     fontSize: "12px",
     padding: "10px",
@@ -151,7 +151,7 @@ const TerminalBar: React.FC<TerminalBarProps> = ({ messages, children }) => {
           key={index}
           style={{
             color: section.color,
-            backgroundColor: "#000000", 
+            backgroundColor: "#FFFFFF", 
           }}
         >
           {section.text}

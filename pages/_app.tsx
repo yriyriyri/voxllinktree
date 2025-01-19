@@ -8,36 +8,36 @@ import MainSite from "../components/MainSite/MainSite";
 import Clock from "../components/Clock/Clock";
 import TerminalBar from "@/components/TerminalBar/TerminalBar";
 
-let hasRunLoginPopup = false;
+// let hasRunLoginPopup = false; // Commented out to disable login tracking
 
 export default function App({ Component, pageProps }: AppProps) {
-  const [loading, setLoading] = useState(!hasRunLoginPopup);
-  const completedRef = useRef(false);
+  // const [loading, setLoading] = useState(!hasRunLoginPopup); // Disabled
+  // const completedRef = useRef(false); // Disabled
   const [terminalMessages, setTerminalMessages] = useState<string[]>([]);
 
-  const handleComplete = useCallback(() => {
-    if (!completedRef.current) {
-      completedRef.current = true;
-      hasRunLoginPopup = true; 
-      setLoading(false);
-    }
-  }, []);
+  // const handleComplete = useCallback(() => {
+  //   if (!completedRef.current) {
+  //     completedRef.current = true;
+  //     hasRunLoginPopup = true; 
+  //     setLoading(false);
+  //   }
+  // }, []);
 
   return (
     <>
-      {loading ? (
+      {/* {loading ? (
         <LoginPopup onComplete={handleComplete} />
-      ) : (
-        <TerminalBar messages={terminalMessages}>
-          {(addLine) => (
-            <>
-              <MainSite addLine={addLine} />
-              <Component {...pageProps} />
-              <Clock />
-            </>
-          )}
-        </TerminalBar>
-      )}
+      ) : ( */}
+      <TerminalBar messages={terminalMessages}>
+        {(addLine) => (
+          <>
+            <MainSite addLine={addLine} />
+            <Component {...pageProps} />
+            <Clock />
+          </>
+        )}
+      </TerminalBar>
+      {/* )} */}
     </>
   );
 }

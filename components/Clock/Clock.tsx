@@ -16,10 +16,10 @@ const Clock: React.FC = () => {
     position: "fixed",
     bottom: "70px",
     right: "70px",
-    background: "rgba(0, 0, 0, 0.5)",
-    color: "white",
+    // background: "rgba(0, 0, 0, 0.5)",
+    color: "black",
     padding: "5px 10px",
-    borderRadius: "4px",
+    // borderRadius: "4px",
     fontFamily: '"dico-code-two", monospace',
     fontSize: "14px",
   };
@@ -43,7 +43,7 @@ const Clock: React.FC = () => {
       <br />
       {">"} {timeStringWithoutPeriod}{" "}
       <span style={{ color: isAM ? "#4AF626" : "#FF0000" }}>[AM]</span>
-      <span style={{ color: "#FFFFFF" }}> / </span>
+      <span style={{ color: "#000000" }}> / </span>
       <span style={{ color: !isAM ? "#4AF626" : "#FF0000" }}>[PM]</span>
     </div>
   );

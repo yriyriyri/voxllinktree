@@ -131,16 +131,18 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
 
     function drawWireframe() {
       ctx.clearRect(0, 0, htmlCanvas.width, htmlCanvas.height);
+      ctx.fillStyle = "#FFFFFF"; 
+      ctx.fillRect(0, 0, htmlCanvas.width, htmlCanvas.height); 
       ctx.imageSmoothingEnabled = false;
       ctx.globalCompositeOperation = "source-over";
     
       const defaultFontSize = 16;
       const smallFontSize = 10;
-      ctx.fillStyle = "#FFFFFF";
+      ctx.fillStyle = "#000000"; //
       const lineWidth = defaultFontSize / 12;
     
       ctx.lineWidth = lineWidth;
-      ctx.strokeStyle = "#FFFFFF";
+      ctx.strokeStyle = "#000000"; //
     
       function drawSVG(img: HTMLImageElement, x: number, y: number, width: number, height: number) {
         if (img.complete) {
@@ -176,8 +178,8 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
           }
       
           if (lineOpacity > 0) {
-            const whiteRatio = Math.max(1, Math.round(10 * lineOpacity));
-            const blackRatio = Math.max(1, Math.round(10 * (1 - lineOpacity)));
+            const whiteRatio = Math.max(1, Math.round(10 * lineOpacity)); //
+            const blackRatio = Math.max(1, Math.round(10 * (1 - lineOpacity))); //
             ctx.setLineDash([whiteRatio, blackRatio]);
             ctx.globalAlpha = 1;
             ctx.beginPath();
@@ -222,10 +224,10 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
             const topBorder = `+${"-".repeat(leftWall.length + loadingBar.length + statsLeft.length + statsMiddle.length + statsRight.length + rightWall.length - 2 || 0)}+`;
             const bottomBorder = topBorder;
         
-            ctx.fillStyle = "#000000"; 
+            ctx.fillStyle = "#FFFFFF"; //
             ctx.fillRect(x, y, textWidth, boxHeight);
 
-            ctx.fillStyle = "#FFFFFF"; 
+            ctx.fillStyle = "#000000"; //
             ctx.fillText(topBorder, x, y);
             ctx.fillText(leftWall, x, y + fontSize);
 
@@ -250,10 +252,10 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
             ctx.fillText(statsRight, x + leftWallWidth + loadingBarWidth + statsLeftWidth + statsMiddleWidth, y + fontSize);
         
             const statsRightWidth = ctx.measureText(statsRight).width;
-            ctx.fillStyle = "#FFFFFF"; 
+            ctx.fillStyle = "#000000"; //
             ctx.fillText(rightWall, x + leftWallWidth + loadingBarWidth + statsLeftWidth + statsMiddleWidth + statsRightWidth, y + fontSize);
         
-            ctx.fillStyle = "#FFFFFF"; 
+            ctx.fillStyle = "#000000"; //
             ctx.fillText(bottomBorder, x, y + fontSize * 2);
         
             node.boundingBox = {
@@ -273,10 +275,10 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
             const topBorder = `+${"-".repeat(paddedText.length+returnValue.length+rightWall.length-2)}+`;
             const bottomBorder = topBorder;
         
-            ctx.fillStyle = "#000000";
+            ctx.fillStyle = "#FFFFFF"; //
             ctx.fillRect(x, y, textWidth, boxHeight);
         
-            ctx.fillStyle = "#FFFFFF";
+            ctx.fillStyle = "#000000"; //
             ctx.fillText(topBorder, x, y);
             ctx.fillText(paddedText, x, y + fontSize);
             ctx.fillText(bottomBorder, x, y + fontSize * 2);
@@ -289,13 +291,13 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
             ctx.fillText(returnValue, x + paddedTextWidth,y+fontSize)
 
             
-            ctx.fillStyle = "#FFFFFF"
+            ctx.fillStyle = "#000000" //
             ctx.fillText(rightWall, x + paddedTextWidth+returnValueWidth,y+fontSize)
         
             if (i === hoveredNodeIndex) {
               const underlineY = y + fontSize * 2;
               const textWidth = ctx.measureText(textArray[i] || "").width;
-              ctx.strokeStyle = "#FFFFFF";
+              ctx.strokeStyle = "#000000"; //
               ctx.lineWidth = 1.2;
               ctx.beginPath();
               ctx.moveTo(x + ctx.measureText("--").width, underlineY);
@@ -314,7 +316,7 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
           }
         } else if (Object.keys(svgIcons).includes(textArray[i])) {
           const svgEntry = svgIcons[textArray[i] as keyof typeof svgIcons];
-          const svgColor = svgEntry.color || "#FFFFFF";
+          const svgColor = svgEntry.color || "#000000"; //
       
           const topBorderStr = `+${"-".repeat(textArray[i]?.length + 7 || 0)}+`;
           const bottomBorderStr = topBorderStr;
@@ -329,14 +331,14 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
           x = node.x - measuredWidth / 2;
           y = node.y - boxHeight / 2;
       
-          ctx.fillStyle = "#000000";
+          ctx.fillStyle = "#FFFFFF"; //
           ctx.fillRect(x, y, measuredWidth, boxHeight);
       
-          ctx.fillStyle = "#FFFFFF";
+          ctx.fillStyle = "#000000"; //
           ctx.fillText(topBorderStr, x, y);
           ctx.fillText(bottomBorderStr, x, y + fontSize * 2);
       
-          ctx.fillStyle = "#FFFFFF";
+          ctx.fillStyle = "#000000"; //
           ctx.fillText(textBeforeBrackets, x, y + fontSize);
       
           ctx.fillStyle = svgColor;
@@ -348,14 +350,14 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
           const svgIconX = bracketsX + ctx.measureText("-").width;
           drawSVG(svgEntry.img, svgIconX, y + fontSize - 3.2, svgWidth, svgHeight);
       
-          ctx.fillStyle = "#FFFFFF";
+          ctx.fillStyle = "#000000"; //
           const rightWallX = bracketsX + ctx.measureText(brackets).width + ctx.measureText(" ").width;
           ctx.fillText(rightWall, rightWallX, y + fontSize);
       
           if (i === hoveredNodeIndex) {
             const underlineY = y + fontSize * 2;
             const textWidth = ctx.measureText(textArray[i] || "").width;
-            ctx.strokeStyle = "#FFFFFF";
+            ctx.strokeStyle = "#000000"; //
             ctx.lineWidth = 1.2;
             ctx.beginPath();
             ctx.moveTo(x + ctx.measureText("--").width, underlineY);
@@ -376,10 +378,10 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
           const bottomBorder = topBorder;
           const paddedText = `| ${textArray[i] || ""} |`;
       
-          ctx.fillStyle = "#000000";
+          ctx.fillStyle = "#FFFFFF"; //
           ctx.fillRect(x, y, boxWidth, boxHeight);
       
-          ctx.fillStyle = "#FFFFFF";
+          ctx.fillStyle = "#000000"; //
           ctx.fillText(topBorder, x, y);
           ctx.fillText(paddedText, x, y + fontSize);
           ctx.fillText(bottomBorder, x, y + fontSize * 2);
@@ -387,7 +389,7 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
           if (i === hoveredNodeIndex) {
             const underlineY = y + fontSize * 2;
             const textWidth = ctx.measureText(textArray[i] || "").width;
-            ctx.strokeStyle = "#FFFFFF";
+            ctx.strokeStyle = "#000000"; //
             ctx.lineWidth = 1.2;
             ctx.beginPath();
             ctx.moveTo(x + ctx.measureText("--").width, underlineY);
@@ -561,14 +563,14 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
             ]);
             addLine("aboutusOutput1", [
               { text: "          >", color: "#3465A4" },
-              { text: " VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. ", color: "#FFFFFF" },
+              { text: " VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. ", color: "#000000" }, //
             ]);
             addLine("padding", [
               { text: "   ", color: "#3465A4" },
             ]);
             addLine("aboutusOutput2", [
               { text: "          >", color: "#3465A4" },
-              { text: " Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. ", color: "#FFFFFF" },
+              { text: " Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. ", color: "#000000" }, //
             ]);
             addLine("padding", [
               { text: "   ", color: "#3465A4" },
@@ -579,7 +581,7 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
             ]);
             addLine("contactOutput1", [
               { text: "          >", color: "#3465A4" },
-              { text: " dickheadtest@gmail.com", color : "#FFFFFF"},
+              { text: " dickheadtest@gmail.com", color : "#000000"}, //
             ]);
             addLine("padding", [
               { text: "   ", color: "#3465A4" },
@@ -589,7 +591,7 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
         } else if (link === "placeholderlink") {
           addLine("noLinkNode", [
             { text: text, color: "#AD7FA8" },
-            { text: " no linked node", color: "#FFFFFF" },
+            { text: " no linked node", color: "#000000" }, //
           ]);
         } else {
           window.open(link, "_blank");
