@@ -214,189 +214,398 @@ const MainSite: React.FC<MainSiteProps> = ({ addLine }) => {
       
         if (isSpecialNode) {
           if (i === numNodes) {
-            const leftWall = `| `
-            const loadingBar = `█████▓▓▓▒▒▒▒▒▒▒░░░░░░░░░░░░░░░░`;
-            const statsLeft = ` [`;
-            const statsMiddle = `???`;
-            const statsRight = `/304]`;
-            const rightWall = ` |`;
-            const textWidth = ctx.measureText(`${leftWall}${loadingBar}${statsLeft}${statsMiddle}${statsRight}${rightWall}`).width;
-            const topBorder = `+${"-".repeat(leftWall.length + loadingBar.length + statsLeft.length + statsMiddle.length + statsRight.length + rightWall.length - 2 || 0)}+`;
-            const bottomBorder = topBorder;
-        
-            ctx.fillStyle = "#FFFFFF"; //
-            ctx.fillRect(x, y, textWidth, boxHeight);
+            let baseHorizontalPadding = 0;
+            let baseVerticalPadding = 16;
 
-            ctx.fillStyle = "#000000"; //
-            ctx.fillText(topBorder, x, y);
-            ctx.fillText(leftWall, x, y + fontSize);
+            let effectiveHorizontalPadding = baseHorizontalPadding;
+            let effectiveVerticalPadding = baseVerticalPadding;
+
+            if (i === hoveredNodeIndex) {
+              effectiveHorizontalPadding += 10;
+              effectiveVerticalPadding += 10;
+            }
+
+            const cornerArmX = 5;
+            const cornerArmY = 5;
+            const leftWall = "  ";
+            const loadingBar = "█████▓▓▓▒▒▒▒▒▒▒░░░░░░░░░░░░░░░░";
+            const statsLeft = " [";
+            const statsMiddle = "???";
+            const statsRight = "/304]";
+            const rightWall = "  ";
+            const combinedText = leftWall + loadingBar + statsLeft + statsMiddle + statsRight + rightWall;
+            const textWidth = ctx.measureText(combinedText).width;
+
+            const boxWidth = textWidth + effectiveHorizontalPadding;
+            const boxHeight = fontSize + effectiveVerticalPadding;
+            let x = node.x - boxWidth / 2;
+            let y = node.y - boxHeight / 2;
+
+            ctx.save();
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            // Top-left
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + cornerArmX, y);
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + cornerArmY);
+
+            // Top-right
+            ctx.moveTo(x + boxWidth, y);
+            ctx.lineTo(x + boxWidth - cornerArmX, y);
+            ctx.moveTo(x + boxWidth, y);
+            ctx.lineTo(x + boxWidth, y + cornerArmY);
+
+            // Bottom-left
+            ctx.moveTo(x, y + boxHeight);
+            ctx.lineTo(x + cornerArmX, y + boxHeight);
+            ctx.moveTo(x, y + boxHeight);
+            ctx.lineTo(x, y + boxHeight - cornerArmY);
+
+            // Bottom-right
+            ctx.moveTo(x + boxWidth, y + boxHeight);
+            ctx.lineTo(x + boxWidth - cornerArmX, y + boxHeight);
+            ctx.moveTo(x + boxWidth, y + boxHeight);
+            ctx.lineTo(x + boxWidth, y + boxHeight - cornerArmY);
+
+            ctx.stroke();
+            ctx.restore();
+
+            const highlightX = x + effectiveHorizontalPadding / 2;
+            const highlightY = y + effectiveVerticalPadding / 2;
+            const highlightWidth = textWidth;
+            const highlightHeight = fontSize;
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(highlightX, highlightY, highlightWidth, highlightHeight);
 
             const leftWallWidth = ctx.measureText(leftWall).width;
             const loadingBarWidth = ctx.measureText(loadingBar).width;
-
-            ctx.fillStyle = "red"
-            ctx.fillRect(x + leftWallWidth, y + fontSize, loadingBarWidth, fontSize);
-
-            ctx.fillStyle = "purple"; 
-            ctx.fillText(loadingBar, x + leftWallWidth, y + fontSize);
-        
-            ctx.fillStyle = "#4AF626"; 
-            ctx.fillText(statsLeft, x + leftWallWidth + loadingBarWidth, y + fontSize);
-        
             const statsLeftWidth = ctx.measureText(statsLeft).width;
-            ctx.fillStyle = "#FF0000"; 
-            ctx.fillText(statsMiddle, x + leftWallWidth + loadingBarWidth + statsLeftWidth, y + fontSize);
-        
             const statsMiddleWidth = ctx.measureText(statsMiddle).width;
-            ctx.fillStyle = "#4AF626"; 
-            ctx.fillText(statsRight, x + leftWallWidth + loadingBarWidth + statsLeftWidth + statsMiddleWidth, y + fontSize);
-        
             const statsRightWidth = ctx.measureText(statsRight).width;
-            ctx.fillStyle = "#000000"; //
-            ctx.fillText(rightWall, x + leftWallWidth + loadingBarWidth + statsLeftWidth + statsMiddleWidth + statsRightWidth, y + fontSize);
-        
-            ctx.fillStyle = "#000000"; //
-            ctx.fillText(bottomBorder, x, y + fontSize * 2);
-        
+
+            let currentX = highlightX;
+
+            ctx.fillStyle = "#000000";
+            ctx.fillText(leftWall, currentX, highlightY);
+            currentX += leftWallWidth;
+
+            ctx.fillStyle = "red";
+            ctx.fillRect(currentX, highlightY, loadingBarWidth, fontSize);
+            ctx.fillStyle = "purple";
+            ctx.fillText(loadingBar, currentX, highlightY);
+            currentX += loadingBarWidth;
+
+            ctx.fillStyle = "#4AF626";
+            ctx.fillText(statsLeft, currentX, highlightY);
+            currentX += statsLeftWidth;
+
+            ctx.fillStyle = "#FF0000";
+            ctx.fillText(statsMiddle, currentX, highlightY);
+            currentX += statsMiddleWidth;
+
+            ctx.fillStyle = "#4AF626";
+            ctx.fillText(statsRight, currentX, highlightY);
+            currentX += statsRightWidth;
+
+            ctx.fillStyle = "#000000";
+            ctx.fillText(rightWall, currentX, highlightY);
+
             node.boundingBox = {
               left: x,
-              right: x + textWidth,
+              right: x + boxWidth,
               top: y,
               bottom: y + boxHeight,
-              width: textWidth,
+              width: boxWidth,
               height: boxHeight,
-            }
+            };
 
           } else if (i === numNodes + 1) {
-            const paddedText = `| ${textArray[i] || ""} `;
-            const returnValue = `[UNDEFINED]`
-            const rightWall = ` |`;
-            const textWidth = ctx.measureText(`${paddedText}${returnValue}${rightWall}`).width
-            const topBorder = `+${"-".repeat(paddedText.length+returnValue.length+rightWall.length-2)}+`;
-            const bottomBorder = topBorder;
-        
-            ctx.fillStyle = "#FFFFFF"; //
-            ctx.fillRect(x, y, textWidth, boxHeight);
-        
-            ctx.fillStyle = "#000000"; //
-            ctx.fillText(topBorder, x, y);
-            ctx.fillText(paddedText, x, y + fontSize);
-            ctx.fillText(bottomBorder, x, y + fontSize * 2);
+            let baseHorizontalPadding = 0;
+            let baseVerticalPadding = 16;
 
-            const paddedTextWidth = ctx.measureText(paddedText).width
-            const returnValueWidth = ctx.measureText(returnValue).width
-            ctx.fillStyle =`#0000FF`
-            ctx.fillRect(x + paddedTextWidth, y + fontSize, returnValueWidth, fontSize);
-            ctx.fillStyle = "#FF0000"
-            ctx.fillText(returnValue, x + paddedTextWidth,y+fontSize)
-
-            
-            ctx.fillStyle = "#000000" //
-            ctx.fillText(rightWall, x + paddedTextWidth+returnValueWidth,y+fontSize)
-        
             if (i === hoveredNodeIndex) {
-              const underlineY = y + fontSize * 2;
-              const textWidth = ctx.measureText(textArray[i] || "").width;
-              ctx.strokeStyle = "#000000"; //
+              baseHorizontalPadding += 10;
+              baseVerticalPadding += 10;
+            }
+
+            const cornerArmX = 5;
+            const cornerArmY = 5;
+            const fontSize = 12;
+            ctx.font = `${fontSize}px "dico-code-two", monospace`;
+
+            const paddedText = `  ${textArray[i] || ""}  `;
+            const returnValue = `[UNDEFINED]`;
+            const rightWall = `  `;
+            const displayedText = paddedText + returnValue + rightWall;
+
+            const textWidth = ctx.measureText(displayedText).width;
+            const boxWidth = textWidth + baseHorizontalPadding;
+            const boxHeight = fontSize + baseVerticalPadding;
+            let x = node.x - boxWidth / 2;
+            let y = node.y - boxHeight / 2;
+
+            ctx.save();
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+
+            // Top-left
+            ctx.moveTo(x, y);
+            ctx.lineTo(x + cornerArmX, y);
+            ctx.moveTo(x, y);
+            ctx.lineTo(x, y + cornerArmY);
+
+            // Top-right
+            ctx.moveTo(x + boxWidth, y);
+            ctx.lineTo(x + boxWidth - cornerArmX, y);
+            ctx.moveTo(x + boxWidth, y);
+            ctx.lineTo(x + boxWidth, y + cornerArmY);
+
+            // Bottom-left
+            ctx.moveTo(x, y + boxHeight);
+            ctx.lineTo(x + cornerArmX, y + boxHeight);
+            ctx.moveTo(x, y + boxHeight);
+            ctx.lineTo(x, y + boxHeight - cornerArmY);
+
+            // Bottom-right
+            ctx.moveTo(x + boxWidth, y + boxHeight);
+            ctx.lineTo(x + boxWidth - cornerArmX, y + boxHeight);
+            ctx.moveTo(x + boxWidth, y + boxHeight);
+            ctx.lineTo(x + boxWidth, y + boxHeight - cornerArmY);
+
+            ctx.stroke();
+            ctx.restore();
+
+            const baseHighlightX = x + baseHorizontalPadding / 2;
+            const baseHighlightY = y + baseVerticalPadding / 2;
+            const baseHighlightWidth = textWidth;
+            const baseHighlightHeight = fontSize;
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillRect(baseHighlightX, baseHighlightY, baseHighlightWidth, baseHighlightHeight);
+
+            const paddedTextWidth = ctx.measureText(paddedText).width;
+            const returnValueWidth = ctx.measureText(returnValue).width;
+
+            ctx.fillStyle = "#0000FF";
+            ctx.fillRect(
+              baseHighlightX + paddedTextWidth,
+              baseHighlightY,
+              returnValueWidth,
+              fontSize
+            );
+
+            ctx.fillStyle = "#000000";
+            ctx.fillText(paddedText, baseHighlightX, baseHighlightY);
+            ctx.fillStyle = "#FF0000";
+            ctx.fillText(returnValue, baseHighlightX + paddedTextWidth, baseHighlightY);
+            ctx.fillStyle = "#000000";
+            ctx.fillText(
+              rightWall,
+              baseHighlightX + paddedTextWidth + returnValueWidth,
+              baseHighlightY
+            );
+
+            if (i === hoveredNodeIndex) {
+              const underlineY = baseHighlightY + fontSize + 1;
+              const underlineWidth = ctx.measureText(textArray[i] || "").width;
+              ctx.strokeStyle = "#000000";
               ctx.lineWidth = 1.2;
               ctx.beginPath();
-              ctx.moveTo(x + ctx.measureText("--").width, underlineY);
-              ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
+              ctx.moveTo(baseHighlightX + ctx.measureText("--").width, underlineY);
+              ctx.lineTo(baseHighlightX + ctx.measureText("--").width + underlineWidth, underlineY);
               ctx.stroke();
             }
-        
+
             node.boundingBox = {
               left: x,
-              right: x + textWidth,
+              right: x + boxWidth,
               top: y,
               bottom: y + boxHeight,
-              width: textWidth,
+              width: boxWidth,
               height: boxHeight,
             };
           }
         } else if (Object.keys(svgIcons).includes(textArray[i])) {
+          let baseHorizontalPadding = 0;
+          let baseVerticalPadding = 16;
+
+          if (i === hoveredNodeIndex) {
+            baseHorizontalPadding += 10;
+            baseVerticalPadding += 10;
+          }
+
+          const cornerArmX = 5;
+          const cornerArmY = 5;
           const svgEntry = svgIcons[textArray[i] as keyof typeof svgIcons];
-          const svgColor = svgEntry.color || "#000000"; //
-      
-          const topBorderStr = `+${"-".repeat(textArray[i]?.length + 7 || 0)}+`;
-          const bottomBorderStr = topBorderStr;
-          const textBeforeBrackets = `| ${textArray[i] || ""} `;
+          const svgColor = svgEntry.color || "#000000";
+          const textBeforeBrackets = `  ${textArray[i] || ""} `;
           const brackets = "[  ]";
-          const rightWall = "|";
-      
+          const rightWall = "  ";
           const measurementString = `${textBeforeBrackets}${brackets} ${rightWall}`;
-          const measuredWidth = ctx.measureText(measurementString).width;
-      
-          boxWidth = measuredWidth;
-          x = node.x - measuredWidth / 2;
-          y = node.y - boxHeight / 2;
-      
-          ctx.fillStyle = "#FFFFFF"; //
-          ctx.fillRect(x, y, measuredWidth, boxHeight);
-      
-          ctx.fillStyle = "#000000"; //
-          ctx.fillText(topBorderStr, x, y);
-          ctx.fillText(bottomBorderStr, x, y + fontSize * 2);
-      
-          ctx.fillStyle = "#000000"; //
-          ctx.fillText(textBeforeBrackets, x, y + fontSize);
-      
+          const measuredTextWidth = ctx.measureText(measurementString).width;
+          const boxWidth = measuredTextWidth + baseHorizontalPadding;
+          const boxHeight = fontSize + baseVerticalPadding;
+          let x = node.x - boxWidth / 2;
+          let y = node.y - boxHeight / 2;
+
+          ctx.save();
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = lineWidth;
+          ctx.beginPath();
+
+          // Top-left
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + cornerArmX, y);
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y + cornerArmY);
+
+          // Top-right
+          ctx.moveTo(x + boxWidth, y);
+          ctx.lineTo(x + boxWidth - cornerArmX, y);
+          ctx.moveTo(x + boxWidth, y);
+          ctx.lineTo(x + boxWidth, y + cornerArmY);
+
+          // Bottom-left
+          ctx.moveTo(x, y + boxHeight);
+          ctx.lineTo(x + cornerArmX, y + boxHeight);
+          ctx.moveTo(x, y + boxHeight);
+          ctx.lineTo(x, y + boxHeight - cornerArmY);
+
+          // Bottom-right
+          ctx.moveTo(x + boxWidth, y + boxHeight);
+          ctx.lineTo(x + boxWidth - cornerArmX, y + boxHeight);
+          ctx.moveTo(x + boxWidth, y + boxHeight);
+          ctx.lineTo(x + boxWidth, y + boxHeight - cornerArmY);
+
+          ctx.stroke();
+          ctx.restore();
+
+          const highlightX = x + baseHorizontalPadding / 2;
+          const highlightY = y + baseVerticalPadding / 2;
+          const highlightWidth = measuredTextWidth;
+          const highlightHeight = fontSize;
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(highlightX, highlightY, highlightWidth, highlightHeight);
+
+          ctx.fillStyle = "#000000";
+          ctx.fillText(textBeforeBrackets, highlightX, highlightY);
+
+          const bracketsX = highlightX + ctx.measureText(textBeforeBrackets).width;
           ctx.fillStyle = svgColor;
-          const bracketsX = x + ctx.measureText(textBeforeBrackets).width;
-          ctx.fillText(brackets, bracketsX, y + fontSize);
-      
+          ctx.fillText(brackets, bracketsX, highlightY);
+
           const svgWidth = 19.2;
           const svgHeight = 19.2;
           const svgIconX = bracketsX + ctx.measureText("-").width;
-          drawSVG(svgEntry.img, svgIconX, y + fontSize - 3.2, svgWidth, svgHeight);
-      
-          ctx.fillStyle = "#000000"; //
-          const rightWallX = bracketsX + ctx.measureText(brackets).width + ctx.measureText(" ").width;
-          ctx.fillText(rightWall, rightWallX, y + fontSize);
-      
+          drawSVG(svgEntry.img, svgIconX, highlightY - 3.2, svgWidth, svgHeight);
+
+          ctx.fillStyle = "#000000";
+          const rightWallX =
+            bracketsX + ctx.measureText(brackets).width + ctx.measureText(" ").width;
+          ctx.fillText(rightWall, rightWallX, highlightY);
+
           if (i === hoveredNodeIndex) {
-            const underlineY = y + fontSize * 2;
-            const textWidth = ctx.measureText(textArray[i] || "").width;
-            ctx.strokeStyle = "#000000"; //
+            const underlineY = highlightY + fontSize + 1;
+            const tWidth = ctx.measureText(textArray[i] || "").width;
+            ctx.strokeStyle = "#000000";
             ctx.lineWidth = 1.2;
             ctx.beginPath();
-            ctx.moveTo(x + ctx.measureText("--").width, underlineY);
-            ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
+            ctx.moveTo(highlightX + ctx.measureText("--").width, underlineY);
+            ctx.lineTo(highlightX + ctx.measureText("--").width + tWidth, underlineY);
             ctx.stroke();
           }
-      
+
           node.boundingBox = {
             left: x,
-            right: x + measuredWidth,
+            right: x + boxWidth,
             top: y,
             bottom: y + boxHeight,
-            width: measuredWidth,
+            width: boxWidth,
             height: boxHeight,
           };
         } else {
-          const topBorder = `+${"-".repeat(textArray[i]?.length + 2 || 0)}+`;
-          const bottomBorder = topBorder;
-          const paddedText = `| ${textArray[i] || ""} |`;
-      
-          ctx.fillStyle = "#FFFFFF"; //
-          ctx.fillRect(x, y, boxWidth, boxHeight);
-      
-          ctx.fillStyle = "#000000"; //
-          ctx.fillText(topBorder, x, y);
-          ctx.fillText(paddedText, x, y + fontSize);
-          ctx.fillText(bottomBorder, x, y + fontSize * 2);
-      
+          let baseHorizontalPadding = 0;
+          let baseVerticalPadding = 16;
+
+          let effectiveHorizontalPadding = baseHorizontalPadding;
+          let effectiveVerticalPadding = baseVerticalPadding;
+
           if (i === hoveredNodeIndex) {
-            const underlineY = y + fontSize * 2;
-            const textWidth = ctx.measureText(textArray[i] || "").width;
-            ctx.strokeStyle = "#000000"; //
+            effectiveHorizontalPadding += 10;
+            effectiveVerticalPadding += 10;
+          }
+
+          const cornerArmX = 5;
+          const cornerArmY = 5;
+          const displayedText = `  ${textArray[i] || ""}  `;
+          const textWidth = ctx.measureText(displayedText).width;
+
+          const boxWidth = textWidth + effectiveHorizontalPadding;
+          const boxHeight = fontSize + effectiveVerticalPadding;
+
+          let x = node.x - boxWidth / 2;
+          let y = node.y - boxHeight / 2;
+
+          ctx.save();
+          ctx.strokeStyle = "#000000";
+          ctx.lineWidth = lineWidth;
+          ctx.beginPath();
+
+          // Top-left
+          ctx.moveTo(x, y);
+          ctx.lineTo(x + cornerArmX, y);
+          ctx.moveTo(x, y);
+          ctx.lineTo(x, y + cornerArmY);
+
+          // Top-right
+          ctx.moveTo(x + boxWidth, y);
+          ctx.lineTo(x + boxWidth - cornerArmX, y);
+          ctx.moveTo(x + boxWidth, y);
+          ctx.lineTo(x + boxWidth, y + cornerArmY);
+
+          // Bottom-left
+          ctx.moveTo(x, y + boxHeight);
+          ctx.lineTo(x + cornerArmX, y + boxHeight);
+          ctx.moveTo(x, y + boxHeight);
+          ctx.lineTo(x, y + boxHeight - cornerArmY);
+
+          // Bottom-right
+          ctx.moveTo(x + boxWidth, y + boxHeight);
+          ctx.lineTo(x + boxWidth - cornerArmX, y + boxHeight);
+          ctx.moveTo(x + boxWidth, y + boxHeight);
+          ctx.lineTo(x + boxWidth, y + boxHeight - cornerArmY);
+
+          ctx.stroke();
+          ctx.restore();
+
+          const textFillX = x + effectiveHorizontalPadding / 2;
+          const textFillY = y + effectiveVerticalPadding / 2;
+          const textFillWidth = ctx.measureText(displayedText).width;
+          const textFillHeight = fontSize;
+
+          ctx.fillStyle = "#FFFFFF";
+          ctx.fillRect(textFillX, textFillY, textFillWidth, textFillHeight);
+
+          ctx.fillStyle = "#000000";
+          ctx.fillText(displayedText, textFillX, textFillY);
+
+          if (i === hoveredNodeIndex) {
+            const underlineY = textFillY + fontSize + 1;
+            const actualTextWidth = ctx.measureText(textArray[i] || "").width;
+            ctx.strokeStyle = "#000000";
             ctx.lineWidth = 1.2;
             ctx.beginPath();
-            ctx.moveTo(x + ctx.measureText("--").width, underlineY);
-            ctx.lineTo(x + ctx.measureText("--").width + textWidth, underlineY);
+            ctx.moveTo(textFillX + ctx.measureText("--").width, underlineY);
+            ctx.lineTo(textFillX + ctx.measureText("--").width + actualTextWidth, underlineY);
             ctx.stroke();
           }
-      
+
           node.boundingBox = {
             left: x,
             right: x + boxWidth,
