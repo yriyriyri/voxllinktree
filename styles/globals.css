@@ -75,6 +75,12 @@ body, input::placeholder {
     font-style: normal;
 }
 
+.dico-code-thin {
+    font-family: "dico-code-two", mono;
+    font-weight: 100;
+    font-style: normal;
+}
+
 .dico-code-italic {
     font-family: "dico-code-two", mono;
     font-weight: 400;

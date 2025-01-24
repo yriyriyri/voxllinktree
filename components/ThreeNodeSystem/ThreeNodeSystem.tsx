@@ -3,26 +3,36 @@ import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
 interface NodeObject {
-  x: number;
-  y: number;
-  z: number;
-  dx: number;
-  dy: number;
-  dz: number;
+    x: number;
+    y: number;
+    z: number;
+    dx: number;
+    dy: number;
+    dz: number;
+    assignedLabel?: Label; // Optional: a label assigned to this node
 }
 
 interface BoundingBox {
-  minX: number;
-  maxX: number;
-  minY: number;
-  maxY: number;
-  minZ: number;
-  maxZ: number;
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+    minZ: number;
+    maxZ: number;
 }
+
+interface Label {
+    content: string; 
+    url: string;     
+    priority: number; 
+    fontsize: number;
+}
+
 
 export default function ThreeDNodeSystem() {
   const mountRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<NodeObject[]>([]);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); 
 
   // The bounding box
   const boundingBox: BoundingBox = {
@@ -34,11 +44,26 @@ export default function ThreeDNodeSystem() {
     maxZ: 35,
   };
 
+  const labels: Label[] = [
+    { content: "./youtube", url: "example.com/youtube", priority: 1, fontsize: 16 },
+    { content: "./X", url: "example.com/x", priority: 2, fontsize: 16 },
+    { content: "./instagram", url: "example.com/instagram", priority: 3, fontsize: 16 },
+  ];
+
   const lineDistanceFactor = 30;
   const nodeCount = 30;
 
   const randomInRange = (min: number, max: number) =>
     Math.random() * (max - min) + min;
+
+  const measureTextWidth = (text: string, fontSize: number = 16): number => {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+    if (!context) return 0;
+  
+    context.font = `${fontSize}px dico-code-two`; 
+    return context.measureText(text).width;
+  };
 
   const createRandomNodes = (count: number): NodeObject[] => {
     const spawned: NodeObject[] = [];
@@ -96,6 +121,8 @@ export default function ThreeDNodeSystem() {
       1000
     );
     camera.position.set(0, 0, 60);
+
+    cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     const dpr = window.devicePixelRatio || 1;
@@ -222,6 +249,86 @@ export default function ThreeDNodeSystem() {
     return { lines };
   };
 
+  const assignLabelsToNodes = (
+    nodes: NodeObject[],
+    labels: Label[],
+    camera: THREE.PerspectiveCamera
+  ): NodeObject[] => {
+    const occupiedAreas: { x: number; y: number; width: number; height: number }[] = [];
+  
+    const screenNodes = nodes.map((node) => {
+      const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(camera);
+      const screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+      const screenY = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+      const screenZ = screenPos.z; // Perceived depth
+  
+      return {
+        ...node,
+        screenX,
+        screenY,
+        screenZ,
+      };
+    });
+  
+    const sortedNodes = screenNodes.sort((a, b) => a.screenZ - b.screenZ);
+  
+    const assignedLabels = new Set<Label>();
+  
+    return sortedNodes.map((node) => {
+      if (node.assignedLabel) return node;
+  
+      const availableLabel = labels
+        .sort((a, b) => b.priority - a.priority)
+        .find((label) => {
+          if (assignedLabels.has(label)) return false;
+  
+          // Dynamically calculate font size
+          const fontSize = Math.max(12, 50 - node.screenZ * 60); // Scale font size
+          label.fontsize = fontSize; // Assign font size to the label
+  
+          const labelWidth = measureTextWidth(label.content, fontSize);
+          const labelHeight = fontSize; // Use font size as height
+          const labelBox = {
+            x: node.screenX,
+            y: node.screenY,
+            width: labelWidth,
+            height: labelHeight,
+          };
+  
+          const overlaps = occupiedAreas.some((area) => {
+            return (
+              labelBox.x < area.x + area.width &&
+              labelBox.x + labelBox.width > area.x &&
+              labelBox.y < area.y + area.height &&
+              labelBox.y + labelBox.height > area.y
+            );
+          });
+  
+          return !overlaps;
+        });
+  
+      if (availableLabel) {
+        assignedLabels.add(availableLabel);
+  
+        // Add the occupied area for the label
+        const labelWidth = measureTextWidth(availableLabel.content, availableLabel.fontsize);
+        occupiedAreas.push({
+          x: node.screenX + 10,
+          y: node.screenY - 10,
+          width: labelWidth,
+          height: availableLabel.fontsize,
+        });
+  
+        return {
+          ...node,
+          assignedLabel: availableLabel,
+        };
+      }
+  
+      return node;
+    });
+  };
+
   const animateScene = (
     scene: THREE.Scene,
     camera: THREE.PerspectiveCamera,
@@ -232,7 +339,8 @@ export default function ThreeDNodeSystem() {
       nodeA: number;
       nodeB: number;
     }[],
-    nodes: NodeObject[]
+    nodes: NodeObject[],
+    labels: Label[]
   ) => {
     // Four cardinal angles
     const angles = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
@@ -303,6 +411,7 @@ export default function ThreeDNodeSystem() {
     function animate() {
       requestAnimationFrame(animate);
 
+
       // Update nodes
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
@@ -312,6 +421,9 @@ export default function ThreeDNodeSystem() {
         clampAndBounce(node, boundingBox);
         cubeEdges[i].position.set(node.x, node.y, node.z);
       }
+
+      const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
+      setNodes(updatedNodes); 
 
       // Update lines
       let lineIndex = 0;
@@ -369,7 +481,7 @@ export default function ThreeDNodeSystem() {
     createGrid(scene);
     const { lines } = createConnectingLines(scene, newNodes);
 
-    animateScene(scene, camera, renderer, cubeEdges, lines, newNodes);
+    animateScene(scene, camera, renderer, cubeEdges, lines, newNodes, labels);
 
     return () => {
       renderer.dispose();
@@ -387,6 +499,45 @@ export default function ThreeDNodeSystem() {
         height: "100%",
         overflow: "hidden",
       }}
-    />
+    >
+      {nodes.map((node) => {
+      console.log(node.assignedLabel)
+      if (!node.assignedLabel || !cameraRef.current) return null;
+
+      const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
+      const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+      const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+
+      if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) {
+        console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
+        return null;
+      }
+
+      return (
+          <div
+          key={node.assignedLabel.content}
+          style={{
+            position: "absolute",
+            left: `${x}px`,
+            top: `${y}px`,
+            color: "black",
+            padding: "0px 0px",
+            zIndex: 10,
+            cursor: "pointer",
+            transform: "translateX(10px) translateY(-10px)",
+            pointerEvents: "auto",
+            fontSize: `${node.assignedLabel.fontsize}px`,
+            fontFamily: '"dico-code-two", mono', // Add the font-family
+            fontWeight: 100,                   // Match the font-weight
+            fontStyle: "normal",               // Match the font-style
+          }}
+          onClick={() => window.open(node.assignedLabel?.url, "_blank")}
+          >
+          {node.assignedLabel.content}
+          </div>
+      );
+      })}
+  </div>
   );
 }
+
