@@ -3,31 +3,30 @@ import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 
 interface NodeObject {
-    x: number;
-    y: number;
-    z: number;
-    dx: number;
-    dy: number;
-    dz: number;
-    assignedLabel?: Label; // Optional: a label assigned to this node
+  x: number;
+  y: number;
+  z: number;
+  dx: number;
+  dy: number;
+  dz: number;
+  assignedLabel?: Label; // Optional: a label assigned to this node
 }
 
 interface BoundingBox {
-    minX: number;
-    maxX: number;
-    minY: number;
-    maxY: number;
-    minZ: number;
-    maxZ: number;
+  minX: number;
+  maxX: number;
+  minY: number;
+  maxY: number;
+  minZ: number;
+  maxZ: number;
 }
 
 interface Label {
-    content: string; 
-    url: string;     
-    priority: number; 
-    fontsize: number;
+  content: string; 
+  url: string;     
+  priority: number; 
+  fontsize: number;
 }
-
 
 export default function ThreeDNodeSystem() {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -45,9 +44,12 @@ export default function ThreeDNodeSystem() {
   };
 
   const labels: Label[] = [
-    { content: "./youtube", url: "example.com/youtube", priority: 1, fontsize: 16 },
-    { content: "./X", url: "example.com/x", priority: 2, fontsize: 16 },
-    { content: "./instagram", url: "example.com/instagram", priority: 3, fontsize: 16 },
+    { content: "./youtube", url: "https://example.com/youtube", priority: 1, fontsize: 16 },
+    { content: "./X", url: "https://example.com/x", priority: 2, fontsize: 16 },
+    { content: "./instagram", url: "https://example.com/instagram", priority: 3, fontsize: 16 },
+    { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16 },
+    { content: "./about us", url: "https://example.com/about", priority: 5, fontsize: 16 },
+    { content: "./contact", url: "https://example.com/contact", priority: 6, fontsize: 16 },
   ];
 
   const lineDistanceFactor = 30;
@@ -283,7 +285,7 @@ export default function ThreeDNodeSystem() {
           if (assignedLabels.has(label)) return false;
   
           // Dynamically calculate font size
-          const fontSize = Math.max(12, 50 - node.screenZ * 60); // Scale font size
+          const fontSize = Math.max(12, 50 - node.screenZ * 40); // Scale font size
           label.fontsize = fontSize; // Assign font size to the label
   
           const labelWidth = measureTextWidth(label.content, fontSize);
@@ -411,7 +413,6 @@ export default function ThreeDNodeSystem() {
     function animate() {
       requestAnimationFrame(animate);
 
-
       // Update nodes
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
@@ -423,7 +424,7 @@ export default function ThreeDNodeSystem() {
       }
 
       const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
-      setNodes(updatedNodes); 
+      setNodes([...updatedNodes]); // Use spread operator to trigger re-render
 
       // Update lines
       let lineIndex = 0;
@@ -483,61 +484,157 @@ export default function ThreeDNodeSystem() {
 
     animateScene(scene, camera, renderer, cubeEdges, lines, newNodes, labels);
 
+    // Handle window resize
+    const handleResize = () => {
+      if (!mountRef.current || !cameraRef.current) return;
+      const width = mountRef.current.clientWidth;
+      const height = mountRef.current.clientHeight;
+      renderer.setSize(width, height);
+      cameraRef.current.aspect = width / height;
+      cameraRef.current.updateProjectionMatrix();
+    };
+
+    window.addEventListener("resize", handleResize);
     return () => {
       renderer.dispose();
       currentMount.removeChild(renderer.domElement);
+      window.removeEventListener("resize", handleResize);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <div
-      ref={mountRef}
       style={{
-        position: "absolute",
-        width: "100%",
-        height: "100%",
+        position: "relative", // Use relative positioning for the parent container
+        width: "100%", // Full width of the container
+        height: "100vh", // Full height of the viewport
+        backgroundColor: "white", // Set the background color to white
         overflow: "hidden",
       }}
     >
-      {nodes.map((node) => {
-      console.log(node.assignedLabel)
-      if (!node.assignedLabel || !cameraRef.current) return null;
-
-      const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
-      const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
-      const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-
-      if (x < 0 || x > window.innerWidth || y < 0 || y > window.innerHeight) {
-        console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
-        return null;
-      }
-
-      return (
-          <div
-          key={node.assignedLabel.content}
-          style={{
-            position: "absolute",
-            left: `${x}px`,
-            top: `${y}px`,
-            color: "black",
-            padding: "0px 0px",
-            zIndex: 10,
-            cursor: "pointer",
-            transform: "translateX(10px) translateY(-10px)",
-            pointerEvents: "auto",
-            fontSize: `${node.assignedLabel.fontsize}px`,
-            fontFamily: '"dico-code-two", mono', // Add the font-family
-            fontWeight: 100,                   // Match the font-weight
-            fontStyle: "normal",               // Match the font-style
-          }}
-          onClick={() => window.open(node.assignedLabel?.url, "_blank")}
-          >
-          {node.assignedLabel.content}
-          </div>
-      );
-      })}
-  </div>
+      {/* Left Overlay - Terminal Style */}
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: "600px", // Increased width to 600px
+          height: "100%",
+          overflowY: "auto",
+          padding: "20px",
+          zIndex: 20, // Ensure it's above the 3D scene
+          fontFamily: "monospace", // Monospace font for terminal look
+          fontSize: "8px", // Set font size to 10px
+          color: "#000000", // Black text
+        }}
+      >
+        {/* Node Details List */}
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {nodes.map((node, index) => (
+            <li
+              key={index}
+              style={{
+                marginBottom: "10px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {/* One line per node with technical jargon */}
+              INFO: Node <strong>{index + 1}</strong> | Position X=<span>{node.x.toFixed(2)}</span>, Y=<span>{node.y.toFixed(2)}</span>, Z=<span>{node.z.toFixed(2)}</span>
+              {node.assignedLabel && (
+                <span style={{ marginLeft: "15px" }}>
+                  | Label: <span>{node.assignedLabel.content}</span>
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+  
+        {/* Labels Section */}
+        <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
+        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+          {labels.map((label, index) => (
+            <li
+              key={index}
+              style={{
+                marginBottom: "8px",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+              }}
+            >
+              {/* One line per label with technical jargon */}
+              LABEL: <strong>{label.content}</strong> | Priority=<span>{label.priority}</span> | FontSize=<span>{label.fontsize}px</span> | URL:{" "}
+              <a
+                href={label.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: "#000000", // Black text
+                  textDecoration: "none", // Remove underline
+                  cursor: "pointer",
+                }}
+              >
+                {label.url}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+  
+      {/* 3D Scene */}
+      <div
+        ref={mountRef}
+        style={{
+          position: "absolute",
+          left: `200px`, // Shift the 3D scene right by 200px to make room for the original overlay
+          width: "100%", // Maintain original width
+          height: "100%",
+          overflow: "hidden",
+          backgroundColor: "white",
+          zIndex: 10, // Ensure it's below the overlay
+        }}
+      >
+        {nodes.map((node) => {
+          console.log(node.assignedLabel);
+          if (!node.assignedLabel || !cameraRef.current) return null;
+  
+          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
+          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200; // Adjust for left overlay
+          const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+  
+          if (x < 0 || x > window.innerWidth - 200 || y < 0 || y > window.innerHeight) {
+            console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
+            return null;
+          }
+  
+          return (
+            <div
+              key={node.assignedLabel.content}
+              style={{
+                position: "absolute",
+                left: `${x}px`,
+                top: `${y}px`,
+                color: "black",
+                padding: "0px 0px",
+                zIndex: 30, // Ensure labels are above the overlay
+                cursor: "pointer",
+                transform: "translateX(210px) translateY(-10px)", // Adjusted translateX to account for overlay width
+                pointerEvents: "auto",
+                fontSize: "12px", // Fixed 12px font size
+                fontFamily: "monospace", // Monospace font
+                fontWeight: 100, // Match the font-weight
+                fontStyle: "normal", // Match the font-style
+              }}
+              onClick={() => window.open(node.assignedLabel?.url, "_blank")}
+            >
+              {node.assignedLabel.content}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
-
