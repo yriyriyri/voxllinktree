@@ -1,40 +1,138 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+= spec-1: 3d link-tree website for voxl os
+:sectnums:
+:toc:
 
-## Getting Started
+== background
 
-First, run the development server:
+This project is a visually immersive, 3d link-tree website designed to represent the aesthetic foundation of voxl os, a future virtual reality operating system. While it does not function as an os shell, the design aims to embody a conceptual "shell" with interactive, node-based structures in 3d space.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+The website's purpose is to create intrigue and reflect the futuristic branding of voxl os. It also acts as a hub for links and key information while being lightweight and performant.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+== requirements
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+The requirements are prioritized using the moscow method:
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+=== must-have
+- interactive 3d interface with wireframe nodes representing clickable links in vr-style space.
+- dynamic animation of nodes and lines reacting to user interaction.
+- accessible representation of links (e.g., hover effects, labels, or tooltips).
+- performance across modern browsers, with mobile responsiveness.
+- aesthetic consistency with the voxl os branding (wireframe, minimalism).
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+=== should-have
+- smooth animations (e.g., node hover effects, structure rotation, dynamic lighting).
+- basic accessibility features (keyboard navigation, readable visuals).
+- lightweight backend or json configuration for managing link data.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+=== could-have
+- vr compatibility via webxr for an immersive experience.
+- parallax or audio effects to enhance the aesthetic.
+- hidden easter eggs or interactive elements.
 
-## Learn More
+=== won't-have
+- functional os-level features.
+- unnecessary complexity in user interactions.
 
-To learn more about Next.js, take a look at the following resources:
+== method
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+The site is implemented with next.js for the web application framework and three.js for 3d rendering. The following describes the core functionality:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+=== core features
 
-## Deploy on Vercel
+**node system**
+- dynamically generates 3d nodes with random initial positions and velocities.
+- nodes are bounded by a defined area and reverse direction upon collision with boundaries.
+- methods:
+  - `createRandomNodes`: generates random node positions and velocities.
+  - `clampAndBounce`: constrains nodes within boundaries and reverses velocity when needed.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**wireframe visualization**
+- each node is rendered as a wireframe cube, aligned with the futuristic design.
+- methods:
+  - `createEdgeWireframes`: creates edges for cube wireframes using three.js's `edgesgeometry` and `linesegments`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+**connecting lines**
+- dynamic connections between nodes are drawn, with opacity based on the distance between nodes. lines disappear when the distance exceeds a threshold.
+- methods:
+  - `createConnectingLines`: handles line creation and adjusts their visibility/opacity in real time.
+
+**grid overlay**
+- a structured 3d grid adds context and enhances the visual composition.
+- methods:
+  - `createGrid`: creates grid lines based on the bounding box dimensions.
+
+**camera rotation**
+- implements smooth camera rotation triggered by scroll events, providing an interactive view.
+- methods:
+  - `animateScene`: animates camera transitions between angles while maintaining focus on the center of the scene.
+
+**real-time animation**
+- continuously updates node positions, wireframes, and connecting lines in an animation loop.
+- methods:
+  - `animateScene`: updates all moving elements and renders the scene frame by frame.
+
+=== technical stack
+- **framework**: next.js for server-side rendering and routing.
+- **3d rendering**: three.js for object creation, animation, and rendering.
+- **state management**: react's `useState` and `useEffect` for node and interaction management.
+
+=== data structures
+- **nodeObject**:
+  - `x, y, z`: 3d coordinates.
+  - `dx, dy, dz`: velocity in each axis.
+- **boundingBox**:
+  - `minX, maxX, minY, maxY, minZ, maxZ`: defines movement boundaries.
+
+```asciidoc
+[plantuml]
+....
+@startuml
+actor user
+node "3d scene" {
+  rectangle "node system" as nodes
+  rectangle "wireframe" as wireframe
+  rectangle "connecting lines" as lines
+  rectangle "grid overlay" as grid
+  rectangle "camera controls" as camera
+}
+user -> nodes : scroll/mouse input
+nodes -> wireframe : generate 3d cubes
+nodes -> lines : draw dynamic lines
+nodes -> grid : render grid
+nodes -> camera : handle view transitions
+@enduml
+....
+
+=== extension opportunities
+- **hover effects**: highlight nodes on hover and display tooltips.
+- **clickable nodes**: trigger events or navigate to links on click.
+- **responsive design**: ensure optimal performance and usability on mobile and tablet.
+- **webxr support**: add basic vr compatibility for immersive navigation.
+
+== implementation
+
+1. set up next.js with a `ThreeDNodeSystem` component for rendering.
+2. initialize three.js to handle the 3d scene and objects.
+3. implement core methods:
+   - `createRandomNodes`, `clampAndBounce`, and `animateScene` for dynamic node behavior.
+   - `createEdgeWireframes` and `createConnectingLines` for rendering wireframes and links.
+4. integrate grid overlays and implement smooth camera rotation with scroll events.
+5. continuously test for performance and responsiveness.
+
+== milestones
+
+1. **mvp**:
+   - dynamic 3d nodes with animations and connecting lines.
+   - grid overlay and camera controls.
+2. **interactive release**:
+   - hover effects and clickable nodes.
+   - tooltips for links.
+3. **advanced release**:
+   - webxr support and enhanced visuals (e.g., parallax effects, audio).
+
+== success metrics
+
+- **performance**: the website runs smoothly on modern browsers and devices.
+- **usability**: intuitive interactions and clear representation of links.
+- **design fidelity**: aligns with the visual branding of voxl os.
+- **engagement**: positive user feedback on interactivity and aesthetic.
