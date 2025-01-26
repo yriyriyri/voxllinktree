@@ -117,7 +117,7 @@ export default function ThreeDNodeSystem() {
   } => {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
-      100,
+      95,
       mount.clientWidth / mount.clientHeight,
       0.1,
       1000
@@ -441,9 +441,29 @@ export default function ThreeDNodeSystem() {
 
           const lineItem = lines[lineIndex];
           const mat = lineItem.line.material;
+
           if (opacity === 0) {
+            // Completely invisible lines
             lineItem.line.visible = false;
+          } else if (opacity < 0.4) {
+            // Lines with opacity below 20%
+            // Introduce a 5% chance to hide the line
+            const hideChance = Math.random(); // Generates a number between 0 and 1
+            if (hideChance < 0.15) {
+              lineItem.line.visible = false;
+            } else {
+              lineItem.line.visible = true;
+              mat.opacity = opacity;
+
+              // Recompute geometry only if the line is visible
+              const newPoints = [
+                new THREE.Vector3(nodeA.x, nodeA.y, nodeA.z),
+                new THREE.Vector3(nodeB.x, nodeB.y, nodeB.z),
+              ];
+              lineItem.line.geometry.setFromPoints(newPoints);
+            }
           } else {
+            // Lines with opacity 20% and above
             lineItem.line.visible = true;
             mat.opacity = opacity;
 
@@ -454,6 +474,7 @@ export default function ThreeDNodeSystem() {
             ];
             lineItem.line.geometry.setFromPoints(newPoints);
           }
+
           lineIndex++;
         }
       }
@@ -519,7 +540,7 @@ export default function ThreeDNodeSystem() {
           position: "absolute",
           left: 0,
           top: 0,
-          width: "600px", // Increased width to 600px
+          width: "100%", // Increased width to 600px
           height: "100%",
           overflowY: "auto",
           padding: "20px",
@@ -527,6 +548,7 @@ export default function ThreeDNodeSystem() {
           fontFamily: "monospace", // Monospace font for terminal look
           fontSize: "8px", // Set font size to 10px
           color: "#000000", // Black text
+          pointerEvents: "none"
         }}
       >
         {/* Node Details List */}
@@ -575,6 +597,7 @@ export default function ThreeDNodeSystem() {
                   color: "#000000", // Black text
                   textDecoration: "none", // Remove underline
                   cursor: "pointer",
+                  pointerEvents: "auto"
                 }}
               >
                 {label.url}
