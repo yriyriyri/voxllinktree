@@ -12,6 +12,16 @@ interface NodeObject {
   assignedLabel?: Label; // Optional: a label assigned to this node
 }
 
+interface AxesNodeObject {
+  x: number;
+  y: number;
+  z: number;
+  dx: number;
+  dy: number;
+  dz: number;
+  axesGroup: THREE.Group; // Group containing the cross lines
+}
+
 interface BoundingBox {
   minX: number;
   maxX: number;
@@ -22,16 +32,20 @@ interface BoundingBox {
 }
 
 interface Label {
-  content: string; 
-  url: string;     
-  priority: number; 
+  content: string;
+  url: string;
+  priority: number;
   fontsize: number;
 }
 
 export default function ThreeDNodeSystem() {
   const mountRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<NodeObject[]>([]);
-  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null); 
+  
+  // State for AxesNodes
+  const [axesNodes, setAxesNodes] = useState<AxesNodeObject[]>([]);
+
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
   // The bounding box
   const boundingBox: BoundingBox = {
@@ -54,6 +68,7 @@ export default function ThreeDNodeSystem() {
 
   const lineDistanceFactor = 30;
   const nodeCount = 30;
+  const axesNodeCount = 5;
 
   const randomInRange = (min: number, max: number) =>
     Math.random() * (max - min) + min;
@@ -62,8 +77,8 @@ export default function ThreeDNodeSystem() {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     if (!context) return 0;
-  
-    context.font = `${fontSize}px dico-code-two`; 
+
+    context.font = `${fontSize}px dico-code-two`;
     return context.measureText(text).width;
   };
 
@@ -82,7 +97,65 @@ export default function ThreeDNodeSystem() {
     return spawned;
   };
 
-  const clampAndBounce = (node: NodeObject, bbox: BoundingBox) => {
+  /**
+   * Creates an array of AxesNodeObject, each with a black "3D cross"
+   * that extends equally in the +/- direction for x, y, z.
+   */
+  const createAxesNodes = (count: number): AxesNodeObject[] => {
+    const spawned: AxesNodeObject[] = [];
+    
+    const buildCrossGroup = (size: number = 2) => {
+      const group = new THREE.Group();
+      const half = size / 2;
+      // Single black material
+      const blackMat = new THREE.LineBasicMaterial({ color: 0x000000 });
+
+      // X axis from -half to +half
+      const xGeom = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-half, 0, 0),
+        new THREE.Vector3(half, 0, 0),
+      ]);
+      const xLine = new THREE.Line(xGeom, blackMat);
+      group.add(xLine);
+
+      // Y axis from -half to +half
+      const yGeom = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, -half, 0),
+        new THREE.Vector3(0, half, 0),
+      ]);
+      const yLine = new THREE.Line(yGeom, blackMat);
+      group.add(yLine);
+
+      // Z axis from -half to +half
+      const zGeom = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, -half),
+        new THREE.Vector3(0, 0, half),
+      ]);
+      const zLine = new THREE.Line(zGeom, blackMat);
+      group.add(zLine);
+
+      return group;
+    };
+
+    for (let i = 0; i < count; i++) {
+      const crossGroup = buildCrossGroup(2); // small cross
+      spawned.push({
+        x: randomInRange(boundingBox.minX, boundingBox.maxX),
+        y: randomInRange(boundingBox.minY, boundingBox.maxY),
+        z: randomInRange(boundingBox.minZ, boundingBox.maxZ),
+        dx: (Math.random() - 0.5) * 0.05, // Faster velocity
+        dy: (Math.random() - 0.5) * 0.05,
+        dz: (Math.random() - 0.5) * 0.05,
+        axesGroup: crossGroup,
+      });
+    }
+    return spawned;
+  };
+
+  const clampAndBounce = (
+    node: { x: number; y: number; z: number; dx: number; dy: number; dz: number },
+    bbox: BoundingBox
+  ) => {
     if (node.x > bbox.maxX) {
       node.x = bbox.maxX;
       node.dx *= -1;
@@ -228,6 +301,7 @@ export default function ThreeDNodeSystem() {
       nodeB: number;
     }[] = [];
 
+    // No lines for AxesNodeObjects, only for normal nodes
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const lineMaterial = new THREE.LineBasicMaterial({
@@ -257,13 +331,13 @@ export default function ThreeDNodeSystem() {
     camera: THREE.PerspectiveCamera
   ): NodeObject[] => {
     const occupiedAreas: { x: number; y: number; width: number; height: number }[] = [];
-  
+
     const screenNodes = nodes.map((node) => {
       const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(camera);
       const screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
       const screenY = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
       const screenZ = screenPos.z; // Perceived depth
-  
+
       return {
         ...node,
         screenX,
@@ -271,23 +345,23 @@ export default function ThreeDNodeSystem() {
         screenZ,
       };
     });
-  
+
     const sortedNodes = screenNodes.sort((a, b) => a.screenZ - b.screenZ);
-  
+
     const assignedLabels = new Set<Label>();
-  
+
     return sortedNodes.map((node) => {
       if (node.assignedLabel) return node;
-  
+
       const availableLabel = labels
         .sort((a, b) => b.priority - a.priority)
         .find((label) => {
           if (assignedLabels.has(label)) return false;
-  
+
           // Dynamically calculate font size
           const fontSize = Math.max(12, 50 - node.screenZ * 40); // Scale font size
           label.fontsize = fontSize; // Assign font size to the label
-  
+
           const labelWidth = measureTextWidth(label.content, fontSize);
           const labelHeight = fontSize; // Use font size as height
           const labelBox = {
@@ -296,7 +370,7 @@ export default function ThreeDNodeSystem() {
             width: labelWidth,
             height: labelHeight,
           };
-  
+
           const overlaps = occupiedAreas.some((area) => {
             return (
               labelBox.x < area.x + area.width &&
@@ -305,13 +379,13 @@ export default function ThreeDNodeSystem() {
               labelBox.y + labelBox.height > area.y
             );
           });
-  
+
           return !overlaps;
         });
-  
+
       if (availableLabel) {
         assignedLabels.add(availableLabel);
-  
+
         // Add the occupied area for the label
         const labelWidth = measureTextWidth(availableLabel.content, availableLabel.fontsize);
         occupiedAreas.push({
@@ -320,13 +394,13 @@ export default function ThreeDNodeSystem() {
           width: labelWidth,
           height: availableLabel.fontsize,
         });
-  
+
         return {
           ...node,
           assignedLabel: availableLabel,
         };
       }
-  
+
       return node;
     });
   };
@@ -342,6 +416,7 @@ export default function ThreeDNodeSystem() {
       nodeB: number;
     }[],
     nodes: NodeObject[],
+    axesNodes: AxesNodeObject[],
     labels: Label[]
   ) => {
     // Four cardinal angles
@@ -354,22 +429,14 @@ export default function ThreeDNodeSystem() {
     const radius = Math.sqrt(initX * initX + initZ * initZ);
 
     const lerpSpeed = 0.05;
-
-    // Flag to indicate if we're currently rotating (animation not done)
     let isRotating = false;
-
-    // A small epsilon to decide when rotation is "close enough" to target
     const angleEpsilon = 0.001;
 
-    // On scroll => only if !isRotating => pick next or prev side
     const handleScroll = (e: WheelEvent) => {
       e.preventDefault();
-      // If we're mid-rotation, ignore
       if (isRotating) return;
 
-      // Start a new rotation
       isRotating = true;
-
       if (e.deltaY < 0) {
         // Up => previous
         sideIndex = (sideIndex + 3) % 4;
@@ -391,7 +458,6 @@ export default function ThreeDNodeSystem() {
       if (diff > Math.PI) diff -= 2 * Math.PI;
       if (diff < -Math.PI) diff += 2 * Math.PI;
 
-      // Lerp
       const step = diff * lerpSpeed;
       currentAngle += step;
 
@@ -401,11 +467,8 @@ export default function ThreeDNodeSystem() {
       camera.position.set(x, y, z);
       camera.lookAt(0, 0, 0);
 
-      // If we've gotten close to the target, we consider ourselves "done"
       if (Math.abs(diff) < angleEpsilon) {
-        // Snap exactly
         currentAngle = targetAngle;
-        // End rotation
         isRotating = false;
       }
     }
@@ -413,7 +476,7 @@ export default function ThreeDNodeSystem() {
     function animate() {
       requestAnimationFrame(animate);
 
-      // Update nodes
+      // Update normal nodes
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         node.x += node.dx;
@@ -423,10 +486,20 @@ export default function ThreeDNodeSystem() {
         cubeEdges[i].position.set(node.x, node.y, node.z);
       }
 
-      const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
-      setNodes([...updatedNodes]); // Use spread operator to trigger re-render
+      // Update the AxesNodes (faster movement, same bounce logic)
+      for (let i = 0; i < axesNodes.length; i++) {
+        const axNode = axesNodes[i];
+        axNode.x += axNode.dx;
+        axNode.y += axNode.dy;
+        axNode.z += axNode.dz;
+        clampAndBounce(axNode, boundingBox);
+        axNode.axesGroup.position.set(axNode.x, axNode.y, axNode.z);
+      }
 
-      // Update lines
+      const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
+      setNodes([...updatedNodes]); // triggers re-render for labels
+
+      // Update lines among NodeObjects
       let lineIndex = 0;
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
@@ -443,19 +516,16 @@ export default function ThreeDNodeSystem() {
           const mat = lineItem.line.material;
 
           if (opacity === 0) {
-            // Completely invisible lines
             lineItem.line.visible = false;
           } else if (opacity < 0.4) {
-            // Lines with opacity below 20%
-            // Introduce a 5% chance to hide the line
-            const hideChance = Math.random(); // Generates a number between 0 and 1
+            // Introduce some chance of hiding lines
+            const hideChance = Math.random();
             if (hideChance < 0.15) {
               lineItem.line.visible = false;
             } else {
               lineItem.line.visible = true;
               mat.opacity = opacity;
 
-              // Recompute geometry only if the line is visible
               const newPoints = [
                 new THREE.Vector3(nodeA.x, nodeA.y, nodeA.z),
                 new THREE.Vector3(nodeB.x, nodeB.y, nodeB.z),
@@ -463,11 +533,9 @@ export default function ThreeDNodeSystem() {
               lineItem.line.geometry.setFromPoints(newPoints);
             }
           } else {
-            // Lines with opacity 20% and above
             lineItem.line.visible = true;
             mat.opacity = opacity;
 
-            // Recompute geometry
             const newPoints = [
               new THREE.Vector3(nodeA.x, nodeA.y, nodeA.z),
               new THREE.Vector3(nodeB.x, nodeB.y, nodeB.z),
@@ -479,7 +547,6 @@ export default function ThreeDNodeSystem() {
         }
       }
 
-      // Update camera angle => if isRotating is true, we keep animating the rotation
       if (isRotating) {
         updateCameraAngle();
       }
@@ -491,8 +558,13 @@ export default function ThreeDNodeSystem() {
   };
 
   useEffect(() => {
+    // Create normal nodes
     const newNodes = createRandomNodes(nodeCount);
     setNodes(newNodes);
+
+    // Create the 3D cross axes nodes
+    const newAxesNodes = createAxesNodes(axesNodeCount);
+    setAxesNodes(newAxesNodes);
 
     const currentMount = mountRef.current;
     if (!currentMount) return;
@@ -500,10 +572,17 @@ export default function ThreeDNodeSystem() {
     const { scene, camera, renderer } = initializeScene(currentMount);
 
     const cubeEdges = createEdgeWireframes(scene, newNodes);
+
+    // Add the cross axes to the scene
+    newAxesNodes.forEach((axNode) => {
+      scene.add(axNode.axesGroup);
+    });
+
     createGrid(scene);
+
     const { lines } = createConnectingLines(scene, newNodes);
 
-    animateScene(scene, camera, renderer, cubeEdges, lines, newNodes, labels);
+    animateScene(scene, camera, renderer, cubeEdges, lines, newNodes, newAxesNodes, labels);
 
     // Handle window resize
     const handleResize = () => {
@@ -534,7 +613,7 @@ export default function ThreeDNodeSystem() {
         overflow: "hidden",
       }}
     >
-      {/* Left Overlay - Terminal Style */}
+      {/* Left Overlay - Terminal Style (restored to original) */}
       <div
         style={{
           position: "absolute",
@@ -573,7 +652,7 @@ export default function ThreeDNodeSystem() {
             </li>
           ))}
         </ul>
-  
+
         {/* Labels Section */}
         <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
@@ -606,14 +685,14 @@ export default function ThreeDNodeSystem() {
           ))}
         </ul>
       </div>
-  
+
       {/* 3D Scene */}
       <div
         ref={mountRef}
         style={{
           position: "absolute",
           left: `200px`, // Shift the 3D scene right by 200px to make room for the original overlay
-          width: "100%", // Maintain original width
+          width: "100%",
           height: "100%",
           overflow: "hidden",
           backgroundColor: "white",
@@ -621,18 +700,17 @@ export default function ThreeDNodeSystem() {
         }}
       >
         {nodes.map((node) => {
-          console.log(node.assignedLabel);
           if (!node.assignedLabel || !cameraRef.current) return null;
-  
+
           const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
           const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200; // Adjust for left overlay
           const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-  
+
           if (x < 0 || x > window.innerWidth - 200 || y < 0 || y > window.innerHeight) {
             console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
             return null;
           }
-  
+
           return (
             <div
               key={node.assignedLabel.content}
@@ -644,12 +722,12 @@ export default function ThreeDNodeSystem() {
                 padding: "0px 0px",
                 zIndex: 30, // Ensure labels are above the overlay
                 cursor: "pointer",
-                transform: "translateX(210px) translateY(-10px)", // Adjusted translateX to account for overlay width
+                transform: "translateX(210px) translateY(-10px)", // Adjusted for overlay shift
                 pointerEvents: "auto",
                 fontSize: "12px", // Fixed 12px font size
-                fontFamily: "monospace", // Monospace font
-                fontWeight: 100, // Match the font-weight
-                fontStyle: "normal", // Match the font-style
+                fontFamily: "monospace",
+                fontWeight: 100,
+                fontStyle: "normal",
               }}
               onClick={() => window.open(node.assignedLabel?.url, "_blank")}
             >
