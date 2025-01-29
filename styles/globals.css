@@ -28,14 +28,13 @@ font-display:auto;font-style:italic;font-weight:700;font-stretch:normal;
 
 
 
-/* remove default margin and padding */
-html, body { 
-
-    padding: 0; 
-    
-    margin: 0;
-    
-    }
+html, body {
+    margin: 0; 
+    padding: 0;
+    width: 100%;
+    height: 100%;
+}
+  
 
 .tk-dico-code-two { font-family: "dico-code-two",mono; }
 :root {

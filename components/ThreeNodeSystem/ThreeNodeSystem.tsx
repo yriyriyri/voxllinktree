@@ -1,6 +1,12 @@
 // components/ThreeDNodeSystem/ThreeDNodeSystem.tsx
 import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { TextureLoader } from 'three';
+
 
 interface NodeObject {
   x: number;
@@ -9,7 +15,7 @@ interface NodeObject {
   dx: number;
   dy: number;
   dz: number;
-  assignedLabel?: Label; // Optional: a label assigned to this node
+  assignedLabel?: Label; 
 }
 
 interface AxesNodeObject {
@@ -19,7 +25,10 @@ interface AxesNodeObject {
   dx: number;
   dy: number;
   dz: number;
-  axesGroup: THREE.Group; // Group containing the cross lines
+  axesGroup: THREE.Group;
+  opacity: number;    
+  frequency: number; 
+  offset: number;     //sine wave functions
 }
 
 interface BoundingBox {
@@ -33,21 +42,26 @@ interface BoundingBox {
 
 interface Label {
   content: string;
-  url: string;
+  url?: string;  
   priority: number;
   fontsize: number;
+  function: "link" | "interface";
+  interfaceContent?: string;
 }
 
 export default function ThreeDNodeSystem() {
+  //external refs 
   const mountRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<NodeObject[]>([]);
-  
-  // State for AxesNodes
   const [axesNodes, setAxesNodes] = useState<AxesNodeObject[]>([]);
-
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const [selectedInterfaceContent, setSelectedInterfaceContent] = useState<string | null>(null);
+  const [typedContent, setTypedContent] = useState<string>("");
 
-  // The bounding box
+
+
+
+  // bounding box for spawn/containment of nodes
   const boundingBox: BoundingBox = {
     minX: -35,
     maxX: 35,
@@ -58,17 +72,21 @@ export default function ThreeDNodeSystem() {
   };
 
   const labels: Label[] = [
-    { content: "./youtube", url: "https://example.com/youtube", priority: 1, fontsize: 16 },
-    { content: "./X", url: "https://example.com/x", priority: 2, fontsize: 16 },
-    { content: "./instagram", url: "https://example.com/instagram", priority: 3, fontsize: 16 },
-    { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16 },
-    { content: "./about us", url: "https://example.com/about", priority: 5, fontsize: 16 },
-    { content: "./contact", url: "https://example.com/contact", priority: 6, fontsize: 16 },
+    { content: "./youtube", url: "https://example.com/youtube", priority: 1, fontsize: 16, function: "link" },
+    { content: "./X", url: "https://example.com/x", priority: 2, fontsize: 16, function: "link" },
+    { content: "./instagram", url: "https://example.com/instagram", priority: 3, fontsize: 16, function: "link" },
+    { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16, function: "link" },
+    { content: "./about us", priority: 5, fontsize: 16, function: "interface", interfaceContent: "./about us () VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. " },
+    { content: "./contact", priority: 6, fontsize: 16, function: "interface", interfaceContent: "./contact () dev team @exampleexampleexample Dm" },
   ];
 
+  //major variable adjusts (make dynamic based on screensize)
+
   const lineDistanceFactor = 30;
-  const nodeCount = 30;
+  const nodeCount = 25;
   const axesNodeCount = 5;
+
+  //####helper functions
 
   const randomInRange = (min: number, max: number) =>
     Math.random() * (max - min) + min;
@@ -77,10 +95,11 @@ export default function ThreeDNodeSystem() {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     if (!context) return 0;
-
     context.font = `${fontSize}px dico-code-two`;
     return context.measureText(text).width;
   };
+
+  //####createn odes
 
   const createRandomNodes = (count: number): NodeObject[] => {
     const spawned: NodeObject[] = [];
@@ -97,20 +116,19 @@ export default function ThreeDNodeSystem() {
     return spawned;
   };
 
-  /**
-   * Creates an array of AxesNodeObject, each with a black "3D cross"
-   * that extends equally in the +/- direction for x, y, z.
-   */
   const createAxesNodes = (count: number): AxesNodeObject[] => {
     const spawned: AxesNodeObject[] = [];
-    
-    const buildCrossGroup = (size: number = 2) => {
+
+    const buildCrossGroup = (size: number = 1) => {
       const group = new THREE.Group();
       const half = size / 2;
-      // Single black material
-      const blackMat = new THREE.LineBasicMaterial({ color: 0x000000 });
+      const blackMat = new THREE.LineBasicMaterial({
+        color: 0x000000,
+        transparent: true,
+        opacity: 1,
+      });
 
-      // X axis from -half to +half
+      // x axis
       const xGeom = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(-half, 0, 0),
         new THREE.Vector3(half, 0, 0),
@@ -118,7 +136,7 @@ export default function ThreeDNodeSystem() {
       const xLine = new THREE.Line(xGeom, blackMat);
       group.add(xLine);
 
-      // Y axis from -half to +half
+      // y axis
       const yGeom = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, -half, 0),
         new THREE.Vector3(0, half, 0),
@@ -126,7 +144,7 @@ export default function ThreeDNodeSystem() {
       const yLine = new THREE.Line(yGeom, blackMat);
       group.add(yLine);
 
-      // Z axis from -half to +half
+      // z axis
       const zGeom = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(0, 0, -half),
         new THREE.Vector3(0, 0, half),
@@ -138,19 +156,25 @@ export default function ThreeDNodeSystem() {
     };
 
     for (let i = 0; i < count; i++) {
-      const crossGroup = buildCrossGroup(2); // small cross
+      const crossGroup = buildCrossGroup(1.5);
       spawned.push({
         x: randomInRange(boundingBox.minX, boundingBox.maxX),
         y: randomInRange(boundingBox.minY, boundingBox.maxY),
         z: randomInRange(boundingBox.minZ, boundingBox.maxZ),
-        dx: (Math.random() - 0.5) * 0.05, // Faster velocity
+        dx: (Math.random() - 0.5) * 0.05,
         dy: (Math.random() - 0.5) * 0.05,
         dz: (Math.random() - 0.5) * 0.05,
         axesGroup: crossGroup,
+        // sine-wave fade properties
+        opacity: 1,
+        frequency: randomInRange(0.2, 1.5),
+        offset: randomInRange(0, 2 * Math.PI),
       });
     }
     return spawned;
   };
+
+  //####containment logic
 
   const clampAndBounce = (
     node: { x: number; y: number; z: number; dx: number; dy: number; dz: number },
@@ -181,12 +205,15 @@ export default function ThreeDNodeSystem() {
     }
   };
 
+  //####basic scene init
+
   const initializeScene = (
     mount: HTMLDivElement
   ): {
     scene: THREE.Scene;
     camera: THREE.PerspectiveCamera;
     renderer: THREE.WebGLRenderer;
+    composer: EffectComposer;
   } => {
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(
@@ -199,16 +226,94 @@ export default function ThreeDNodeSystem() {
 
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     const dpr = window.devicePixelRatio || 1;
     renderer.setPixelRatio(dpr);
     renderer.setSize(mount.clientWidth, mount.clientHeight);
-    renderer.setClearColor(0xffffff);
-
+    renderer.setClearColor(0xFFFFFF, 0);
     mount.appendChild(renderer.domElement);
-    return { scene, camera, renderer };
+
+    const composer = new EffectComposer(renderer);
+
+    const renderPass = new RenderPass(scene, camera);
+    renderPass.clearColor = new THREE.Color(0x000000); 
+    renderPass.clearAlpha = 0;
+    composer.addPass(renderPass);
+
+    const blurOverlayShader = {
+      uniforms: {
+        tDiffuse:    { value: null },             // original scene render
+        resolution:  { value: new THREE.Vector2() },
+        radius:      { value: 1.0 },              // how large the blur kernel is
+        blurOpacity: { value: 0.5 }               // how strongly to overlay the blurred image
+      },
+      vertexShader: `
+        varying vec2 vUv;
+    
+        void main() {
+          vUv = uv;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D tDiffuse;
+        uniform vec2 resolution;
+        uniform float radius;
+        uniform float blurOpacity;
+        varying vec2 vUv;
+    
+        void main() {
+          // We'll do a simple 3x3 box blur
+          // For a stronger blur, increase the sample area or do multiple passes.
+          vec4 blurredColor = vec4(0.0);
+          float totalSamples = 0.0;
+    
+          // Offsets in the 3x3 neighborhood
+          float offX = radius / resolution.x;
+          float offY = radius / resolution.y;
+    
+          for (int x = -1; x <= 1; x++) {
+            for (int y = -1; y <= 1; y++) {
+              vec2 offset = vec2(float(x) * offX, float(y) * offY);
+              vec4 sampleColor = texture2D(tDiffuse, vUv + offset);
+    
+              blurredColor += sampleColor;
+              totalSamples += 1.0;
+            }
+          }
+    
+          // Average the sum to get the final blurred color
+          blurredColor /= totalSamples;
+    
+          // Grab the original color at this pixel
+          vec4 originalColor = texture2D(tDiffuse, vUv);
+    
+          // Overlay the blurred image over the original
+          // blurOpacity = 0.0 => no blur; 1.0 => fully blurred
+          vec4 finalColor = mix(originalColor, blurredColor, blurOpacity);
+    
+          gl_FragColor = finalColor;
+        }
+      `
+    };
+  
+    const blurOverlayPass = new ShaderPass(blurOverlayShader);
+
+    blurOverlayPass.material.uniforms.resolution.value.set(
+      mount.clientWidth,
+      mount.clientHeight
+    );
+
+    blurOverlayPass.material.uniforms.radius.value = 3.0; 
+
+    blurOverlayPass.material.uniforms.blurOpacity.value = 0.4; 
+
+    composer.addPass(blurOverlayPass);
+
+    return { scene, camera, renderer, composer };
   };
 
+  //####render logic for normal nodes
   const createEdgeWireframes = (scene: THREE.Scene, nodes: NodeObject[]) => {
     const cubeEdges: THREE.LineSegments[] = [];
     nodes.forEach((node) => {
@@ -229,6 +334,7 @@ export default function ThreeDNodeSystem() {
     return cubeEdges;
   };
 
+  //####visual grid for depth
   const createGrid = (scene: THREE.Scene) => {
     const centerY = (boundingBox.minY + boundingBox.maxY) / 2;
     const width = boundingBox.maxX - boundingBox.minX;
@@ -238,7 +344,6 @@ export default function ThreeDNodeSystem() {
 
     const gridGroup = new THREE.Group();
 
-    // For a 4x4 => 3 lines
     const gridLinesCount = 5;
     const spacingX = width / 6;
     const spacingZ = depth / 6;
@@ -248,7 +353,7 @@ export default function ThreeDNodeSystem() {
     const innerMinZ = boundingBox.minZ + spacingZ;
     const innerMaxZ = boundingBox.maxZ - spacingZ;
 
-    // Horizontal lines
+    // horizontal lines
     for (let i = 1; i <= gridLinesCount; i++) {
       const z = boundingBox.minZ + i * spacingZ;
       const points = [
@@ -261,7 +366,7 @@ export default function ThreeDNodeSystem() {
       gridGroup.add(line);
     }
 
-    // Vertical lines
+    // vertical lines
     for (let i = 1; i <= gridLinesCount; i++) {
       const x = boundingBox.minX + i * spacingX;
       const points = [
@@ -274,7 +379,7 @@ export default function ThreeDNodeSystem() {
       gridGroup.add(line);
     }
 
-    // Perimeter
+    // perimeter
     const corners = [
       new THREE.Vector3(innerMinX, bottomY, innerMinZ),
       new THREE.Vector3(innerMaxX, bottomY, innerMinZ),
@@ -294,14 +399,14 @@ export default function ThreeDNodeSystem() {
     scene.add(gridGroup);
   };
 
+  //####creates lines between normal nodes
   const createConnectingLines = (scene: THREE.Scene, nodes: NodeObject[]) => {
     const lines: {
       line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
-      nodeA: number;
+      nodeA: number; 
       nodeB: number;
     }[] = [];
 
-    // No lines for AxesNodeObjects, only for normal nodes
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
         const lineMaterial = new THREE.LineBasicMaterial({
@@ -310,7 +415,6 @@ export default function ThreeDNodeSystem() {
           opacity: 1,
           linewidth: 1,
         });
-
         const points = [
           new THREE.Vector3(nodes[i].x, nodes[i].y, nodes[i].z),
           new THREE.Vector3(nodes[j].x, nodes[j].y, nodes[j].z),
@@ -325,6 +429,43 @@ export default function ThreeDNodeSystem() {
     return { lines };
   };
 
+  //####creates lines to and from axes nodes
+  const createNodeAxesLines = (
+    scene: THREE.Scene,
+    nodes: NodeObject[],
+    axes: AxesNodeObject[]
+  ) => {
+    const nodeAxesLines: {
+      line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
+      nodeIndex: number;
+      axesIndex: number;
+    }[] = [];
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = 0; j < axes.length; j++) {
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: 0x323232,
+          transparent: true,
+          opacity: 1,
+          linewidth: 1,
+        });
+
+        const points = [
+          new THREE.Vector3(nodes[i].x, nodes[i].y, nodes[i].z),
+          new THREE.Vector3(axes[j].x, axes[j].y, axes[j].z),
+        ];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const line = new THREE.Line(geometry, lineMaterial);
+        scene.add(line);
+
+        nodeAxesLines.push({ line, nodeIndex: i, axesIndex: j });
+      }
+    }
+
+    return nodeAxesLines;
+  };
+
+  //####assigns labels to nodes based on a criteria 
   const assignLabelsToNodes = (
     nodes: NodeObject[],
     labels: Label[],
@@ -336,8 +477,7 @@ export default function ThreeDNodeSystem() {
       const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(camera);
       const screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
       const screenY = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-      const screenZ = screenPos.z; // Perceived depth
-
+      const screenZ = screenPos.z; 
       return {
         ...node,
         screenX,
@@ -358,12 +498,10 @@ export default function ThreeDNodeSystem() {
         .find((label) => {
           if (assignedLabels.has(label)) return false;
 
-          // Dynamically calculate font size
-          const fontSize = Math.max(12, 50 - node.screenZ * 40); // Scale font size
-          label.fontsize = fontSize; // Assign font size to the label
-
+          const fontSize = Math.max(12, 50 - node.screenZ * 40);
+          label.fontsize = fontSize; 
           const labelWidth = measureTextWidth(label.content, fontSize);
-          const labelHeight = fontSize; // Use font size as height
+          const labelHeight = fontSize;
           const labelBox = {
             x: node.screenX,
             y: node.screenY,
@@ -385,8 +523,6 @@ export default function ThreeDNodeSystem() {
 
       if (availableLabel) {
         assignedLabels.add(availableLabel);
-
-        // Add the occupied area for the label
         const labelWidth = measureTextWidth(availableLabel.content, availableLabel.fontsize);
         occupiedAreas.push({
           x: node.screenX + 10,
@@ -400,11 +536,11 @@ export default function ThreeDNodeSystem() {
           assignedLabel: availableLabel,
         };
       }
-
       return node;
     });
   };
 
+  //####animation loop
   const animateScene = (
     scene: THREE.Scene,
     camera: THREE.PerspectiveCamera,
@@ -415,11 +551,16 @@ export default function ThreeDNodeSystem() {
       nodeA: number;
       nodeB: number;
     }[],
+    nodeAxesLines: {
+      line: THREE.Line<THREE.BufferGeometry, THREE.LineBasicMaterial>;
+      nodeIndex: number;
+      axesIndex: number;
+    }[],
     nodes: NodeObject[],
     axesNodes: AxesNodeObject[],
-    labels: Label[]
+    labels: Label[],
+    composer: EffectComposer
   ) => {
-    // Four cardinal angles
     const angles = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
     let sideIndex = 0;
     let currentAngle = Math.atan2(camera.position.x, camera.position.z);
@@ -432,16 +573,18 @@ export default function ThreeDNodeSystem() {
     let isRotating = false;
     const angleEpsilon = 0.001;
 
+    const startTime = performance.now();
+
     const handleScroll = (e: WheelEvent) => {
       e.preventDefault();
       if (isRotating) return;
 
       isRotating = true;
       if (e.deltaY < 0) {
-        // Up => previous
+        // up => previous
         sideIndex = (sideIndex + 3) % 4;
       } else {
-        // Down => next
+        // down => next
         sideIndex = (sideIndex + 1) % 4;
       }
       targetAngle = angles[sideIndex];
@@ -455,6 +598,7 @@ export default function ThreeDNodeSystem() {
 
     function updateCameraAngle() {
       let diff = targetAngle - currentAngle;
+      // make sure -PI < diff < PI
       if (diff > Math.PI) diff -= 2 * Math.PI;
       if (diff < -Math.PI) diff += 2 * Math.PI;
 
@@ -476,7 +620,8 @@ export default function ThreeDNodeSystem() {
     function animate() {
       requestAnimationFrame(animate);
 
-      // Update normal nodes
+      const elapsed = (performance.now() - startTime) * 0.001; 
+
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         node.x += node.dx;
@@ -486,7 +631,6 @@ export default function ThreeDNodeSystem() {
         cubeEdges[i].position.set(node.x, node.y, node.z);
       }
 
-      // Update the AxesNodes (faster movement, same bounce logic)
       for (let i = 0; i < axesNodes.length; i++) {
         const axNode = axesNodes[i];
         axNode.x += axNode.dx;
@@ -494,12 +638,21 @@ export default function ThreeDNodeSystem() {
         axNode.z += axNode.dz;
         clampAndBounce(axNode, boundingBox);
         axNode.axesGroup.position.set(axNode.x, axNode.y, axNode.z);
+
+        // sine function
+        const fade = Math.sin(axNode.frequency * elapsed + axNode.offset) * 0.5 + 0.5;
+        axNode.opacity = fade;
+
+        axNode.axesGroup.traverse((child) => {
+          if (child instanceof THREE.Line) {
+            const mat = child.material as THREE.LineBasicMaterial;
+            mat.opacity = axNode.opacity;
+            mat.transparent = true;
+          }
+        });
       }
 
-      const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
-      setNodes([...updatedNodes]); // triggers re-render for labels
-
-      // Update lines among NodeObjects
+      // node <-> node lines
       let lineIndex = 0;
       for (let i = 0; i < nodes.length; i++) {
         for (let j = i + 1; j < nodes.length; j++) {
@@ -509,32 +662,17 @@ export default function ThreeDNodeSystem() {
             new THREE.Vector3(nodeB.x, nodeB.y, nodeB.z)
           );
 
-          let opacity = 1 - dist / lineDistanceFactor;
-          opacity = Math.max(0, Math.min(1, opacity));
+          let baseOpacity = 1 - dist / lineDistanceFactor;
+          baseOpacity = Math.max(0, Math.min(1, baseOpacity));
 
           const lineItem = lines[lineIndex];
           const mat = lineItem.line.material;
 
-          if (opacity === 0) {
+          if (baseOpacity === 0) {
             lineItem.line.visible = false;
-          } else if (opacity < 0.4) {
-            // Introduce some chance of hiding lines
-            const hideChance = Math.random();
-            if (hideChance < 0.15) {
-              lineItem.line.visible = false;
-            } else {
-              lineItem.line.visible = true;
-              mat.opacity = opacity;
-
-              const newPoints = [
-                new THREE.Vector3(nodeA.x, nodeA.y, nodeA.z),
-                new THREE.Vector3(nodeB.x, nodeB.y, nodeB.z),
-              ];
-              lineItem.line.geometry.setFromPoints(newPoints);
-            }
           } else {
             lineItem.line.visible = true;
-            mat.opacity = opacity;
+            mat.opacity = baseOpacity;
 
             const newPoints = [
               new THREE.Vector3(nodeA.x, nodeA.y, nodeA.z),
@@ -542,49 +680,104 @@ export default function ThreeDNodeSystem() {
             ];
             lineItem.line.geometry.setFromPoints(newPoints);
           }
-
           lineIndex++;
         }
       }
+
+      // node <-> axes lines
+      for (let i = 0; i < nodeAxesLines.length; i++) {
+        const { line, nodeIndex: nIndex, axesIndex: aIndex } = nodeAxesLines[i];
+
+        const node = nodes[nIndex];
+        const axNode = axesNodes[aIndex];
+
+        const dist = new THREE.Vector3(node.x, node.y, node.z).distanceTo(
+          new THREE.Vector3(axNode.x, axNode.y, axNode.z)
+        );
+        let baseOpacity = 1 - dist / lineDistanceFactor;
+        baseOpacity = Math.max(0, Math.min(1, baseOpacity));
+
+        if (baseOpacity === 0) {
+          line.visible = false;
+        } else {
+          const finalOpacity = baseOpacity * axNode.opacity;
+
+          if (finalOpacity <= 0) {
+            line.visible = false;
+          } else {
+            line.visible = true;
+            (line.material as THREE.LineBasicMaterial).opacity = finalOpacity;
+
+            line.geometry.setFromPoints([
+              new THREE.Vector3(node.x, node.y, node.z),
+              new THREE.Vector3(axNode.x, axNode.y, axNode.z),
+            ]);
+          }
+        }
+      }
+
+      // 5) re-assign labels for normal nodes
+      const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
+      setNodes([...updatedNodes]);
 
       if (isRotating) {
         updateCameraAngle();
       }
 
-      renderer.render(scene, camera);
+      // renderer.render(scene, camera);
+      composer.render()
     }
 
     animate();
   };
 
+  //####main functionality useffect
   useEffect(() => {
-    // Create normal nodes
+    // 1 create normal nodes
     const newNodes = createRandomNodes(nodeCount);
     setNodes(newNodes);
 
-    // Create the 3D cross axes nodes
+    // 2 create axes nodes
     const newAxesNodes = createAxesNodes(axesNodeCount);
     setAxesNodes(newAxesNodes);
 
+    // 3 set up scene
     const currentMount = mountRef.current;
     if (!currentMount) return;
+    const { scene, camera, renderer, composer } = initializeScene(currentMount);
 
-    const { scene, camera, renderer } = initializeScene(currentMount);
-
+    // 4 wireframes for normal nodes
     const cubeEdges = createEdgeWireframes(scene, newNodes);
 
-    // Add the cross axes to the scene
+    // 5 add axes nodes to scene
     newAxesNodes.forEach((axNode) => {
       scene.add(axNode.axesGroup);
     });
 
+    // 6 grid
     createGrid(scene);
 
+    // 7 lines between normal nodes
     const { lines } = createConnectingLines(scene, newNodes);
 
-    animateScene(scene, camera, renderer, cubeEdges, lines, newNodes, newAxesNodes, labels);
+    // 8 lines between each normal node and each axes node
+    const nodeAxesLines = createNodeAxesLines(scene, newNodes, newAxesNodes);
 
-    // Handle window resize
+    // 9 animate
+    animateScene(
+      scene,
+      camera,
+      renderer,
+      cubeEdges,
+      lines,
+      nodeAxesLines,
+      newNodes,
+      newAxesNodes,
+      labels,
+      composer
+    );
+
+    // handle window resize
     const handleResize = () => {
       if (!mountRef.current || !cameraRef.current) return;
       const width = mountRef.current.clientWidth;
@@ -603,34 +796,166 @@ export default function ThreeDNodeSystem() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  //####typewriter effect  hhhhhhhhh
+  useEffect(() => {
+    if (selectedInterfaceContent) {
+      setTypedContent("");
+      let index = -1;
+      const typeWriter = () => {
+        if (index < selectedInterfaceContent.length - 1) {
+          setTypedContent((prev) => prev + selectedInterfaceContent[index]);
+          index++;
+          setTimeout(typeWriter, 30); 
+        }
+      };
+      typeWriter();
+    }
+  }, [selectedInterfaceContent]);
+
   return (
     <div
       style={{
-        position: "relative", // Use relative positioning for the parent container
-        width: "100%", // Full width of the container
-        height: "100vh", // Full height of the viewport
-        backgroundColor: "white", // Set the background color to white
+        position: "relative",
+        width: "100%",
+        height: "100vh",
+        background:
+          "radial-gradient(circle at calc(50% + 200px) 50%, #eaeaea 0%, #d6d6d6 30%, #bfbfbf 60%) no-repeat center center fixed",
+        backgroundSize: "cover",
         overflow: "hidden",
       }}
     >
-      {/* Left Overlay - Terminal Style (restored to original) */}
+
+     {/* corner lines */}
+      <div
+        style={{
+          position: "absolute",
+          left: "540px",
+          top: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          left: "540px",
+          top: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          left: "540px",
+          bottom: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          left: "540px",
+          bottom: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: "140px",
+          top: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: "140px",
+          top: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: "140px",
+          bottom: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: "140px",
+          bottom: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      {/* left overlay */}
       <div
         style={{
           position: "absolute",
           left: 0,
           top: 0,
-          width: "100%", // Increased width to 600px
+          width: "500px",
           height: "100%",
           overflowY: "auto",
           padding: "20px",
-          zIndex: 20, // Ensure it's above the 3D scene
-          fontFamily: "monospace", // Monospace font for terminal look
-          fontSize: "8px", // Set font size to 10px
-          color: "#000000", // Black text
-          pointerEvents: "none"
+          zIndex: 20,
+          fontFamily: "monospace",
+          fontSize: "8px",
+          color: "#000000",
+          pointerEvents: "none",
         }}
       >
-        {/* Node Details List */}
+        {/* node details */}
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {nodes.map((node, index) => (
             <li
@@ -642,8 +967,9 @@ export default function ThreeDNodeSystem() {
                 textOverflow: "ellipsis",
               }}
             >
-              {/* One line per node with technical jargon */}
-              INFO: Node <strong>{index + 1}</strong> | Position X=<span>{node.x.toFixed(2)}</span>, Y=<span>{node.y.toFixed(2)}</span>, Z=<span>{node.z.toFixed(2)}</span>
+              INFO: Node <strong>{index + 1}</strong> | Position X=
+              <span>{node.x.toFixed(2)}</span>, Y=<span>{node.y.toFixed(2)}</span>, Z=
+              <span>{node.z.toFixed(2)}</span>
               {node.assignedLabel && (
                 <span style={{ marginLeft: "15px" }}>
                   | Label: <span>{node.assignedLabel.content}</span>
@@ -652,8 +978,8 @@ export default function ThreeDNodeSystem() {
             </li>
           ))}
         </ul>
-
-        {/* Labels Section */}
+  
+        {/* labels */}
         <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {labels.map((label, index) => (
@@ -666,75 +992,113 @@ export default function ThreeDNodeSystem() {
                 textOverflow: "ellipsis",
               }}
             >
-              {/* One line per label with technical jargon */}
-              LABEL: <strong>{label.content}</strong> | Priority=<span>{label.priority}</span> | FontSize=<span>{label.fontsize}px</span> | URL:{" "}
-              <a
-                href={label.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  color: "#000000", // Black text
-                  textDecoration: "none", // Remove underline
-                  cursor: "pointer",
-                  pointerEvents: "auto"
-                }}
-              >
-                {label.url}
-              </a>
+              LABEL: <strong>{label.content}</strong> | Priority = <span>{label.priority}</span> | Function = <span>{label.function}</span> | 
+              {label.function === "link" && label.url && (
+                <> URL: <a
+                    href={label.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "#000000",
+                      textDecoration: "none",
+                      cursor: "pointer",
+                      pointerEvents: "auto",
+                    }}
+                  >
+                    {label.url}
+                  </a>
+                </>
+              )}
+              {label.function === "interface" && label.interfaceContent && (
+                <a
+                  onClick={(e) => {
+                    e.preventDefault(); 
+                    setSelectedInterfaceContent(label.interfaceContent || "");
+                  }}
+                  style={{
+                    color: "#000000", 
+                    cursor: "pointer",
+                    textDecoration: "none",
+                    pointerEvents: "auto",
+                  }}
+                >
+                  INTERFACE: {label.content.replace('./', '')}
+                </a>
+              )}
             </li>
           ))}
         </ul>
+        {/* interface label content */}
+        {typedContent && (
+          <div style={{ marginTop: "30px", fontWeight: "normal" }}>
+            <h3></h3>
+            <p>{typedContent}</p>
+          </div>
+        )}
       </div>
-
-      {/* 3D Scene */}
+  
+      {/* 3D scene */}
       <div
         ref={mountRef}
         style={{
           position: "absolute",
-          left: `200px`, // Shift the 3D scene right by 200px to make room for the original overlay
+          left: `200px`,
           width: "100%",
           height: "100%",
           overflow: "hidden",
-          backgroundColor: "white",
-          zIndex: 10, // Ensure it's below the overlay
+          zIndex: 10,
         }}
       >
-        {nodes.map((node) => {
-          if (!node.assignedLabel || !cameraRef.current) return null;
+       {/* node labels */}
+      {nodes.map((node) => {
+        if (!node.assignedLabel || !cameraRef.current) return null;
 
-          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
-          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200; // Adjust for left overlay
-          const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+        const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
+        const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
+        const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
 
-          if (x < 0 || x > window.innerWidth - 200 || y < 0 || y > window.innerHeight) {
-            console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
-            return null;
+        if (x < 0 || x > window.innerWidth - 200 || y < 0 || y > window.innerHeight) {
+          console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
+          return null;
+        }
+
+        const handleClick = () => {
+          if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
+            window.open(node.assignedLabel!.url, "_blank");
+          } else if (node.assignedLabel!.function === "interface") {
+            setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
           }
+        };
 
-          return (
-            <div
-              key={node.assignedLabel.content}
-              style={{
-                position: "absolute",
-                left: `${x}px`,
-                top: `${y}px`,
-                color: "black",
-                padding: "0px 0px",
-                zIndex: 30, // Ensure labels are above the overlay
-                cursor: "pointer",
-                transform: "translateX(210px) translateY(-10px)", // Adjusted for overlay shift
-                pointerEvents: "auto",
-                fontSize: "12px", // Fixed 12px font size
-                fontFamily: "monospace",
-                fontWeight: 100,
-                fontStyle: "normal",
-              }}
-              onClick={() => window.open(node.assignedLabel?.url, "_blank")}
-            >
-              {node.assignedLabel.content}
-            </div>
-          );
-        })}
+        {/* node styling */}
+        return (
+          <div
+            key={node.assignedLabel.content}
+            style={{
+              position: "absolute",
+              left: `${x}px`,
+              top: `${y}px`,
+              color: "black",
+              padding: "0px 0px",
+              zIndex: 30,
+              cursor: "pointer",
+              transform: "translateX(210px) translateY(-10px)",
+              pointerEvents: "auto",
+              fontSize: "11px",
+              fontFamily: "monospace",
+              fontWeight: 100,
+              fontStyle: "normal",
+              textDecoration: "none", 
+              textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+            }}
+            onClick={handleClick}
+            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")} 
+            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+          >
+            {node.assignedLabel.content}
+          </div>
+        );
+      })}
       </div>
     </div>
   );
