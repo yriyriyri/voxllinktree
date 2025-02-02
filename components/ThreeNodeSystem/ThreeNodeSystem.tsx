@@ -3,9 +3,7 @@ import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
-import { TextureLoader } from 'three';
 
 
 interface NodeObject {
@@ -953,6 +951,7 @@ export default function ThreeDNodeSystem() {
           fontSize: "8px",
           color: "#000000",
           pointerEvents: "none",
+          textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
         }}
       >
         {/* node details */}
@@ -1090,6 +1089,7 @@ export default function ThreeDNodeSystem() {
               fontStyle: "normal",
               textDecoration: "none", 
               textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+              // display: "none"
             }}
             onClick={handleClick}
             onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")} 
