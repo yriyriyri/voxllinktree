@@ -38,6 +38,8 @@ interface BoxyObject {
   scale: THREE.Vector3;
   mixer: THREE.AnimationMixer;
   currentAnimation: number;
+  animations: THREE.AnimationClip[];  // access all clips from anywhere 
+  currentAction?: THREE.AnimationAction; // keep track of current action
   dynamicEdges: { mesh: THREE.Mesh; line: THREE.LineSegments; thresholdAngle: number }[];
 }
 
@@ -79,6 +81,8 @@ export default function ThreeDNodeSystem() {
     maxZ: 35,
   };
 
+  //labels
+
   const labels: Label[] = [
     { content: "./youtube", url: "https://example.com/youtube", priority: 1, fontsize: 16, function: "link" },
     { content: "./X", url: "https://example.com/x", priority: 2, fontsize: 16, function: "link" },
@@ -87,6 +91,12 @@ export default function ThreeDNodeSystem() {
     { content: "./about us", priority: 5, fontsize: 16, function: "interface", interfaceContent: "./about us () VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. " },
     { content: "./contact", priority: 6, fontsize: 16, function: "interface", interfaceContent: "./contact () dev team @exampleexampleexample Dm" },
   ];
+
+  //fps counter
+
+  const [fps, setFps] = useState(0);
+  const lastFrameTime = useRef(performance.now());
+  const frameCount = useRef(0);
 
   //major variable adjusts (make dynamic based on screensize)
 
@@ -106,6 +116,84 @@ export default function ThreeDNodeSystem() {
     context.font = `${fontSize}px dico-code-two`;
     return context.measureText(text).width;
   };
+
+  function getDeformedGeometry(mesh: THREE.Mesh): THREE.BufferGeometry {
+    // Ensure the mesh’s world matrix is updated.
+    mesh.updateMatrixWorld(true);
+  
+    // If the mesh is a skinned mesh, compute deformed positions manually.
+    if (mesh instanceof THREE.SkinnedMesh) {
+      const skinnedMesh = mesh;
+      const sourceGeom = skinnedMesh.geometry as THREE.BufferGeometry;
+      const posAttr = sourceGeom.attributes.position;
+      const skinIndexAttr = sourceGeom.attributes.skinIndex as THREE.BufferAttribute;
+      const skinWeightAttr = sourceGeom.attributes.skinWeight as THREE.BufferAttribute;
+      const vertexCount = posAttr.count;
+      
+      // Create a new array to store deformed positions.
+      const deformedPositions = new Float32Array(vertexCount * 3);
+      
+      // Temporary variables for computation.
+      const tempPos = new THREE.Vector3();
+      const skinnedPos = new THREE.Vector3();
+      const tempVec = new THREE.Vector3();
+      const boneMatrix = new THREE.Matrix4();
+      const skinIndices = new THREE.Vector4();
+      const skinWeights = new THREE.Vector4();
+  
+      // For each vertex...
+      for (let i = 0; i < vertexCount; i++) {
+        // Get the original vertex position.
+        tempPos.fromBufferAttribute(posAttr, i);
+        
+        // Transform into bind space.
+        tempPos.applyMatrix4(skinnedMesh.bindMatrix);
+        
+        // Reset the accumulator.
+        skinnedPos.set(0, 0, 0);
+        
+        // Get the skin indices and weights.
+        skinIndices.fromBufferAttribute(skinIndexAttr, i);
+        skinWeights.fromBufferAttribute(skinWeightAttr, i);
+        
+        // For each of the 4 influences.
+        for (let j = 0; j < 4; j++) {
+          const boneIndex = skinIndices.getComponent(j);
+          const weight = skinWeights.getComponent(j);
+          if (weight === 0) continue;
+          
+          // Compute the bone matrix transform: bone.matrixWorld * boneInverse.
+          boneMatrix.copy(skinnedMesh.skeleton.bones[boneIndex].matrixWorld);
+          boneMatrix.multiply(skinnedMesh.skeleton.boneInverses[boneIndex]);
+          
+          // Transform the vertex position by the boneMatrix and weight it.
+          tempVec.copy(tempPos).applyMatrix4(boneMatrix).multiplyScalar(weight);
+          skinnedPos.add(tempVec);
+        }
+        
+        deformedPositions[i * 3]     = skinnedPos.x;
+        deformedPositions[i * 3 + 1] = skinnedPos.y;
+        deformedPositions[i * 3 + 2] = skinnedPos.z;
+      }
+      
+      // Create a new BufferGeometry to hold the deformed vertex positions.
+      const deformedGeometry = new THREE.BufferGeometry();
+      deformedGeometry.setAttribute(
+        'position',
+        new THREE.BufferAttribute(deformedPositions, 3)
+      );
+      
+      // Copy over the index if one exists.
+      if (sourceGeom.index) {
+        deformedGeometry.setIndex(sourceGeom.index.clone());
+      }
+      
+      return deformedGeometry;
+    } else {
+      // For non-skinned meshes, return a clone of the original geometry.
+      return mesh.geometry.clone();
+    }
+  }
 
   //####createn odes
 
@@ -188,9 +276,9 @@ export default function ThreeDNodeSystem() {
     return new Promise((resolve, reject) => {
       const loader = new GLTFLoader();
   
-      // Set up DRACOLoader so that Draco-compressed models can be decoded.
+      // DRACOLoader alloows draco-compressed models 2be decoded
       const dracoLoader = new DRACOLoader();
-      dracoLoader.setDecoderPath('/draco/'); // Ensure that '/draco/' exists in your public folder.
+      dracoLoader.setDecoderPath('/draco/'); // '/draco/' exists in the  public folder
       loader.setDRACOLoader(dracoLoader);
   
       loader.load(
@@ -198,49 +286,45 @@ export default function ThreeDNodeSystem() {
         (gltf) => {
           const model = gltf.scene;
   
-          // Scale the model (adjust the scale factor as needed)
-          const scaleFactor = 15;
+          const scaleFactor = 3.6;
           model.scale.set(scaleFactor, scaleFactor, scaleFactor);
   
-          // Position the model (using fixed values for testing)
           const randomX = 0; // or randomInRange(boundingBox.minX, boundingBox.maxX)
-          const randomY = 10; // or randomInRange(boundingBox.minY, boundingBox.maxY)
-          const randomZ = 0;  // adjust as needed
+          const randomY = 2; // or randomInRange(boundingBox.minY, boundingBox.maxY)
+          const randomZ = 1; // adjust 
           const position = new THREE.Vector3(randomX, randomY, randomZ);
           model.position.copy(position);
   
-          // Set a default rotation (adjust if needed so the model faces the camera)
           model.rotation.set(0, 0, 0);
   
-          // Instead of computing dynamic edge wireframes,
-          // simply traverse the model and replace each mesh's material
-          // with a MeshBasicMaterial in wireframe mode.
+          const dynamicEdges: { mesh: THREE.Mesh; line: THREE.LineSegments; thresholdAngle: number }[] = [];
+          // edge filtering 
+          const thresholdAngle = Math.PI / 4;
+  
+          // traverse model
           model.traverse((child) => {
             if (child instanceof THREE.Mesh) {
-              child.material = new THREE.MeshBasicMaterial({
-                color: 0x000000,
-                wireframe: true,
-                // Note: linewidth is largely ignored on most platforms.
-              });
-              // Ensure the mesh remains visible.
-              child.visible = true;
+              // compute initial edges geom
+              const edgesGeometry = new THREE.EdgesGeometry(child.geometry, thresholdAngle);
+              const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+              const edgeWireframe = new THREE.LineSegments(edgesGeometry, lineMaterial);
+              // store pair in dynamic edges array
+              dynamicEdges.push({ mesh: child, line: edgeWireframe, thresholdAngle });
+              //enable for debug
+              child.visible = false;
+              model.add(edgeWireframe);
             }
           });
   
-          // Create an AnimationMixer for the model.
           const mixer = new THREE.AnimationMixer(model);
-          // If the GLTF contains animations, play one (ensure the index exists)
+          let currentAction: THREE.AnimationAction | undefined = undefined;
           if (gltf.animations && gltf.animations.length > 0) {
-            // For example, use animation index 0 (or change if needed)
             const action = mixer.clipAction(gltf.animations[16]);
             action.play();
+            currentAction = action;
           }
-          // We'll store the current animation index as 0.
           const currentAnimation = 16;
-  
-          // Create the BoxyObject to store our data.
-          // Since we're not using dynamic edge updating in this temporary solution,
-          // we store an empty array for dynamicEdges.
+
           const boxyObj: BoxyObject = {
             model,
             position,
@@ -248,7 +332,9 @@ export default function ThreeDNodeSystem() {
             scale: new THREE.Vector3(scaleFactor, scaleFactor, scaleFactor),
             mixer,
             currentAnimation,
-            dynamicEdges: [] // Not used in this default wireframe mode.
+            animations: gltf.animations || [],
+            currentAction,
+            dynamicEdges,
           };
   
           resolve(boxyObj);
@@ -708,6 +794,22 @@ export default function ThreeDNodeSystem() {
       }
     }
 
+    function updateAnimation(boxy: BoxyObject, desiredAnimationIndex: number) {
+      if (boxy.currentAnimation !== desiredAnimationIndex) {
+        const newClip = boxy.animations[desiredAnimationIndex];
+        const newAction = boxy.mixer.clipAction(newClip);
+        newAction.reset();
+        newAction.play();
+        
+        if (boxy.currentAction) {
+          boxy.currentAction.crossFadeTo(newAction, 0.5, false);
+        }
+        
+        boxy.currentAction = newAction;
+        boxy.currentAnimation = desiredAnimationIndex;
+      }
+    }
+
     function animate() {
       requestAnimationFrame(animate);
 
@@ -715,11 +817,14 @@ export default function ThreeDNodeSystem() {
 
       if (boxyRef.current) {
         boxyRef.current.mixer.update(delta);
-    
-        // Recompute dynamic edges for the animated model.
+
+        const desiredAnimation = boxyRef.current.currentAnimation; // DEBUG VALUES
+        updateAnimation(boxyRef.current, desiredAnimation);
+      
         boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
+          const deformedGeom = getDeformedGeometry(mesh);
           line.geometry.dispose();
-          line.geometry = new THREE.EdgesGeometry(mesh.geometry, thresholdAngle);
+          line.geometry = new THREE.EdgesGeometry(deformedGeom, thresholdAngle);
         });
       }
 
@@ -927,6 +1032,30 @@ export default function ThreeDNodeSystem() {
     }
   }, [selectedInterfaceContent]);
 
+  //###fps counter
+  useEffect(() => {
+    let animationFrameId: number;
+  
+    const updateFps = () => {
+      frameCount.current++;
+      const now = performance.now();
+      const delta = now - lastFrameTime.current;
+      if (delta >= 500) {
+        const currentFps = (frameCount.current * 1000) / delta;
+        setFps(Math.round(currentFps));
+        lastFrameTime.current = now;
+        frameCount.current = 0;
+      }
+      animationFrameId = requestAnimationFrame(updateFps);
+    };
+  
+    animationFrameId = requestAnimationFrame(updateFps);
+  
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
   return (
     <div
       style={{
@@ -939,6 +1068,23 @@ export default function ThreeDNodeSystem() {
         overflow: "hidden",
       }}
     >
+
+      {/* debug fps counter */}
+      <div
+        style={{
+          position: "absolute",
+          right: "5px",
+          top: "20px",
+          zIndex: 20,
+          fontFamily: "monospace",
+          fontSize: "8px",
+          color: "#000000",
+          pointerEvents: "none",
+          textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+        }}
+      >
+        current_frame_rate = {fps}
+      </div>
 
      {/* corner lines */}
       <div
