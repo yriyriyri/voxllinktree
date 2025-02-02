@@ -4,6 +4,8 @@ import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 
 interface NodeObject {
@@ -27,6 +29,16 @@ interface AxesNodeObject {
   opacity: number;    
   frequency: number; 
   offset: number;     //sine wave functions
+}
+
+interface BoxyObject {
+  model: THREE.Group;
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  scale: THREE.Vector3;
+  mixer: THREE.AnimationMixer;
+  currentAnimation: number;
+  dynamicEdges: { mesh: THREE.Mesh; line: THREE.LineSegments; thresholdAngle: number }[];
 }
 
 interface BoundingBox {
@@ -57,8 +69,6 @@ export default function ThreeDNodeSystem() {
   const [typedContent, setTypedContent] = useState<string>("");
 
 
-
-
   // bounding box for spawn/containment of nodes
   const boundingBox: BoundingBox = {
     minX: -35,
@@ -80,7 +90,7 @@ export default function ThreeDNodeSystem() {
 
   //major variable adjusts (make dynamic based on screensize)
 
-  const lineDistanceFactor = 30;
+  const lineDistanceFactor = 0; //CHANGED 30
   const nodeCount = 25;
   const axesNodeCount = 5;
 
@@ -123,7 +133,7 @@ export default function ThreeDNodeSystem() {
       const blackMat = new THREE.LineBasicMaterial({
         color: 0x000000,
         transparent: true,
-        opacity: 1,
+        opacity: 0, //CHANGED 1
       });
 
       // x axis
@@ -170,6 +180,86 @@ export default function ThreeDNodeSystem() {
       });
     }
     return spawned;
+  };
+
+  //####load boxy
+
+  const loadBoxyModel = (url: string, boundingBox: BoundingBox): Promise<BoxyObject> => {
+    return new Promise((resolve, reject) => {
+      const loader = new GLTFLoader();
+  
+      // Set up DRACOLoader so that Draco-compressed models can be decoded.
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('/draco/'); // Ensure that '/draco/' exists in your public folder.
+      loader.setDRACOLoader(dracoLoader);
+  
+      loader.load(
+        url, // e.g., "/Boxy.glb"
+        (gltf) => {
+          const model = gltf.scene;
+  
+          // Scale the model (adjust the scale factor as needed)
+          const scaleFactor = 15;
+          model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+  
+          // Position the model (using fixed values for testing)
+          const randomX = 0; // or randomInRange(boundingBox.minX, boundingBox.maxX)
+          const randomY = 10; // or randomInRange(boundingBox.minY, boundingBox.maxY)
+          const randomZ = 0;  // adjust as needed
+          const position = new THREE.Vector3(randomX, randomY, randomZ);
+          model.position.copy(position);
+  
+          // Set a default rotation (adjust if needed so the model faces the camera)
+          model.rotation.set(0, 0, 0);
+  
+          // Instead of computing dynamic edge wireframes,
+          // simply traverse the model and replace each mesh's material
+          // with a MeshBasicMaterial in wireframe mode.
+          model.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              child.material = new THREE.MeshBasicMaterial({
+                color: 0x000000,
+                wireframe: true,
+                // Note: linewidth is largely ignored on most platforms.
+              });
+              // Ensure the mesh remains visible.
+              child.visible = true;
+            }
+          });
+  
+          // Create an AnimationMixer for the model.
+          const mixer = new THREE.AnimationMixer(model);
+          // If the GLTF contains animations, play one (ensure the index exists)
+          if (gltf.animations && gltf.animations.length > 0) {
+            // For example, use animation index 0 (or change if needed)
+            const action = mixer.clipAction(gltf.animations[16]);
+            action.play();
+          }
+          // We'll store the current animation index as 0.
+          const currentAnimation = 16;
+  
+          // Create the BoxyObject to store our data.
+          // Since we're not using dynamic edge updating in this temporary solution,
+          // we store an empty array for dynamicEdges.
+          const boxyObj: BoxyObject = {
+            model,
+            position,
+            rotation: new THREE.Euler(0, 0, 0),
+            scale: new THREE.Vector3(scaleFactor, scaleFactor, scaleFactor),
+            mixer,
+            currentAnimation,
+            dynamicEdges: [] // Not used in this default wireframe mode.
+          };
+  
+          resolve(boxyObj);
+        },
+        undefined,
+        (error) => {
+          console.error("Error loading Boxy.glb:", error);
+          reject(error);
+        }
+      );
+    });
   };
 
   //####containment logic
@@ -320,7 +410,7 @@ export default function ThreeDNodeSystem() {
       const edgeMaterial = new THREE.LineBasicMaterial({
         color: 0x323232,
         transparent: true,
-        opacity: 1,
+        opacity: 0, //CHANGED 1
       });
 
       const edgeLines = new THREE.LineSegments(edgesGeometry, edgeMaterial);
@@ -557,7 +647,8 @@ export default function ThreeDNodeSystem() {
     nodes: NodeObject[],
     axesNodes: AxesNodeObject[],
     labels: Label[],
-    composer: EffectComposer
+    composer: EffectComposer,
+    boxyRef: { current: BoxyObject | null } 
   ) => {
     const angles = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
     let sideIndex = 0;
@@ -572,6 +663,8 @@ export default function ThreeDNodeSystem() {
     const angleEpsilon = 0.001;
 
     const startTime = performance.now();
+
+    const clock = new THREE.Clock();
 
     const handleScroll = (e: WheelEvent) => {
       e.preventDefault();
@@ -617,6 +710,18 @@ export default function ThreeDNodeSystem() {
 
     function animate() {
       requestAnimationFrame(animate);
+
+      const delta = clock.getDelta();
+
+      if (boxyRef.current) {
+        boxyRef.current.mixer.update(delta);
+    
+        // Recompute dynamic edges for the animated model.
+        boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
+          line.geometry.dispose();
+          line.geometry = new THREE.EdgesGeometry(mesh.geometry, thresholdAngle);
+        });
+      }
 
       const elapsed = (performance.now() - startTime) * 0.001; 
 
@@ -740,6 +845,7 @@ export default function ThreeDNodeSystem() {
     setAxesNodes(newAxesNodes);
 
     // 3 set up scene
+    const boxyRef = { current: null as BoxyObject | null };
     const currentMount = mountRef.current;
     if (!currentMount) return;
     const { scene, camera, renderer, composer } = initializeScene(currentMount);
@@ -761,7 +867,17 @@ export default function ThreeDNodeSystem() {
     // 8 lines between each normal node and each axes node
     const nodeAxesLines = createNodeAxesLines(scene, newNodes, newAxesNodes);
 
-    // 9 animate
+    // 9 load Boxy.glb 
+    loadBoxyModel("/Boxy.glb", boundingBox)
+    .then((loadedBoxy) => {
+      boxyRef.current = loadedBoxy;
+      scene.add(loadedBoxy.model);
+    })
+    .catch((error) => {
+      console.error("Failed to load Boxy model:", error);
+    });
+
+    // 10 animate
     animateScene(
       scene,
       camera,
@@ -772,7 +888,8 @@ export default function ThreeDNodeSystem() {
       newNodes,
       newAxesNodes,
       labels,
-      composer
+      composer,
+      boxyRef
     );
 
     // handle window resize
@@ -1057,7 +1174,7 @@ export default function ThreeDNodeSystem() {
         const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
 
         if (x < 0 || x > window.innerWidth - 200 || y < 0 || y > window.innerHeight) {
-          console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
+          // console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
           return null;
         }
 
@@ -1089,7 +1206,7 @@ export default function ThreeDNodeSystem() {
               fontStyle: "normal",
               textDecoration: "none", 
               textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-              // display: "none"
+              display: "none" //CHANGED //
             }}
             onClick={handleClick}
             onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")} 

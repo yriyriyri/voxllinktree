@@ -1,0 +1,81 @@
+const loadBoxyModel = (url: string, boundingBox: BoundingBox): Promise<BoxyObject> => {
+    return new Promise((resolve, reject) => {
+      const loader = new GLTFLoader();
+  
+      // Set up DRACOLoader so that Draco-compressed models can be decoded.
+      const dracoLoader = new DRACOLoader();
+      dracoLoader.setDecoderPath('/draco/'); // Ensure that '/draco/' exists in your public folder.
+      loader.setDRACOLoader(dracoLoader);
+  
+      loader.load(
+        url, // e.g., "/Boxy.glb"
+        (gltf) => {
+          const model = gltf.scene;
+  
+          // Scale the model (adjust the scale factor as needed)
+          const scaleFactor = 15;
+          model.scale.set(scaleFactor, scaleFactor, scaleFactor);
+  
+          // Position the model (using fixed values for testing)
+          const randomX = 0; // or randomInRange(boundingBox.minX, boundingBox.maxX)
+          const randomY = 10; // or randomInRange(boundingBox.minY, boundingBox.maxY)
+          const randomZ = 0; // adjust as needed
+          const position = new THREE.Vector3(randomX, randomY, randomZ);
+          model.position.copy(position);
+  
+          // Set a default rotation (adjust if needed so the model faces the camera)
+          model.rotation.set(0, 0, 0);
+  
+          // Prepare an array to hold dynamic edge pairs.
+          const dynamicEdges: { mesh: THREE.Mesh; line: THREE.LineSegments; thresholdAngle: number }[] = [];
+          // Use a threshold angle to filter minor edges.
+          const thresholdAngle = Math.PI / 4;
+  
+          // Traverse the model and, for every mesh, prepare a dynamic edge wireframe.
+          model.traverse((child) => {
+            if (child instanceof THREE.Mesh) {
+              // Compute initial edges geometry.
+              const edgesGeometry = new THREE.EdgesGeometry(child.geometry, thresholdAngle);
+              const lineMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+              const edgeWireframe = new THREE.LineSegments(edgesGeometry, lineMaterial);
+              // Store the pair in the dynamicEdges array.
+              dynamicEdges.push({ mesh: child, line: edgeWireframe, thresholdAngle });
+              // Hide the original mesh so that only the wireframe is visible.
+              child.visible = false;
+              // Add the dynamic edge object to the model.
+              model.add(edgeWireframe);
+            }
+          });
+  
+          // Create an AnimationMixer for the model.
+          const mixer = new THREE.AnimationMixer(model);
+          // If the GLTF contains animations, play one (ensure the index exists)
+          if (gltf.animations && gltf.animations.length > 0) {
+            // For example, use animation index 0 (or any valid index)
+            const action = mixer.clipAction(gltf.animations[0]);
+            action.play();
+          }
+          // We'll store the current animation index as 0 (or change it if needed).
+          const currentAnimation = 0;
+  
+          // Create the BoxyObject to store our data.
+          const boxyObj: BoxyObject = {
+            model,
+            position,
+            rotation: new THREE.Euler(0, 0, 0),
+            scale: new THREE.Vector3(scaleFactor, scaleFactor, scaleFactor),
+            mixer,
+            currentAnimation,
+            dynamicEdges,
+          };
+  
+          resolve(boxyObj);
+        },
+        undefined,
+        (error) => {
+          console.error("Error loading Boxy.glb:", error);
+          reject(error);
+        }
+      );
+    });
+  };

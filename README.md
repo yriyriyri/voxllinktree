@@ -6,32 +6,34 @@
 
 This project is a visually immersive, 3d link-tree website designed to represent the aesthetic foundation of voxl os, a future virtual reality operating system. While it does not function as an os shell, the design aims to embody a conceptual "shell" with interactive, node-based structures in 3d space.
 
-The website's purpose is to create intrigue and reflect the futuristic branding of voxl os. It also acts as a hub for links and key information while being lightweight and performant.
+The website's purpose is to create intrigue and reflect the branding of voxl. It acts as a hub for links and key information while being lightweight and performant, with a secondary goal of impressing the user, while being functional.
 
 == requirements
 
-The requirements are prioritized using the moscow method:
+The requirements are prioritized using the moscow:
 
 === must-have
-- interactive 3d interface with wireframe nodes representing clickable links in vr-style space.
-- dynamic animation of nodes and lines reacting to user interaction.
-- accessible representation of links (e.g., hover effects, labels, or tooltips).
-- performance across modern browsers, with mobile responsiveness.
-- aesthetic consistency with the voxl os branding (wireframe, minimalism).
+- interactive 3d interface with wireframe nodes representing clickable links in vr-style space
+- dynamic animation of nodes and lines reacting to user interaction
+- accessible representation of links (e.g., hover effects, labels, or tooltips)
+- performance across modern browsers, with mobile responsiveness
+- aesthetic consistency with the voxl os branding (wireframe, minimalism)
+- 2d terminal ui elements as a visual callback to os design, grounding the design in "function"
+- modular expandable codebase, less hadrcoding
 
 === should-have
-- smooth animations (e.g., node hover effects, structure rotation, dynamic lighting).
-- basic accessibility features (keyboard navigation, readable visuals).
-- lightweight backend or json configuration for managing link data.
+- smooth animations (e.g., node hover effects, structure rotation, dynamic lighting)
+- basic accessibility features (keyboard navigation, readable visuals)
+- lightweight backend or json configuration for managing link data
 
 === could-have
-- vr compatibility via webxr for an immersive experience.
-- parallax or audio effects to enhance the aesthetic.
-- hidden easter eggs or interactive elements.
+- parallax or audio effects to enhance the aesthetic
+- hidden easter eggs or interactive elements
+- direct feedback feature w/ supportinf backend 
 
 === won't-have
-- functional os-level features.
-- unnecessary complexity in user interactions.
+- functional os-level features
+- unnecessary complexity in user interactions
 
 == method
 
@@ -108,16 +110,6 @@ nodes -> camera : handle view transitions
 - **clickable nodes**: trigger events or navigate to links on click.
 - **responsive design**: ensure optimal performance and usability on mobile and tablet.
 - **webxr support**: add basic vr compatibility for immersive navigation.
-
-== implementation
-
-1. set up next.js with a `ThreeDNodeSystem` component for rendering.
-2. initialize three.js to handle the 3d scene and objects.
-3. implement core methods:
-   - `createRandomNodes`, `clampAndBounce`, and `animateScene` for dynamic node behavior.
-   - `createEdgeWireframes` and `createConnectingLines` for rendering wireframes and links.
-4. integrate grid overlays and implement smooth camera rotation with scroll events.
-5. continuously test for performance and responsiveness.
 
 == milestones
 
