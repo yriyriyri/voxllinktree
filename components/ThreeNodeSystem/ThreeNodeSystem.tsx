@@ -112,8 +112,8 @@ export default function ThreeDNodeSystem() {
   //major variable adjusts (make dynamic based on screensize)
 
   const lineDistanceFactor = 0; //CHANGED 30
-  const nodeCount = 25;
-  const axesNodeCount = 5;
+  const nodeCount = 25; //changed 25
+  const axesNodeCount = 5; //changed 5
 
   //####helper functions
 
@@ -300,6 +300,7 @@ export default function ThreeDNodeSystem() {
           const model = gltf.scene;
   
           const scaleFactor = 15;
+          const selfOcclude = false;
           model.scale.set(scaleFactor, scaleFactor, scaleFactor);
   
           const randomX = 0; // or randomInRange(boundingBox.minX, boundingBox.maxX)
@@ -331,14 +332,14 @@ export default function ThreeDNodeSystem() {
               if (Array.isArray(child.material)) {
                 child.material.forEach((mat) => {
                   mat.colorWrite = false;
-                  mat.depthWrite = false;
+                  mat.depthWrite = selfOcclude; //
                   mat.polygonOffset = true;
                   mat.polygonOffsetFactor = 4;  
                   mat.polygonOffsetUnits = 10;
                 });
               } else {
                 child.material.colorWrite = false;
-                child.material.depthWrite = false;
+                child.material.depthWrite = selfOcclude; //
                 child.material.polygonOffset = true;
                 child.material.polygonOffsetFactor = 4;
                 child.material.polygonOffsetUnits = 10;
@@ -350,11 +351,11 @@ export default function ThreeDNodeSystem() {
   
           const mixer = new THREE.AnimationMixer(model);
           let currentAction: THREE.AnimationAction | undefined = undefined;
-          // if (gltf.animations && gltf.animations.length > 0) {
-          //   const action = mixer.clipAction(gltf.animations[16]);
-          //   action.play();
-          //   currentAction = action;
-          // }
+          if (gltf.animations && gltf.animations.length > 0) {
+            const action = mixer.clipAction(gltf.animations[16]);
+            action.play();
+            currentAction = action;
+          }
           const currentAnimation = 16;
           const desiredAnimation = 16;
 
