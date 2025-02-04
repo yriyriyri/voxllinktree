@@ -1,45 +1,32 @@
 // pages/_app.tsx
-import "../components/LoginPopup/LoginPopup.css"; 
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import React, { useState, useRef, useCallback } from "react";
-import LoginPopup from "../components/LoginPopup/LoginPopup";
-// import MainSite from "../components/MainSite/MainSite";
-// import Clock from "../components/Clock/Clock";
-// import TerminalBar from "@/components/TerminalBar/TerminalBar";
+import React, { useEffect, useState } from "react";
 import ThreeNodeSystem from "../components/ThreeNodeSystem/ThreeNodeSystem";
-
-// let hasRunLoginPopup = false; // Commented out to disable login tracking
+import ThreeNodeSystemMobile from "../components/ThreeNodeSystemMobile/ThreeNodeSystemMobile";
 
 export default function App({ Component, pageProps }: AppProps) {
-  // const [loading, setLoading] = useState(!hasRunLoginPopup); // Disabled
-  // const completedRef = useRef(false); // Disabled
-  // const [terminalMessages, setTerminalMessages] = useState<string[]>([]);
+  // `null` means we haven't decided if it's mobile or desktop yet
+  const [isMobile, setIsMobile] = useState<boolean | null>(null);
 
-  // const handleComplete = useCallback(() => {
-  //   if (!completedRef.current) {
-  //     completedRef.current = true;
-  //     hasRunLoginPopup = true; 
-  //     setLoading(false);
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      // Do your width check here
+      const mobileCheck = window.innerWidth < 768;
+      setIsMobile(mobileCheck);
+    }
+  }, []);
 
+  // If we still don't know if it's mobile or not, render nothing or a tiny loader
+  if (isMobile === null) {
+    return null;
+  }
+
+  // Once isMobile is set, render the correct component
   return (
     <>
-      {/* {loading ? (
-        <LoginPopup onComplete={handleComplete} />
-      ) : ( */}
-      {/* <TerminalBar messages={terminalMessages}> */}
-        {/* {(addLine) => ( */}
-          <>
-            {/* <MainSite addLine={addLine} /> */}
-            <ThreeNodeSystem />
-            {/* <Component {...pageProps} /> */}
-            {/* <Clock /> */}
-          </>
-        {/* )} */}
-      {/* </TerminalBar> */}
-      {/* )} */}
+      {isMobile ? <ThreeNodeSystemMobile /> : <ThreeNodeSystem />}
+      {/* If you need <Component {...pageProps} />, place it here as well */}
     </>
   );
 }

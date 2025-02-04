@@ -109,9 +109,16 @@ export default function ThreeDNodeSystem() {
     keyToAnimationIndex[animationKeys[i]] = i;
   }
 
+  //debug vers boxy/notboxy
+
+  const boxyVers = false;
+
   //major variable adjusts (make dynamic based on screensize)
 
-  const lineDistanceFactor = 0; //CHANGED 30
+  let lineDistanceFactor = 30;
+  if (boxyVers){
+    lineDistanceFactor = 0;
+  }
   const nodeCount = 25; //changed 25
   const axesNodeCount = 5; //changed 5
 
@@ -231,10 +238,14 @@ export default function ThreeDNodeSystem() {
     const buildCrossGroup = (size: number = 1) => {
       const group = new THREE.Group();
       const half = size / 2;
+      let opacity = 1
+      if (boxyVers){
+        opacity = 0
+      }
       const blackMat = new THREE.LineBasicMaterial({
         color: 0x000000,
         transparent: true,
-        opacity: 0, //CHANGED 1
+        opacity: opacity, 
       });
 
       // x axis
@@ -300,7 +311,7 @@ export default function ThreeDNodeSystem() {
           const model = gltf.scene;
   
           const scaleFactor = 15;
-          const selfOcclude = false;
+          const selfOcclude = true;
           model.scale.set(scaleFactor, scaleFactor, scaleFactor);
   
           const randomX = 0; // or randomInRange(boundingBox.minX, boundingBox.maxX)
@@ -530,10 +541,14 @@ export default function ThreeDNodeSystem() {
     nodes.forEach((node) => {
       const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
       const edgesGeometry = new THREE.EdgesGeometry(boxGeometry);
+      let opacity = 1;
+      if (boxyVers){
+        opacity = 0;
+      }
       const edgeMaterial = new THREE.LineBasicMaterial({
         color: 0x323232,
         transparent: true,
-        opacity: 0, //CHANGED 1
+        opacity: opacity, //CHANGED 1
       });
 
       const edgeLines = new THREE.LineSegments(edgesGeometry, edgeMaterial);
@@ -863,7 +878,6 @@ export default function ThreeDNodeSystem() {
           const deformedGeom = getDeformedGeometry(mesh);
           line.geometry.dispose();
           line.geometry = new THREE.EdgesGeometry(deformedGeom, thresholdAngle);
-          console.log(line.material)
         });
       }
 
@@ -1012,15 +1026,16 @@ export default function ThreeDNodeSystem() {
     const nodeAxesLines = createNodeAxesLines(scene, newNodes, newAxesNodes);
 
     // 9 load Boxy.glb 
-    loadBoxyModel("/Boxy.glb", boundingBox)
-    .then((loadedBoxy) => {
-      boxyRef.current = loadedBoxy;
-      scene.add(loadedBoxy.model);
-    })
-    .catch((error) => {
-      console.error("Failed to load Boxy model:", error);
-    });
-
+    if (boxyVers){
+      loadBoxyModel("/Boxy.glb", boundingBox)
+      .then((loadedBoxy) => {
+        boxyRef.current = loadedBoxy;
+        scene.add(loadedBoxy.model);
+      })
+      .catch((error) => {
+        console.error("Failed to load Boxy model:", error);
+      });
+    }
     // 10 animate
     animateScene(
       scene,
@@ -1379,6 +1394,10 @@ export default function ThreeDNodeSystem() {
         const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
         const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
         const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+        let displayType = "block"
+        if (boxyVers){
+          displayType = "none"
+        }
 
         if (x < 0 || x > window.innerWidth - 200 || y < 0 || y > window.innerHeight) {
           // console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
@@ -1413,7 +1432,7 @@ export default function ThreeDNodeSystem() {
               fontStyle: "normal",
               textDecoration: "none", 
               textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-              display: "none" //CHANGED //
+              display:  displayType,
             }}
             onClick={handleClick}
             onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")} 

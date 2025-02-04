@@ -4,13 +4,13 @@
 
 == background
 
-This project is a visually immersive, 3d link-tree website designed to represent the aesthetic foundation of voxl os, a future virtual reality operating system. While it does not function as an os shell, the design aims to embody a conceptual "shell" with interactive, node-based structures in 3d space.
+this project is a visually immersive, 3d link-tree website designed to represent the aesthetic foundation of voxl os, a future virtual reality operating system. while it does not function as an os shell, the design aims to embody a conceptual "shell" with interactive, node-based structures in 3d space.
 
-The website's purpose is to create intrigue and reflect the branding of voxl. It acts as a hub for links and key information while being lightweight and performant, with a secondary goal of impressing the user, while being functional.
+the website's purpose is to create intrigue and reflect the branding of voxl os. it acts as a hub for links and key information while being lightweight and performant, with a secondary goal of impressing the user, while remaining functional.
 
 == requirements
 
-The requirements are prioritized using the moscow:
+the requirements are prioritized using the MoSCoW method:
 
 === must-have
 - interactive 3d interface with wireframe nodes representing clickable links in vr-style space
@@ -19,7 +19,7 @@ The requirements are prioritized using the moscow:
 - performance across modern browsers, with mobile responsiveness
 - aesthetic consistency with the voxl os branding (wireframe, minimalism)
 - 2d terminal ui elements as a visual callback to os design, grounding the design in "function"
-- modular expandable codebase, less hadrcoding
+- modular, expandable codebase with minimal hardcoding
 
 === should-have
 - smooth animations (e.g., node hover effects, structure rotation, dynamic lighting)
@@ -29,7 +29,7 @@ The requirements are prioritized using the moscow:
 === could-have
 - parallax or audio effects to enhance the aesthetic
 - hidden easter eggs or interactive elements
-- direct feedback feature w/ supportinf backend 
+- direct feedback feature with supporting backend
 
 === won't-have
 - functional os-level features
@@ -37,53 +37,122 @@ The requirements are prioritized using the moscow:
 
 == method
 
-The site is implemented with next.js for the web application framework and three.js for 3d rendering. The following describes the core functionality:
+the site is implemented with Next.js for the web application framework and Three.js for 3d rendering. the following describes the core functionality, including features like axes nodes, boxy model loading, fps counter, and more.
 
 === core features
 
-**node system**
-- dynamically generates 3d nodes with random initial positions and velocities.
-- nodes are bounded by a defined area and reverse direction upon collision with boundaries.
-- methods:
-  - `createRandomNodes`: generates random node positions and velocities.
-  - `clampAndBounce`: constrains nodes within boundaries and reverses velocity when needed.
+**node system**  
+- dynamically generates 3d nodes with random initial positions and velocities  
+- nodes are bounded by a defined area and reverse direction upon collision with boundaries  
+- _methods_:
+  - `createRandomNodes(count)`: generates random node positions and velocities
+  - `clampAndBounce(node, boundingBox)`: constrains node movement within boundaries, reversing velocity as needed
 
-**wireframe visualization**
-- each node is rendered as a wireframe cube, aligned with the futuristic design.
-- methods:
-  - `createEdgeWireframes`: creates edges for cube wireframes using three.js's `edgesgeometry` and `linesegments`.
+**axes node system**  
+- a secondary system of “axes nodes,” each visually represented by a small 3d cross  
+- they bounce within the same bounding box but also use a sine-wave function to modulate their opacity over time  
+- _methods_:
+  - `createAxesNodes(count)`: spawns a specified number of axes nodes at random positions with random velocities
 
-**connecting lines**
-- dynamic connections between nodes are drawn, with opacity based on the distance between nodes. lines disappear when the distance exceeds a threshold.
-- methods:
-  - `createConnectingLines`: handles line creation and adjusts their visibility/opacity in real time.
+**wireframe visualization**  
+- each regular node is rendered as a wireframe cube  
+- _methods_:
+  - `createEdgeWireframes(scene, nodes)`: creates edges for cube wireframes using Three.js's EdgesGeometry and LineSegments
 
-**grid overlay**
-- a structured 3d grid adds context and enhances the visual composition.
-- methods:
-  - `createGrid`: creates grid lines based on the bounding box dimensions.
+**connecting lines**  
+- dynamic connections between nodes are drawn, with opacity based on the distance between nodes. lines disappear when the distance exceeds a threshold  
+- additional lines connect regular nodes to axes nodes, factoring in both node distance and the axes node's sine-wave fade  
+- _methods_:
+  - `createConnectingLines(scene, nodes)`: handles line creation and adjusts visibility/opacity for node-to-node connections
+  - `createNodeAxesLines(scene, nodes, axes)`: creates lines between each regular node and each axes node
 
-**camera rotation**
-- implements smooth camera rotation triggered by scroll events, providing an interactive view.
-- methods:
-  - `animateScene`: animates camera transitions between angles while maintaining focus on the center of the scene.
+**grid overlay**  
+- a structured 3d grid adds context and enhances the visual composition  
+- _methods_:
+  - `createGrid(scene)`: creates grid lines based on the bounding box dimensions
 
-**real-time animation**
-- continuously updates node positions, wireframes, and connecting lines in an animation loop.
-- methods:
-  - `animateScene`: updates all moving elements and renders the scene frame by frame.
+**camera rotation**  
+- implements smooth camera rotation triggered by scroll events, providing an interactive view from multiple angles  
+- _methods_:
+  - `animateScene(...)`: updates all moving elements and handles camera transitions between angles
+
+**boxy model loading**  
+- conditionally loads a 3d “boxy” model (GLTF/DRACO) into the scene, supporting animation mixing and dynamic wireframe edges  
+- _methods_:
+  - `loadBoxyModel(url, boundingBox)`: loads the GLTF model, sets initial position/scale, sets up edges, and initializes AnimationMixer
+  - `getDeformedGeometry(mesh)`: for SkinnedMesh objects, calculates a deformed geometry in world space so the wireframe edges can dynamically follow skeletal animation
+
+**post-processing**  
+- applies a customizable shader pass to create blur or other visual effects on the final rendered scene  
+- _methods_:
+  - uses an EffectComposer with at least one Pass (ShaderPass, RenderPass, etc.)
+  - `blurOverlayPass` is an example pass for adding a subtle blur overlay
+
+**animation switching**  
+- allows quick switching among multiple animation clips via debug keyboard shortcuts  
+- _methods_:
+  - `updateAnimation(boxyObject)`: cross-fades from the current action to a newly desired animation clip
+
+**real-time animation**  
+- continuously updates node positions, wireframes, axes nodes, connecting lines, boxy model edges, and camera transitions in a loop  
+- _methods_:
+  - `animateScene(...)`: houses the primary render loop, updating movement, fading, connectivity, camera angle, and more on every frame
+
+**label assignment**  
+- dynamically assigns textual labels (which can be links or interface triggers) to nodes based on screen position and priority, ensuring minimal overlap  
+- _methods_:
+  - `assignLabelsToNodes(nodes, labels, camera)`: uses the node’s projected screen space to place or skip labels without collisions
+
+**typewriter effect**  
+- when an interface label is clicked, the corresponding text content is displayed with a “typewriter” animation  
+- _logic_:
+  - a React useEffect manages incremental character rendering for the selected interface content
+
+**fps counter**  
+- basic on-screen display of frames per second (fps) for performance debugging  
+- _logic_:
+  - tracks frame times in a useEffect hook, updating a small text overlay every 0.5s
 
 === technical stack
-- **framework**: next.js for server-side rendering and routing.
-- **3d rendering**: three.js for object creation, animation, and rendering.
-- **state management**: react's `useState` and `useEffect` for node and interaction management.
+
+- **framework**: Next.js for server-side rendering and routing  
+- **3d rendering**: Three.js for object creation, animation, and rendering  
+- **state management**: React useState and useEffect for node, axes, and interaction management  
+- **model loading**: GLTFLoader + DRACOLoader for importing compressed 3d models with animation data  
+- **post-processing**: EffectComposer, RenderPass, and optional ShaderPass pipeline for visual effects
 
 === data structures
-- **nodeObject**:
-  - `x, y, z`: 3d coordinates.
-  - `dx, dy, dz`: velocity in each axis.
-- **boundingBox**:
-  - `minX, maxX, minY, maxY, minZ, maxZ`: defines movement boundaries.
+
+- **NodeObject**  
+  - `x, y, z`: 3d coordinates  
+  - `dx, dy, dz`: velocity in each axis  
+  - `assignedLabel?`: holds a reference to a Label if assigned
+
+- **AxesNodeObject**  
+  - `x, y, z`: 3d coordinates  
+  - `dx, dy, dz`: velocity in each axis  
+  - `axesGroup`: a Three.js Group containing the small cross lines  
+  - `opacity`: current opacity (modulated by a sine wave)  
+  - `frequency, offset`: parameters controlling the sine-wave fade effect
+
+- **BoxyObject**  
+  - `model`: a Three.js Group containing the loaded GLTF scene  
+  - `mixer`: a Three.js AnimationMixer for controlling animated clips  
+  - `animations`: array of THREE.AnimationClip referencing all loaded animations  
+  - `currentAction?`: the currently playing AnimationAction  
+  - `currentAnimation, desiredAnimation`: indices referencing the active or target animation clip  
+  - `dynamicEdges`: array of edge wireframes updated in real time by getDeformedGeometry()
+
+- **BoundingBox**  
+  - `minX, maxX, minY, maxY, minZ, maxZ`: defines movement boundaries for nodes
+
+- **Label**  
+  - `content`: display text  
+  - `url?`: if a link-type label, the url to open  
+  - `priority`: used to sort label importance in assignment  
+  - `fontsize`: dynamically updated in assignLabelsToNodes()  
+  - `function`: "link" | "interface", determines behavior on click  
+  - `interfaceContent?`: if "interface", the typed message to display
 
 ```asciidoc
 [plantuml]
@@ -92,39 +161,21 @@ The site is implemented with next.js for the web application framework and three
 actor user
 node "3d scene" {
   rectangle "node system" as nodes
+  rectangle "axes node system" as axes
   rectangle "wireframe" as wireframe
   rectangle "connecting lines" as lines
   rectangle "grid overlay" as grid
   rectangle "camera controls" as camera
+  rectangle "boxy model" as boxy
+  rectangle "post-processing" as postproc
 }
 user -> nodes : scroll/mouse input
 nodes -> wireframe : generate 3d cubes
 nodes -> lines : draw dynamic lines
 nodes -> grid : render grid
 nodes -> camera : handle view transitions
+nodes -> axes : spawn cross lines
+nodes -> boxy : optional GLTF loading
+nodes -> postproc : optional shader passes
 @enduml
 ....
-
-=== extension opportunities
-- **hover effects**: highlight nodes on hover and display tooltips.
-- **clickable nodes**: trigger events or navigate to links on click.
-- **responsive design**: ensure optimal performance and usability on mobile and tablet.
-- **webxr support**: add basic vr compatibility for immersive navigation.
-
-== milestones
-
-1. **mvp**:
-   - dynamic 3d nodes with animations and connecting lines.
-   - grid overlay and camera controls.
-2. **interactive release**:
-   - hover effects and clickable nodes.
-   - tooltips for links.
-3. **advanced release**:
-   - webxr support and enhanced visuals (e.g., parallax effects, audio).
-
-== success metrics
-
-- **performance**: the website runs smoothly on modern browsers and devices.
-- **usability**: intuitive interactions and clear representation of links.
-- **design fidelity**: aligns with the visual branding of voxl os.
-- **engagement**: positive user feedback on interactivity and aesthetic.
