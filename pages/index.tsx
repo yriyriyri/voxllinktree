@@ -6,7 +6,10 @@ export default function Home() {
     <>
       <Head>
         <title>VOXL.OS</title>
-        <meta name="description" content="Cosmetic Login Popup Demo" />
+        <meta name="description" content="voxl os" />
+        <meta name="theme-color" content="#bfbfbf" />
+        <meta name="apple-mobile-web-app-capable" content="yes"></meta>
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></meta>
       </Head>
     </>
   );

@@ -68,33 +68,26 @@ function getDeformedGeometry(mesh: THREE.Mesh) {
 async function bakeEdges() {
   const loader = new GLTFLoader();
   const dracoLoader = new DRACOLoader();
-  dracoLoader.setDecoderPath("/draco/"); // or wherever your DRACO files reside
+  dracoLoader.setDecoderPath("/draco/"); 
   loader.setDRACOLoader(dracoLoader);
 
-  // 1) load the GLTF
   const gltf = await loader.loadAsync(GLTF_PATH);
   const scene = gltf.scene;
   const animations = gltf.animations;
   if (!animations[ANIMATION_INDEX]) {
     throw new Error(`Animation index ${ANIMATION_INDEX} not found in GLTF!`);
   }
-  // 2) set up the mixer & start the target animation
   const mixer = new THREE.AnimationMixer(scene);
   const clip = animations[ANIMATION_INDEX];
   const action = mixer.clipAction(clip);
   action.play();
 
-  // 3) We will step through FRAME_COUNT frames
-  const duration = clip.duration; // total seconds of the clip
-  const stepTime = duration / FRAME_COUNT; // how many seconds each frame lasts
+  const duration = clip.duration; 
+  const stepTime = duration / FRAME_COUNT; 
 
-  // 4) store baked edges for each frame in an array
-  const bakedData = []; // array of frames
+  const bakedData = [];
 
-  // We only need the SkinnedMesh(es) or Mesh(es) that will be used for edges
-  // If you have multiple, you can store them all
-  // We'll store for each relevant mesh, or combine them if you prefer
-  // We'll assume you just have one main mesh for now, but adapt as needed
+  
   const targetMeshes: THREE.Mesh[] = [];
   scene.traverse((child) => {
     if (child instanceof THREE.Mesh) {
@@ -102,27 +95,20 @@ async function bakeEdges() {
     }
   });
 
-  // Make sure to update the bindMatrix if SkinnedMesh is used
-  // (Usually set in the loader, but you can double-check)
 
-  // 5) step the animation, build edges
-  const dummyDelta = stepTime; // each iteration, we step by stepTime
+
+  const dummyDelta = stepTime; 
   for (let i = 0; i < FRAME_COUNT; i++) {
     mixer.update(dummyDelta);
 
-    // For each relevant mesh, get the deformed geometry, build edges, store result
-    // We'll combine them into one data structure or separate them out
-    const frameEdges: any[] = []; // store edges for each mesh in this frame
+    const frameEdges: any[] = []; 
 
     for (const mesh of targetMeshes) {
       if (mesh instanceof THREE.Mesh) {
-        // Deform geometry
         const deformedGeom = getDeformedGeometry(mesh);
-        // Build edges
         const thresholdAngle = Math.PI; // match your code
         const edgesGeom = new THREE.EdgesGeometry(deformedGeom, thresholdAngle);
 
-        // Convert edgesGeom into a raw arrays for positions & indices
         const posAttr = edgesGeom.attributes.position as THREE.BufferAttribute;
         const positions = Array.from(posAttr.array);
         const indexAttr = edgesGeom.index;
@@ -138,10 +124,6 @@ async function bakeEdges() {
     bakedData.push(frameEdges);
   }
 
-  // 6) write out to JSON
-  // This means bakedData is an array of length FRAME_COUNT,
-  // each entry is an array of "meshEdges" objects,
-  // each containing { positions, indices }
   fs.writeFileSync(OUTPUT_JSON, JSON.stringify(bakedData));
   console.log(`Baked edges saved to ${OUTPUT_JSON} with ${FRAME_COUNT} frames.`);
 }
