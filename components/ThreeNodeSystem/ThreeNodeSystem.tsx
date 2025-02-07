@@ -1,11 +1,14 @@
 // components/ThreeDNodeSystem/ThreeDNodeSystem.tsx
 import React, { useRef, useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
+import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { update } from "three/examples/jsm/libs/tween.module.js";
 
 
 interface NodeObject {
@@ -72,6 +75,7 @@ export default function ThreeDNodeSystem() {
   const [typedContent, setTypedContent] = useState<string>("");
   const boxyRef = useRef<BoxyObject | null>(null);
 
+  const router = useRouter();
 
   // bounding box for spawn/containment of nodes
   const boundingBox: BoundingBox = {
@@ -86,12 +90,13 @@ export default function ThreeDNodeSystem() {
   //labels
 
   const labels: Label[] = [
-    { content: "./youtube", url: "https://example.com/youtube", priority: 1, fontsize: 16, function: "link" },
-    { content: "./X", url: "https://example.com/x", priority: 2, fontsize: 16, function: "link" },
-    { content: "./instagram", url: "https://example.com/instagram", priority: 3, fontsize: 16, function: "link" },
-    { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16, function: "link" },
+    { content: "./youtube", url: "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw", priority: 1, fontsize: 16, function: "link" },
+    { content: "./X", url: "https://x.com/voxldev", priority: 2, fontsize: 16, function: "link" },
+    { content: "./instagram", url: "https://www.instagram.com/voxl.online//", priority: 3, fontsize: 16, function: "link" },
+    // { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16, function: "link" },
     { content: "./about us", priority: 5, fontsize: 16, function: "interface", interfaceContent: "./about us () VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. " },
     { content: "./contact", priority: 6, fontsize: 16, function: "interface", interfaceContent: "./contact () dev team @exampleexampleexample Dm" },
+    { content: "./devlog", priority: 4, fontsize: 16, function: "interface", interfaceContent: " " },
   ];
 
   //fps counter
@@ -121,6 +126,12 @@ export default function ThreeDNodeSystem() {
   }
   const nodeCount = 25; //changed 25
   const axesNodeCount = 5; //changed 5
+
+  //dynamic screen size refs
+
+  const [overlayFontSize, setOverlayFontSize] = useState(8);
+  const [overlayLineSpacing, setOverlayLineSpacing] = useState(10);
+  const [cornerOffset, setCornerOffset] = useState(11);
 
   //####helper functions
 
@@ -214,6 +225,28 @@ export default function ThreeDNodeSystem() {
       return mesh.geometry.clone();
     }
   }
+  
+  const updateOverlayFontSize = () => {
+    const baselineWidth = 1400;
+  
+    const baselineFontSize = 8;
+    const maxFontSize = 12;
+    const computedFontSize = (window.innerWidth / baselineWidth) * baselineFontSize;
+    const newFontSize = Math.min(computedFontSize, maxFontSize);
+    setOverlayFontSize(newFontSize);
+  
+    const baselineLineSpacing = 10; 
+    const maxLineSpacing = 400;
+    const computedLineSpacing = (window.innerWidth / baselineWidth) * baselineLineSpacing;
+    const newLineSpacing = Math.min(computedLineSpacing, maxLineSpacing);
+    setOverlayLineSpacing(newLineSpacing);
+
+    const baselineCornerOffset = 100; 
+    const maxCornerOffset = 200;
+    const computedCornerOffset = (window.innerWidth / baselineWidth) * baselineCornerOffset;
+    const newCornerOffset = Math.min(computedCornerOffset, maxCornerOffset);
+    setCornerOffset(newCornerOffset);
+  };
 
   //####createn odes
 
@@ -450,7 +483,7 @@ export default function ThreeDNodeSystem() {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     const dpr = window.devicePixelRatio || 1;
-    renderer.setPixelRatio(dpr);
+    renderer.setPixelRatio(Math.max(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setClearColor(0xFFFFFF, 0);
     mount.appendChild(renderer.domElement);
@@ -531,6 +564,14 @@ export default function ThreeDNodeSystem() {
     blurOverlayPass.material.uniforms.blurOpacity.value = 0.4; 
 
     composer.addPass(blurOverlayPass);
+
+    const fxaaPass = new ShaderPass(FXAAShader);
+    fxaaPass.material.uniforms['resolution'].value.set(
+      1 / mount.clientWidth,
+      1 / mount.clientHeight
+    );
+
+    composer.addPass(fxaaPass);
 
     return { scene, camera, renderer, composer };
   };
@@ -698,12 +739,12 @@ export default function ThreeDNodeSystem() {
     camera: THREE.PerspectiveCamera
   ): NodeObject[] => {
     const occupiedAreas: { x: number; y: number; width: number; height: number }[] = [];
-
+  
     const screenNodes = nodes.map((node) => {
       const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(camera);
       const screenX = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
       const screenY = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-      const screenZ = screenPos.z; 
+      const screenZ = screenPos.z;
       return {
         ...node,
         screenX,
@@ -711,21 +752,21 @@ export default function ThreeDNodeSystem() {
         screenZ,
       };
     });
-
+  
     const sortedNodes = screenNodes.sort((a, b) => a.screenZ - b.screenZ);
-
+  
     const assignedLabels = new Set<Label>();
-
+  
     return sortedNodes.map((node) => {
       if (node.assignedLabel) return node;
-
+  
       const availableLabel = labels
         .sort((a, b) => b.priority - a.priority)
         .find((label) => {
           if (assignedLabels.has(label)) return false;
-
+  
           const fontSize = Math.max(12, 50 - node.screenZ * 40);
-          label.fontsize = fontSize; 
+          label.fontsize = fontSize;
           const labelWidth = measureTextWidth(label.content, fontSize);
           const labelHeight = fontSize;
           const labelBox = {
@@ -734,7 +775,16 @@ export default function ThreeDNodeSystem() {
             width: labelWidth,
             height: labelHeight,
           };
-
+  
+          if (
+            labelBox.x < 0 ||
+            labelBox.x + labelBox.width > window.innerWidth ||
+            labelBox.y < 0 ||
+            labelBox.y + labelBox.height > window.innerHeight
+          ) {
+            return false;
+          }
+  
           const overlaps = occupiedAreas.some((area) => {
             return (
               labelBox.x < area.x + area.width &&
@@ -743,10 +793,10 @@ export default function ThreeDNodeSystem() {
               labelBox.y + labelBox.height > area.y
             );
           });
-
+  
           return !overlaps;
         });
-
+  
       if (availableLabel) {
         assignedLabels.add(availableLabel);
         const labelWidth = measureTextWidth(availableLabel.content, availableLabel.fontsize);
@@ -756,7 +806,7 @@ export default function ThreeDNodeSystem() {
           width: labelWidth,
           height: availableLabel.fontsize,
         });
-
+  
         return {
           ...node,
           assignedLabel: availableLabel,
@@ -1008,24 +1058,28 @@ export default function ThreeDNodeSystem() {
     if (!currentMount) return;
     const { scene, camera, renderer, composer } = initializeScene(currentMount);
 
-    // 4 wireframes for normal nodes
+    // 4 initial font size calc
+
+    updateOverlayFontSize();
+
+    // 5 wireframes for normal nodes
     const cubeEdges = createEdgeWireframes(scene, newNodes);
 
-    // 5 add axes nodes to scene
+    // 6 add axes nodes to scene
     newAxesNodes.forEach((axNode) => {
       scene.add(axNode.axesGroup);
     });
 
-    // 6 grid
+    // 7 grid
     createGrid(scene);
 
-    // 7 lines between normal nodes
+    // 8 lines between normal nodes
     const { lines } = createConnectingLines(scene, newNodes);
 
-    // 8 lines between each normal node and each axes node
+    // 9 lines between each normal node and each axes node
     const nodeAxesLines = createNodeAxesLines(scene, newNodes, newAxesNodes);
 
-    // 9 load Boxy.glb 
+    // 10 load Boxy.glb 
     if (boxyVers){
       loadBoxyModel("/Boxy.glb", boundingBox)
       .then((loadedBoxy) => {
@@ -1036,7 +1090,7 @@ export default function ThreeDNodeSystem() {
         console.error("Failed to load Boxy model:", error);
       });
     }
-    // 10 animate
+    // 11 animate
     animateScene(
       scene,
       camera,
@@ -1059,6 +1113,7 @@ export default function ThreeDNodeSystem() {
       renderer.setSize(width, height);
       cameraRef.current.aspect = width / height;
       cameraRef.current.updateProjectionMatrix();
+      updateOverlayFontSize()
     };
 
     window.addEventListener("resize", handleResize);
@@ -1145,7 +1200,7 @@ export default function ThreeDNodeSystem() {
       }}
     >
 
-      {/* debug fps counter */}
+      {/* debug fps counter
       <div
         style={{
           position: "absolute",
@@ -1160,13 +1215,13 @@ export default function ThreeDNodeSystem() {
         }}
       >
         current_frame_rate = {fps}
-      </div>
+      </div> */}
 
      {/* corner lines */}
       <div
         style={{
           position: "absolute",
-          left: "540px",
+          left: `${400 + cornerOffset}px`,
           top: "40px",
           width: "2px",
           height: "30px",
@@ -1180,63 +1235,7 @@ export default function ThreeDNodeSystem() {
       <div
         style={{
           position: "absolute",
-          left: "540px",
-          top: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: "540px",
-          bottom: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: "540px",
-          bottom: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          right: "140px",
-          top: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          right: "140px",
+          left: `${400 + cornerOffset}px`,
           top: "40px",
           width: "30px",
           height: "2px",
@@ -1250,7 +1249,7 @@ export default function ThreeDNodeSystem() {
       <div
         style={{
           position: "absolute",
-          right: "140px",
+          left: `${400 + cornerOffset}px`,
           bottom: "40px",
           width: "2px",
           height: "30px",
@@ -1264,7 +1263,63 @@ export default function ThreeDNodeSystem() {
       <div
         style={{
           position: "absolute",
-          right: "140px",
+          left: `${400 + cornerOffset}px`,
+          bottom: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset}px`,
+          top: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset}px`,
+          top: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset}px`,
+          bottom: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset}px`,
           bottom: "40px",
           width: "30px",
           height: "2px",
@@ -1281,13 +1336,14 @@ export default function ThreeDNodeSystem() {
           position: "absolute",
           left: 0,
           top: 0,
-          width: "500px",
+          width: "100%",
           height: "100%",
           overflowY: "auto",
           padding: "20px",
           zIndex: 20,
           fontFamily: "monospace",
-          fontSize: "8px",
+          lineHeight: `${overlayLineSpacing}px`,
+          fontSize: `${overlayFontSize}px`,
           color: "#000000",
           pointerEvents: "none",
           textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
@@ -1370,7 +1426,15 @@ export default function ThreeDNodeSystem() {
         {typedContent && (
           <div style={{ marginTop: "30px", fontWeight: "normal" }}>
             <h3></h3>
-            <p>{typedContent}</p>
+            <p
+              style={{
+                maxWidth: "600px",      
+                width: "100%",            
+                wordWrap: "break-word",
+              }}
+            >
+              {typedContent}
+            </p>
           </div>
         )}
       </div>
@@ -1408,7 +1472,11 @@ export default function ThreeDNodeSystem() {
           if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
             window.open(node.assignedLabel!.url, "_blank");
           } else if (node.assignedLabel!.function === "interface") {
-            setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
+            if (node.assignedLabel!.content === "./devlog") {
+              router.push("/devlog");
+            } else {
+              setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
+            }
           }
         };
 

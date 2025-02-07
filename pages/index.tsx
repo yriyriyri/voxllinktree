@@ -1,11 +1,10 @@
 import Head from "next/head";
-import LoginPopup from "../components/LoginPopup/LoginPopup";
+import LoginPopup from "../components/LoginPopup (archaic)/LoginPopup";
 
 export default function Home() {
   return (
     <>
       <Head>
-        <title>VOXL.OS</title>
         <meta name="description" content="voxl os" />
         <meta name="theme-color" content="#bfbfbf" />
         <meta name="apple-mobile-web-app-capable" content="yes"></meta>
