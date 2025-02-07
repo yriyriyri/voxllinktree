@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import ThreeNodeSystem from "../components/ThreeNodeSystem/ThreeNodeSystem";
 import ThreeNodeSystemMobile from "../components/ThreeNodeSystemMobile/ThreeNodeSystemMobile";
 import { useRouter } from "next/router";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export default function App({ Component, pageProps }: AppProps) {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
@@ -29,6 +30,7 @@ export default function App({ Component, pageProps }: AppProps) {
       {showThreeNodeSystem &&
         (isMobile ? <ThreeNodeSystemMobile /> : <ThreeNodeSystem />)}
       <Component {...pageProps} />
+      <SpeedInsights/>
     </>
   );
 }
