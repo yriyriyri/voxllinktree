@@ -22,7 +22,6 @@ export default function App({ Component, pageProps }: AppProps) {
     return null;
   }
 
-  // Check if the current route is /whatsnew
   const showThreeNodeSystem = router.pathname !== "/devlog";
 
   return (
