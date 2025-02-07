@@ -1,5 +1,4 @@
 import Head from "next/head";
-import LoginPopup from "../components/LoginPopup (archaic)/LoginPopup";
 
 export default function Home() {
   return (

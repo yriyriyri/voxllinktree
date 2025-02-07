@@ -119,6 +119,7 @@ export default function ThreeNodeSystemMobile() {
 
   function initializeScene(mount: HTMLDivElement) {
     const scene = new THREE.Scene();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const camera = new THREE.PerspectiveCamera(
       95,
       mount.clientWidth / mount.clientHeight,
@@ -128,6 +129,7 @@ export default function ThreeNodeSystemMobile() {
     camera.position.set(0, 0, 60);
     cameraRef.current = camera;
     
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     const dpr = window.devicePixelRatio || 1;
     renderer.setPixelRatio(dpr);
@@ -402,7 +404,7 @@ export default function ThreeNodeSystemMobile() {
 
     let currentLineIndex = 0;
     let currentCharIndex = 0;
-    let currentTyped = ["", "", "", "", "", "", "", "", "", ];
+    const currentTyped = ["", "", "", "", "", "", "", "", "", ];
 
     const intervalId = setInterval(() => {
       const fullLine = linesToType[currentLineIndex];
@@ -420,7 +422,7 @@ export default function ThreeNodeSystemMobile() {
     }, 15);
 
     return () => clearInterval(intervalId);
-  }, [startTypewriter]);
+  }, [startTypewriter, linesToType]);
 
 
   return (

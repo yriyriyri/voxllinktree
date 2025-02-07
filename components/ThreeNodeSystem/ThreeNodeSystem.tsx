@@ -78,6 +78,7 @@ export default function ThreeDNodeSystem() {
   const router = useRouter();
 
   // bounding box for spawn/containment of nodes
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const boundingBox: BoundingBox = {
     minX: -35,
     maxX: 35,
@@ -109,10 +110,14 @@ export default function ThreeDNodeSystem() {
 
   const animationKeys = "qwertyuiopasdfghjklzxcvb";
 
-  const keyToAnimationIndex: { [key: string]: number } = {};
-  for (let i = 0; i < animationKeys.length; i++) {
-    keyToAnimationIndex[animationKeys[i]] = i;
-  }
+  const keyToAnimationIndex = React.useMemo(() => {
+    const mapping: { [key: string]: number } = {};
+    const keys = "qwertyuiopasdfghjklzxcvb";
+    for (let i = 0; i < keys.length; i++) {
+      mapping[keys[i]] = i;
+    }
+    return mapping;
+  }, []);
 
   //debug vers boxy/notboxy
 
@@ -401,6 +406,7 @@ export default function ThreeDNodeSystem() {
             currentAction = action;
           }
           const currentAnimation = 16;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const desiredAnimation = 16;
 
           const boxyObj: BoxyObject = {
@@ -482,7 +488,6 @@ export default function ThreeDNodeSystem() {
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    const dpr = window.devicePixelRatio || 1;
     renderer.setPixelRatio(Math.max(window.devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.setClearColor(0xFFFFFF, 0);
