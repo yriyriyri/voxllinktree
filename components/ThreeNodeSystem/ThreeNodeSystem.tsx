@@ -8,7 +8,6 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import { update } from "three/examples/jsm/libs/tween.module.js";
 
 
 interface NodeObject {
@@ -69,6 +68,7 @@ export default function ThreeDNodeSystem() {
   //external refs 
   const mountRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<NodeObject[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [axesNodes, setAxesNodes] = useState<AxesNodeObject[]>([]);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const [selectedInterfaceContent, setSelectedInterfaceContent] = useState<string | null>(null);
@@ -107,8 +107,6 @@ export default function ThreeDNodeSystem() {
   const frameCount = useRef(0);
 
   //debug animation keys DEBUG
-
-  const animationKeys = "qwertyuiopasdfghjklzxcvb";
 
   const keyToAnimationIndex = React.useMemo(() => {
     const mapping: { [key: string]: number } = {};
@@ -1204,8 +1202,6 @@ export default function ThreeDNodeSystem() {
         overflow: "hidden",
       }}
     >
-
-      {/* debug fps counter
       <div
         style={{
           position: "absolute",
@@ -1217,10 +1213,11 @@ export default function ThreeDNodeSystem() {
           color: "#000000",
           pointerEvents: "none",
           textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+          display: "none",
         }}
       >
         current_frame_rate = {fps}
-      </div> */}
+      </div>
 
      {/* corner lines */}
       <div
