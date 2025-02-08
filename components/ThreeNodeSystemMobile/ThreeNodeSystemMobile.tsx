@@ -29,7 +29,7 @@ export default function ThreeNodeSystemMobile() {
   const [showMountRef, setShowMountRef] = useState(false);
   const [startTypewriter, setStartTypewriter] = useState(false);
 
-  const [typedLines, setTypedLines] = useState<string[]>(["", "", "", "", "", "", "", "", ""]);
+  const [typedLines, setTypedLines] = useState<string[]>(["", "", "", "", "", "", "", ""]);
 
   const linesToType = [
     "./youtube | URL: https://example.com/youtube",
@@ -40,7 +40,7 @@ export default function ThreeNodeSystemMobile() {
     "    ",
     "./steam | URL: https://example.com/steam",
     "    ",
-    "./about us | INTERFACE: about us",
+    // "./about us | INTERFACE: about us",
   ];
 
   useEffect(() => {
@@ -404,7 +404,7 @@ export default function ThreeNodeSystemMobile() {
 
     let currentLineIndex = 0;
     let currentCharIndex = 0;
-    const currentTyped = ["", "", "", "", "", "", "", "", "", ];
+    const currentTyped = ["", "", "", "", "", "", "", "", ];
 
     const intervalId = setInterval(() => {
       const fullLine = linesToType[currentLineIndex];
