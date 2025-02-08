@@ -32,11 +32,11 @@ export default function ThreeNodeSystemMobile() {
   const [typedLines, setTypedLines] = useState<string[]>(["", "", "", "", "", "", "", ""]);
 
   const linesToType = [
-    "./youtube | URL: https://example.com/youtube",
+    "./youtube | URL: https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",
     "    ",
-    "./X | URL: https://example.com/x",
+    "./X | URL: https://x.com/voxldev",
     "    ",
-    "./instagram | URL: https://example.com/instagram",
+    "./instagram | URL: https://www.instagram.com/voxl.online//",
     "    ",
     "./steam | URL: https://example.com/steam",
     "    ",
