@@ -422,7 +422,7 @@ export default function ThreeNodeSystemMobile() {
     }, 15);
 
     return () => clearInterval(intervalId);
-  }, [startTypewriter, linesToType]);
+  }, [startTypewriter]);
 
 
   return (
