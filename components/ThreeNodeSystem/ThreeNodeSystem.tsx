@@ -96,7 +96,7 @@ export default function ThreeDNodeSystem() {
     { content: "./instagram", url: "https://www.instagram.com/voxl.online//", priority: 3, fontsize: 16, function: "link" },
     // { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16, function: "link" },
     { content: "./about us", priority: 5, fontsize: 16, function: "interface", interfaceContent: "./about us () VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. " },
-    { content: "./contact", priority: 6, fontsize: 16, function: "interface", interfaceContent: "./contact () dev team @exampleexampleexample Dm" },
+    { content: "./contact", priority: 6, fontsize: 16, function: "interface", interfaceContent: "./contact () management@voxl.world" },
     { content: "./devlog", priority: 4, fontsize: 16, function: "interface", interfaceContent: " " },
   ];
 
@@ -1188,7 +1188,7 @@ export default function ThreeDNodeSystem() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [boxyRef]);
+  }, [boxyRef, keyToAnimationIndex]);
 
   return (
     <div
