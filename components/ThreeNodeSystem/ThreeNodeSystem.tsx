@@ -1388,7 +1388,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         setDisplayAscii(newAscii);
         return newStep;
       });
-    }, 100);
+    }, 150);
     return () => clearInterval(interval);
   }, []);
 
@@ -1580,7 +1580,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           style={{
             whiteSpace: "pre",
             marginBottom: "20px",
-            fontSize: "7px",
+            fontSize: "8px",
             lineHeight: "1",
             textShadow: "2px 2px 3px rgba(61, 61, 61, 0.3)",
           }}
