@@ -1358,7 +1358,7 @@ export default function ThreeDNodeSystem() {
             marginBottom: "20px",
             fontSize: "7px",
             lineHeight: "1",
-            textShadow: "2px 2px 5px rgba(61, 61, 61, 0.9)",
+            textShadow: "2px 2px 3px rgba(61, 61, 61, 0.3)",
           }}
         >
           {`
@@ -1383,16 +1383,19 @@ export default function ThreeDNodeSystem() {
         </pre>
   
         {/* node details */}
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        <ul style={{ listStyle: "none", padding: "20px 0 0 0", margin: 0 }}>
           {nodes.map((node, index) => {
             const nodeFontSize = index < 6 ? 9 : 14 - index;
-            if (nodeFontSize <= 0) return null;
-  
+            if (nodeFontSize < 4) return null;
+            
+            const dynamicPadding = 55 - 4 * (9 - nodeFontSize);
+
             return (
               <li
                 key={index}
                 style={{
-                  marginBottom: "10px",
+                  marginBottom: `${nodeFontSize}px`,
+                  paddingLeft: `${dynamicPadding}px`,
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -1405,7 +1408,7 @@ export default function ThreeDNodeSystem() {
                 <span>{node.z.toFixed(2)}</span>
                 {node.assignedLabel && (
                   <span style={{ marginLeft: "15px" }}>
-                    | Label: <span>{node.assignedLabel.content}</span>
+                    | Label: <strong>{node.assignedLabel.content}</strong>
                   </span>
                 )}
               </li>
