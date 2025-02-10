@@ -93,7 +93,7 @@ export default function ThreeDNodeSystem() {
   const labels: Label[] = [
     { content: "./youtube", url: "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw", priority: 1, fontsize: 16, function: "link" },
     { content: "./X", url: "https://x.com/voxldev", priority: 2, fontsize: 16, function: "link" },
-    { content: "./instagram", url: "https://www.instagram.com/voxl.online//", priority: 3, fontsize: 16, function: "link" },
+    { content: "./instagram", url: "https://www.instagram.com/voxl.online", priority: 3, fontsize: 16, function: "link" },
     // { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16, function: "link" },
     { content: "./about us", priority: 5, fontsize: 16, function: "interface", interfaceContent: "./about us () VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. " },
     { content: "./contact", priority: 6, fontsize: 16, function: "interface", interfaceContent: "./contact () management@voxl.world" },
@@ -1402,6 +1402,7 @@ export default function ThreeDNodeSystem() {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   fontSize: `${nodeFontSize}px`,
+                  pointerEvents: "none", // Allow events to pass through
                 }}
               >
                 INFO: Node <strong>{index + 1}</strong> | Position X=
@@ -1412,15 +1413,22 @@ export default function ThreeDNodeSystem() {
                   <span style={{ marginLeft: "15px" }}>
                     | Label:{" "}
                     <strong
+                      onMouseEnter={() =>
+                        setCurrentHovered(node.assignedLabel!.content)
+                      }
+                      onMouseLeave={() => setCurrentHovered(null)}
                       style={
-                        currentHovered === node.assignedLabel.content
-                          ? {
-                              backgroundColor: "black",
-                              color: "#eaeaea",
-                              textShadow: "none",
-                              fontWeight: "normal",
-                            }
-                          : { fontWeight: "bold" }
+                        {
+                          pointerEvents: "auto", // Only this part intercepts pointer events
+                          ...(currentHovered === node.assignedLabel.content
+                            ? {
+                                backgroundColor: "black",
+                                color: "#eaeaea",
+                                textShadow: "none",
+                                fontWeight: "normal",
+                              }
+                            : { fontWeight: "bold" }),
+                        }
                       }
                     >
                       {node.assignedLabel.content}
