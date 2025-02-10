@@ -137,7 +137,7 @@ export default function ThreeNodeSystemMobile() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; 
     controls.dampingFactor = 0.1;
-    controls.enableZoom = false; // disables zooming
+    controls.enableZoom = false; 
     controls.enablePan = false;
     
     const composer = new EffectComposer(renderer);
@@ -394,7 +394,7 @@ export default function ThreeNodeSystemMobile() {
   
     const t2 = setTimeout(() => {
       setStartTypewriter(true);
-    }, 2000);
+    }, 4000);
   
     return () => clearTimeout(t2);
   }, [showMountRef]);
@@ -448,6 +448,7 @@ export default function ThreeNodeSystemMobile() {
           opacity: showAscii ? 1 : 0,
           transition: "opacity 2s ease",
           whiteSpace: "pre",
+          lineHeight: "1.4em",
         }}
       >
         {`
@@ -490,7 +491,7 @@ export default function ThreeNodeSystemMobile() {
       <div
         style={{
           position: "absolute",
-          top: "76%",
+          top: "75%",
           whiteSpace: "pre",
           fontSize: 10,
           textAlign: "left",
