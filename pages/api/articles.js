@@ -9,7 +9,7 @@ export default function handler(req, res) {
       .readdirSync(articlesDir)
       .filter((file) => file.endsWith('.html'));
 
-    const articlesData = filenames.slice(0,3).map((filename) => {
+    const articlesData = filenames.map((filename) => {
       const filePath = path.join(articlesDir, filename);
       const fileContent = fs.readFileSync(filePath, 'utf8');
 
@@ -35,7 +35,6 @@ export default function handler(req, res) {
 
       if (firstContentMatch) {
         const firstContent = firstContentMatch[1].trim();
-
         const sentences = firstContent.match(/[^.!?]+[.!?]+/g);
         if (sentences && sentences.length > 0) {
           preview = sentences.slice(0, 4).join(' ').trim();
@@ -47,7 +46,13 @@ export default function handler(req, res) {
       return { title, date, author, slug, preview };
     });
 
-    res.status(200).json(articlesData);
+    const sortedArticlesData = articlesData.sort((a, b) => {
+      return new Date(b.date) - new Date(a.date);
+    });
+
+    const topThreeArticles = sortedArticlesData.slice(0, 3);
+
+    res.status(200).json(topThreeArticles);
   } catch (error) {
     console.error('Error reading articles:', error);
     res.status(500).json([]);
