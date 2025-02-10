@@ -866,6 +866,13 @@ export default function ThreeDNodeSystem() {
 
     const clock = new THREE.Clock();
 
+    // hover frame data
+    let lineAnimFrame = 0;
+    const totalFrames = 15;
+    let secondLineAnimFrame = 0;
+    const secondLineTotalFrames = 5;
+    let randomAngle: number | null = null;
+
     const handleScroll = (e: WheelEvent) => {
       e.preventDefault();
       if (isRotating) return;
@@ -1047,9 +1054,8 @@ export default function ThreeDNodeSystem() {
         if (ctx) {
           canvas.width = window.innerWidth;
           canvas.height = window.innerHeight;
-    
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+      
           if (currentHoveredRef.current) {
             const leftElement = document.querySelector(
               `.left-hover[data-hover-label="${currentHoveredRef.current}"]`
@@ -1057,23 +1063,85 @@ export default function ThreeDNodeSystem() {
             const sceneElement = document.querySelector(
               `.scene-hover[data-hover-label="${currentHoveredRef.current}"]`
             ) as HTMLElement;
-    
+      
             if (leftElement && sceneElement) {
-              const leftRect = leftElement.getBoundingClientRect();
-              const sceneRect = sceneElement.getBoundingClientRect();
-    
-              const startX = leftRect.left + leftRect.width / 2;
-              const startY = leftRect.top + leftRect.height / 2;
-              const endX = sceneRect.left + sceneRect.width / 2;
-              const endY = sceneRect.top + sceneRect.height / 2;
-    
+              let sourceElement: HTMLElement;
+              let destElement: HTMLElement;
+              if (sceneElement.matches(":hover")) {
+                sourceElement = sceneElement;
+                destElement = leftElement;
+              } else if (leftElement.matches(":hover")) {
+                sourceElement = leftElement;
+                destElement = sceneElement;
+              } else {
+                sourceElement = sceneElement;
+                destElement = leftElement;
+              }
+      
+              const sourceRect = sourceElement.getBoundingClientRect();
+              const destRect = destElement.getBoundingClientRect();
+              const sourceX = sourceRect.left + sourceRect.width / 2;
+              const sourceY = sourceRect.top + sourceRect.height / 2;
+              const destX = destRect.left + destRect.width / 2;
+              const destY = destRect.top + destRect.height / 2;
+      
+              if (lineAnimFrame < totalFrames) {
+                lineAnimFrame++;
+              } else {
+                if (randomAngle === null) {
+                  const minAngle = (-30 * Math.PI) / 180;
+                  const maxAngle = (30 * Math.PI) / 180;
+                  randomAngle = Math.random() * (maxAngle - minAngle) + minAngle;
+                }
+                if (secondLineAnimFrame < secondLineTotalFrames) {
+                  secondLineAnimFrame++;
+                }
+              }
+      
+              const t = lineAnimFrame / totalFrames;
+              const interpX = sourceX + (destX - sourceX) * t;
+              const interpY = sourceY + (destY - sourceY) * t;
+      
               ctx.beginPath();
-              ctx.moveTo(startX, startY);
-              ctx.lineTo(endX, endY);
+              ctx.moveTo(sourceX, sourceY);
+              ctx.lineTo(interpX, interpY);
               ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
               ctx.lineWidth = 0.5;
               ctx.stroke();
+      
+              /*
+              if (lineAnimFrame >= totalFrames) {
+                const t2 = secondLineAnimFrame / secondLineTotalFrames;
+                const offsetX = 100 * Math.cos(randomAngle!);
+                const offsetY = 100 * Math.sin(randomAngle!);
+                const secondEndX = destX + offsetX * t2;
+                const secondEndY = destY + offsetY * t2;
+            
+                ctx.beginPath();
+                ctx.moveTo(destX, destY);
+                ctx.lineTo(secondEndX, secondEndY);
+                ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+            
+                if (secondLineAnimFrame >= secondLineTotalFrames) {
+                  const crossHalf = 10;
+                  ctx.beginPath();
+                  ctx.moveTo(secondEndX - crossHalf, secondEndY - crossHalf);
+                  ctx.lineTo(secondEndX + crossHalf, secondEndY + crossHalf);
+                  ctx.moveTo(secondEndX - crossHalf, secondEndY + crossHalf);
+                  ctx.lineTo(secondEndX + crossHalf, secondEndY - crossHalf);
+                  ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+                  ctx.lineWidth = 0.5;
+                  ctx.stroke();
+                }
+              }
+              */
             }
+          } else {
+            lineAnimFrame = 0;
+            secondLineAnimFrame = 0;
+            randomAngle = null;
           }
         }
       }
@@ -1501,8 +1569,13 @@ export default function ThreeDNodeSystem() {
                               fontWeight: "normal",
                               pointerEvents: "auto",
                               zIndex: "40",
+                              cursor: "pointer",
                             }
-                          : { fontWeight: "bold", pointerEvents: "auto" }
+                          : {
+                              fontWeight: "bold",
+                              pointerEvents: "auto",
+                              cursor: "pointer",
+                            }
                       }
                     >
                       {node.assignedLabel.content}
