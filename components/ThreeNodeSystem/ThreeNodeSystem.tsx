@@ -67,6 +67,8 @@ interface Label {
 export default function ThreeDNodeSystem() {
   //external refs 
   const mountRef = useRef<HTMLDivElement>(null);
+  const lineCanvasRef = useRef<HTMLCanvasElement>(null);
+
   const [nodes, setNodes] = useState<NodeObject[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [axesNodes, setAxesNodes] = useState<AxesNodeObject[]>([]);
@@ -124,6 +126,7 @@ export default function ThreeDNodeSystem() {
   //current hovered
 
   const [currentHovered, setCurrentHovered] = useState<string | null>(null);
+  const currentHoveredRef = useRef<string | null>(null);
 
   //major variable adjusts (make dynamic based on screensize)
 
@@ -843,7 +846,9 @@ export default function ThreeDNodeSystem() {
     axesNodes: AxesNodeObject[],
     labels: Label[],
     composer: EffectComposer,
-    boxyRef: { current: BoxyObject | null } 
+    boxyRef: { current: BoxyObject | null } ,
+    lineCanvasRef: HTMLCanvasElement,
+    currentHoveredRef: React.RefObject<string | null>
   ) => {
     const angles = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
     let sideIndex = 0;
@@ -1034,7 +1039,46 @@ export default function ThreeDNodeSystem() {
         }
       }
 
-      // 5) re-assign labels for normal nodes
+      //2d hovered line drawing
+
+      if (lineCanvasRef) {
+        const canvas = lineCanvasRef;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+    
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+          if (currentHoveredRef.current) {
+            const leftElement = document.querySelector(
+              `.left-hover[data-hover-label="${currentHoveredRef.current}"]`
+            ) as HTMLElement;
+            const sceneElement = document.querySelector(
+              `.scene-hover[data-hover-label="${currentHoveredRef.current}"]`
+            ) as HTMLElement;
+    
+            if (leftElement && sceneElement) {
+              const leftRect = leftElement.getBoundingClientRect();
+              const sceneRect = sceneElement.getBoundingClientRect();
+    
+              const startX = leftRect.left + leftRect.width / 2;
+              const startY = leftRect.top + leftRect.height / 2;
+              const endX = sceneRect.left + sceneRect.width / 2;
+              const endY = sceneRect.top + sceneRect.height / 2;
+    
+              ctx.beginPath();
+              ctx.moveTo(startX, startY);
+              ctx.lineTo(endX, endY);
+              ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            }
+          }
+        }
+      }
+
+      //  re-assign labels for normal nodes
       const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
       setNodes([...updatedNodes]);
 
@@ -1097,6 +1141,19 @@ export default function ThreeDNodeSystem() {
         console.error("Failed to load Boxy model:", error);
       });
     }
+
+    const lineCanvas = document.createElement("canvas");
+    lineCanvas.style.position = "fixed";
+    lineCanvas.style.top = "0";
+    lineCanvas.style.left = "0";
+    lineCanvas.style.zIndex = "15";
+    lineCanvas.width = window.innerWidth;
+    lineCanvas.height = window.innerHeight;
+    lineCanvas.style.pointerEvents = "none";
+    lineCanvas.style.backgroundColor = "transparent";
+
+    document.body.appendChild(lineCanvas);
+
     // 11 animate
     animateScene(
       scene,
@@ -1109,7 +1166,9 @@ export default function ThreeDNodeSystem() {
       newAxesNodes,
       labels,
       composer,
-      boxyRef
+      boxyRef,
+      lineCanvas,
+      currentHoveredRef
     );
 
     // handle window resize
@@ -1402,7 +1461,7 @@ export default function ThreeDNodeSystem() {
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   fontSize: `${nodeFontSize}px`,
-                  pointerEvents: "none", // Allow events to pass through
+                  pointerEvents: "none", 
                 }}
               >
                 INFO: Node <strong>{index + 1}</strong> | Position X=
@@ -1413,22 +1472,27 @@ export default function ThreeDNodeSystem() {
                   <span style={{ marginLeft: "15px" }}>
                     | Label:{" "}
                     <strong
-                      onMouseEnter={() =>
-                        setCurrentHovered(node.assignedLabel!.content)
-                      }
-                      onMouseLeave={() => setCurrentHovered(null)}
+                      className="left-hover"
+                      data-hover-label={node.assignedLabel.content}
+                      onMouseEnter={() => {
+                        setCurrentHovered(node.assignedLabel!.content);
+                        currentHoveredRef.current = node.assignedLabel!.content;
+                      }}
+                      onMouseLeave={() => {
+                        setCurrentHovered(null);
+                        currentHoveredRef.current = null;
+                      }}
                       style={
-                        {
-                          pointerEvents: "auto", // Only this part intercepts pointer events
-                          ...(currentHovered === node.assignedLabel.content
-                            ? {
-                                backgroundColor: "black",
-                                color: "#eaeaea",
-                                textShadow: "none",
-                                fontWeight: "normal",
-                              }
-                            : { fontWeight: "bold" }),
-                        }
+                        currentHovered === node.assignedLabel.content
+                          ? {
+                              backgroundColor: "black",
+                              color: "#eaeaea",
+                              textShadow: "none",
+                              fontWeight: "normal",
+                              pointerEvents: "auto",
+                              zIndex: "40",
+                            }
+                          : { fontWeight: "bold", pointerEvents: "auto" }
                       }
                     >
                       {node.assignedLabel.content}
@@ -1520,7 +1584,7 @@ export default function ThreeDNodeSystem() {
           width: "100%",
           height: "100%",
           overflow: "hidden",
-          zIndex: 10,
+          zIndex: 16,
         }}
       >
         {/* node labels */}
@@ -1545,11 +1609,9 @@ export default function ThreeDNodeSystem() {
           if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
             window.open(node.assignedLabel!.url, "_blank");
           } else if (node.assignedLabel!.function === "interface") {
-            if (node.assignedLabel!.content === "./devlog") {
-              router.push("/devlog");
-            } else {
-              setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
-            }
+            setSelectedInterfaceContent(
+              node.assignedLabel!.interfaceContent || ""
+            );
           }
         };
 
@@ -1559,7 +1621,7 @@ export default function ThreeDNodeSystem() {
           top: `${y}px`,
           color: "black",
           padding: "0px 0px",
-          zIndex: 30,
+          zIndex: 40,
           cursor: "pointer",
           transform: "translateX(210px) translateY(-10px)",
           pointerEvents: "auto" as React.CSSProperties["pointerEvents"],
@@ -1578,16 +1640,25 @@ export default function ThreeDNodeSystem() {
                 backgroundColor: "black",
                 color: "#eaeaea",
                 textShadow: "none",
+                zIndex: 400,
               }
             : {};
 
         return (
           <div
             key={node.assignedLabel.content}
+            className="scene-hover"
+            data-hover-label={node.assignedLabel.content}
             style={{ ...baseStyle, ...hoveredStyle }}
             onClick={handleClick}
-            onMouseEnter={() => setCurrentHovered(node.assignedLabel!.content)}
-            onMouseLeave={() => setCurrentHovered(null)}
+            onMouseEnter={() => {
+              setCurrentHovered(node.assignedLabel!.content);
+              currentHoveredRef.current = node.assignedLabel!.content;
+            }}
+            onMouseLeave={() => {
+              setCurrentHovered(null)
+              currentHoveredRef.current = null;
+            }}
           >
             {node.assignedLabel.content}
           </div>
