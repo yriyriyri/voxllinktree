@@ -32,9 +32,9 @@ export default function ThreeNodeSystemMobile() {
   const [typedLines, setTypedLines] = useState<string[]>(["", "", "", "", "", "", "", ""]);
 
   const linesToType = [
-    "./youtube | URL: https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",
-    "    ",
     "./X | URL: https://x.com/voxldev",
+    "    ",
+    "./youtube | URL: https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",
     "    ",
     "./instagram | URL: https://www.instagram.com/voxl.online//",
     "    ",
@@ -119,17 +119,15 @@ export default function ThreeNodeSystemMobile() {
 
   function initializeScene(mount: HTMLDivElement) {
     const scene = new THREE.Scene();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const camera = new THREE.PerspectiveCamera(
-      95,
+      70,
       mount.clientWidth / mount.clientHeight,
       0.1,
       1000
     );
-    camera.position.set(0, 0, 60);
+    camera.position.set(0, 0, 80);
     cameraRef.current = camera;
     
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     const dpr = window.devicePixelRatio || 1;
     renderer.setPixelRatio(dpr);
@@ -357,44 +355,44 @@ export default function ThreeNodeSystemMobile() {
     let accumulator = 0;
 
     function animate() {
-        requestAnimationFrame(animate);
-        const delta = clock.getDelta();
-        accumulator += delta;
-      
-        if (controls) controls.update();
-      
-        if (accumulator >= targetFrameInterval) {
-          if (boxyRef.current) {
-            boxyRef.current.mixer.update(accumulator);
-            updateAnimation(boxyRef.current);
-      
-            boxyRef.current.model.updateMatrixWorld(true);
-            boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
-              const deformedGeom = getDeformedGeometry(mesh);
-              line.geometry.dispose();
-              line.geometry = new THREE.EdgesGeometry(deformedGeom, thresholdAngle);
-            });
-          }
-          composer.render();
-          accumulator %= targetFrameInterval;
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      accumulator += delta;
+    
+      if (controls) controls.update();
+    
+      if (accumulator >= targetFrameInterval) {
+        if (boxyRef.current) {
+          boxyRef.current.mixer.update(accumulator);
+          updateAnimation(boxyRef.current);
+    
+          boxyRef.current.model.updateMatrixWorld(true);
+          boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
+            const deformedGeom = getDeformedGeometry(mesh);
+            line.geometry.dispose();
+            line.geometry = new THREE.EdgesGeometry(deformedGeom, thresholdAngle);
+          });
         }
+        composer.render();
+        accumulator %= targetFrameInterval;
       }
+    }
     animate();
   }, []);
 
   useEffect(() => {
-    setShowAscii(true);
-    const t1 = setTimeout(() => setShowMountRef(true), 2000);
+    setShowMountRef(true);
+    const t1 = setTimeout(() => setShowAscii(true), 2000);
 
     return () => clearTimeout(t1);
   }, []);
 
   useEffect(() => {
-    if (!showMountRef) return;
+    if (!setShowAscii) return;
   
     const t2 = setTimeout(() => {
       setStartTypewriter(true);
-    }, 1500);
+    }, 2000);
   
     return () => clearTimeout(t2);
   }, [showMountRef]);
@@ -404,7 +402,7 @@ export default function ThreeNodeSystemMobile() {
 
     let currentLineIndex = 0;
     let currentCharIndex = 0;
-    const currentTyped = ["", "", "", "", "", "", "", "", ];
+    const currentTyped = ["", "", "", "", "", "", "", ""];
 
     const intervalId = setInterval(() => {
       const fullLine = linesToType[currentLineIndex];
@@ -419,7 +417,7 @@ export default function ThreeNodeSystemMobile() {
         }
       }
       setTypedLines([...currentTyped]);
-    }, 15);
+    }, 1);
 
     return () => clearInterval(intervalId);
   }, [startTypewriter]);
@@ -431,24 +429,32 @@ export default function ThreeNodeSystemMobile() {
         id="ascii-container"
         style={{
           position: "absolute",
-          top: "5%",
+          top: "70%", // adjusted positioning
           left: "50%",
-          transform: "translate(-50%, -5%)",
-          fontSize: 13,
+          transform: "translate(-50%, 0%)", // center horizontally without vertical shift
+          fontSize: "4.7px", // reduced font size
           opacity: showAscii ? 1 : 0,
           transition: "opacity 2s ease",
           whiteSpace: "pre",
         }}
       >
         {`
- __      ______ __    _____      
- \\ \\    / / __  \\ \\ \\/ /| |     
-  \\ \\  / / |  |  \\ \\  / | |     
-   \\ \\/ /| |  | |/ /\\ \\ | |     
-    \\  / | |__| / /__\\ \\| |____ 
-     \\/   \\____/_/    \\_\\______| /\\\\ /\\\\ /\\\\
-                                 \\\\/ \\\\/ \\\\/
-`}
+  ########           #########    ###############################    ##########          #########      ###########                   
+##############    #############   ################################  ##############    #############   ###############                 
+################################ #################################  ################################  ###############                 
+################################ #################################  ################################  ###############                 
+###############################  #################################  ###############################   ###############                 
+ #############################   #################################   #############################    ###############                 
+  ###########################    #################################    ###########################     ###############                 
+   #########################     #################################     ##########################     ###############                 
+    #######################      #################################    ############################    ############################### 
+     #####################       #################################   ##############################   ################################
+       ##################        #################################  ################################  ################################
+        ################         #################################  ################################  ################################
+         ##############          #################################  ################################  ################################
+          ############            ################################  ##############    ##############  ################################
+           #########              ###############################     #########          #########      ############################# 
+        `}
       </div>
 
       <div
@@ -456,15 +462,12 @@ export default function ThreeNodeSystemMobile() {
         style={{
           opacity: showMountRef ? 1 : 0,
           transition: "opacity 1.5s ease",
-
           position: "absolute",
-          top: "45%",
+          top: "30%",
           left: "50%",
           transform: "translate(-50%, -45%)",
-
-          width: "80vw",
-          height: "80vw",
-
+          width: "100vw",
+          height: "100vw",
           overflow: "hidden",
           zIndex: 10,
         }}
@@ -474,22 +477,22 @@ export default function ThreeNodeSystemMobile() {
       <div
         style={{
           position: "absolute",
-          top: "calc(50% + 40vw)",
-          left: "50%",
-          transform: "translate(-50%, 0)",
+          top: "88%",
           whiteSpace: "pre",
-          fontSize: 11,
+          fontSize: 10,
           textAlign: "left",
           width: "80vw",
+          lineHeight: "0.8em",       
+          transform: "translateX(5px)" 
         }}
       >
         {typedLines.map((line, i) => {
-            const renderedLine = formatTypedLine(line);
-            return (
-                <div key={i}>
-                    {renderedLine}
-                </div>
-            );
+          const renderedLine = formatTypedLine(line);
+          return (
+            <div key={i}>
+              {renderedLine}
+            </div>
+          );
         })}
       </div>
     </>
