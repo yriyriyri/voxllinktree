@@ -1070,8 +1070,8 @@ export default function ThreeDNodeSystem() {
               ctx.beginPath();
               ctx.moveTo(startX, startY);
               ctx.lineTo(endX, endY);
-              ctx.strokeStyle = "rgba(0, 0, 0, 0.8)";
-              ctx.lineWidth = 2;
+              ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
+              ctx.lineWidth = 0.5;
               ctx.stroke();
             }
           }
@@ -1107,7 +1107,7 @@ export default function ThreeDNodeSystem() {
     const boxyRef = { current: null as BoxyObject | null };
     const currentMount = mountRef.current;
     if (!currentMount) return;
-    const { scene, camera, renderer, composer } = initializeScene(currentMount);
+    const { scene, camera, renderer, composer, } = initializeScene(currentMount);
 
     // 4 initial font size calc
 
@@ -1142,17 +1142,27 @@ export default function ThreeDNodeSystem() {
       });
     }
 
-    const lineCanvas = document.createElement("canvas");
-    lineCanvas.style.position = "fixed";
-    lineCanvas.style.top = "0";
-    lineCanvas.style.left = "0";
-    lineCanvas.style.zIndex = "15";
-    lineCanvas.width = window.innerWidth;
-    lineCanvas.height = window.innerHeight;
-    lineCanvas.style.pointerEvents = "none";
-    lineCanvas.style.backgroundColor = "transparent";
+    const twoDCanvas = document.createElement("canvas");
 
-    document.body.appendChild(lineCanvas);
+    const dpr = (window.devicePixelRatio || 1) * 2;
+
+    twoDCanvas.width = window.innerWidth * dpr;
+    twoDCanvas.height = window.innerHeight * dpr;
+
+    twoDCanvas.style.width = window.innerWidth + "px";
+    twoDCanvas.style.height = window.innerHeight + "px";
+
+    twoDCanvas.style.position = "fixed";
+    twoDCanvas.style.top = "0";
+    twoDCanvas.style.left = "0";
+    twoDCanvas.style.zIndex = "15";
+    twoDCanvas.style.pointerEvents = "none";
+    twoDCanvas.style.backgroundColor = "transparent";
+
+    document.body.appendChild(twoDCanvas);
+
+    const ctx = twoDCanvas.getContext("2d")!;
+    ctx.scale(dpr, dpr);
 
     // 11 animate
     animateScene(
@@ -1167,7 +1177,7 @@ export default function ThreeDNodeSystem() {
       labels,
       composer,
       boxyRef,
-      lineCanvas,
+      twoDCanvas,
       currentHoveredRef
     );
 
