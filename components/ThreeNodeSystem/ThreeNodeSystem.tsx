@@ -1391,9 +1391,7 @@ export default function ThreeDNodeSystem() {
           {nodes.map((node, index) => {
             const nodeFontSize = index < 6 ? 9 : 14 - index;
             if (nodeFontSize < 4) return null;
-            
             const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
-
             return (
               <li
                 key={index}
@@ -1412,7 +1410,21 @@ export default function ThreeDNodeSystem() {
                 <span>{node.z.toFixed(2)}</span>
                 {node.assignedLabel && (
                   <span style={{ marginLeft: "15px" }}>
-                    | Label: <strong>{node.assignedLabel.content}</strong>
+                    | Label:{" "}
+                    <strong
+                      style={
+                        currentHovered === node.assignedLabel.content
+                          ? {
+                              backgroundColor: "black",
+                              color: "#eaeaea",
+                              textShadow: "none",
+                              fontWeight: "normal",
+                            }
+                          : { fontWeight: "bold" }
+                      }
+                    >
+                      {node.assignedLabel.content}
+                    </strong>
                   </span>
                 )}
               </li>
@@ -1505,76 +1517,74 @@ export default function ThreeDNodeSystem() {
       >
         {/* node labels */}
         {nodes.map((node) => {
-          if (!node.assignedLabel || !cameraRef.current) return null;
-
-          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
-          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
-          const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-          let displayType = "block";
-          if (boxyVers) {
-            displayType = "none";
-          }
-
-          if (
-            x < 0 ||
-            x > window.innerWidth - 200 ||
-            y < 0 ||
-            y > window.innerHeight
-          ) {
-            return null;
-          }
-
-          const handleClick = () => {
-            if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
-              window.open(node.assignedLabel!.url, "_blank");
-            } else if (node.assignedLabel!.function === "interface") {
-              if (node.assignedLabel!.content === "./devlog") {
-                router.push("/devlog");
-              } else {
-                setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
-              }
+        if (!node.assignedLabel || !cameraRef.current) return null;
+        const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
+        const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
+        const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+        let displayType = "block";
+        if (boxyVers) {
+          displayType = "none";
+        }
+        if (
+          x < 0 ||
+          x > window.innerWidth - 200 ||
+          y < 0 ||
+          y > window.innerHeight
+        ) {
+          return null;
+        }
+        const handleClick = () => {
+          if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
+            window.open(node.assignedLabel!.url, "_blank");
+          } else if (node.assignedLabel!.function === "interface") {
+            if (node.assignedLabel!.content === "./devlog") {
+              router.push("/devlog");
+            } else {
+              setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
             }
-          };
+          }
+        };
 
-          return (
-            <div
-              key={node.assignedLabel.content}
-              style={{
-                position: "absolute",
-                left: `${x}px`,
-                top: `${y}px`,
-                color: "black",
-                padding: "0px 0px",
-                zIndex: 30,
-                cursor: "pointer",
-                transform: "translateX(210px) translateY(-10px)",
-                pointerEvents: "auto",
-                fontSize: "11px",
-                fontFamily: "monospace",
-                fontWeight: 100,
-                fontStyle: "normal",
-                textDecoration: "none",
-                textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-                display: displayType,
-              }}
-              onClick={handleClick}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "black";
-                e.currentTarget.style.color = "#eaeaea";
-                e.currentTarget.style.textShadow = "none";
-                setCurrentHovered(node.assignedLabel!.content);
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-                e.currentTarget.style.color = "black";
-                e.currentTarget.style.textShadow = "2px 2px 3px rgba(61, 61, 61, 0.5)";
-                setCurrentHovered(null);
-              }}
-            >
-              {node.assignedLabel.content}
-            </div>
-          );
-        })}
+        const baseStyle: React.CSSProperties = {
+          position: "absolute",
+          left: `${x}px`,
+          top: `${y}px`,
+          color: "black",
+          padding: "0px 0px",
+          zIndex: 30,
+          cursor: "pointer",
+          transform: "translateX(210px) translateY(-10px)",
+          pointerEvents: "auto" as React.CSSProperties["pointerEvents"],
+          fontSize: "11px",
+          fontFamily: "monospace",
+          fontWeight: 100,
+          fontStyle: "normal",
+          textDecoration: "none",
+          textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+          display: displayType,
+        };
+
+        const hoveredStyle: React.CSSProperties =
+          currentHovered === node.assignedLabel.content
+            ? {
+                backgroundColor: "black",
+                color: "#eaeaea",
+                textShadow: "none",
+              }
+            : {};
+
+        return (
+          <div
+            key={node.assignedLabel.content}
+            style={{ ...baseStyle, ...hoveredStyle }}
+            onClick={handleClick}
+            onMouseEnter={() => setCurrentHovered(node.assignedLabel!.content)}
+            onMouseLeave={() => setCurrentHovered(null)}
+          >
+            {node.assignedLabel.content}
+          </div>
+        );
+      })}
       </div>
     </div>
   );
