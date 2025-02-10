@@ -1604,7 +1604,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         {/*article previews*/}
         <div style={{ marginTop: "30px" }}>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {articlesData.map((article) => (
+            {articlesData.map((article, index) => (
               <li
                 key={article.slug}
                 style={{
@@ -1613,8 +1613,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   wordBreak: "break-word",
-                  maxWidth: "600px",
-                  fontSize: "10px",
+                  maxWidth: index === 2 ? "550px" : "600px",
+                  fontSize: index === 2 ? "8px" : "10px",
                   cursor: "pointer",
                   pointerEvents: "auto",
                 }}
@@ -1640,9 +1640,9 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 </div>
                 <div
                   style={{
-                    fontSize: "8px",
+                    fontSize: index === 2 ? "6px" : "8px",
                     color: "#555",
-                    marginLeft: "30px",
+                    marginLeft: index === 2 ? "20px" : "30px",
                     textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
                   }}
                 >
