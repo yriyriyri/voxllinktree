@@ -1388,7 +1388,7 @@ export default function ThreeDNodeSystem() {
             const nodeFontSize = index < 6 ? 9 : 14 - index;
             if (nodeFontSize < 4) return null;
             
-            const dynamicPadding = 55 - 4 * (9 - nodeFontSize);
+            const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
 
             return (
               <li
