@@ -137,6 +137,8 @@ export default function ThreeNodeSystemMobile() {
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; 
     controls.dampingFactor = 0.1;
+    controls.enableZoom = false; // disables zooming
+    controls.enablePan = false;
     
     const composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
@@ -439,7 +441,7 @@ export default function ThreeNodeSystemMobile() {
         id="ascii-container"
         style={{
           position: "absolute",
-          top: "70%", 
+          top: "60%", 
           left: "50%",
           transform: "translate(-50%, 0%)", 
           fontSize: "4.7px", 
@@ -488,7 +490,7 @@ export default function ThreeNodeSystemMobile() {
       <div
         style={{
           position: "absolute",
-          top: "88%",
+          top: "76%",
           whiteSpace: "pre",
           fontSize: 10,
           textAlign: "left",
