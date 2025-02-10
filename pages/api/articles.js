@@ -37,7 +37,7 @@ export default function handler(req, res) {
         const firstContent = firstContentMatch[1].trim();
         const sentences = firstContent.match(/[^.!?]+[.!?]+/g);
         if (sentences && sentences.length > 0) {
-          preview = sentences.slice(0, 4).join(' ').trim();
+          preview = sentences.slice(0, 2).join(' ').trim();
         } else {
           preview = firstContent;
         }
