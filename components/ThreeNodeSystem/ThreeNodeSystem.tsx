@@ -121,6 +121,10 @@ export default function ThreeDNodeSystem() {
 
   const boxyVers = false;
 
+  //current hovered
+
+  const [currentHovered, setCurrentHovered] = useState<string | null>(null);
+
   //major variable adjusts (make dynamic based on screensize)
 
   let lineDistanceFactor = 30;
@@ -1502,27 +1506,24 @@ export default function ThreeDNodeSystem() {
         {/* node labels */}
         {nodes.map((node) => {
           if (!node.assignedLabel || !cameraRef.current) return null;
-  
-          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(
-            cameraRef.current
-          );
+
+          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
           const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
           const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
           let displayType = "block";
           if (boxyVers) {
             displayType = "none";
           }
-  
+
           if (
             x < 0 ||
             x > window.innerWidth - 200 ||
             y < 0 ||
             y > window.innerHeight
           ) {
-            // Label is offscreen
             return null;
           }
-  
+
           const handleClick = () => {
             if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
               window.open(node.assignedLabel!.url, "_blank");
@@ -1534,7 +1535,7 @@ export default function ThreeDNodeSystem() {
               }
             }
           };
-  
+
           return (
             <div
               key={node.assignedLabel.content}
@@ -1557,12 +1558,18 @@ export default function ThreeDNodeSystem() {
                 display: displayType,
               }}
               onClick={handleClick}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.textDecoration = "underline")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.textDecoration = "none")
-              }
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "black";
+                e.currentTarget.style.color = "#eaeaea";
+                e.currentTarget.style.textShadow = "none";
+                setCurrentHovered(node.assignedLabel!.content);
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "black";
+                e.currentTarget.style.textShadow = "2px 2px 3px rgba(61, 61, 61, 0.5)";
+                setCurrentHovered(null);
+              }}
             >
               {node.assignedLabel.content}
             </div>
