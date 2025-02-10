@@ -1218,12 +1218,12 @@ export default function ThreeDNodeSystem() {
       >
         current_frame_rate = {fps}
       </div>
-
-     {/* corner lines */}
+  
+      {/* corner lines */}
       <div
         style={{
           position: "absolute",
-          left: `${400 + cornerOffset}px`,
+          left: `${500 + cornerOffset}px`,
           top: "40px",
           width: "2px",
           height: "30px",
@@ -1233,67 +1233,11 @@ export default function ThreeDNodeSystem() {
           boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
         }}
       />
-
+  
       <div
         style={{
           position: "absolute",
-          left: `${400 + cornerOffset}px`,
-          top: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: `${400 + cornerOffset}px`,
-          bottom: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          left: `${400 + cornerOffset}px`,
-          bottom: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          right: `${cornerOffset}px`,
-          top: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-
-      <div
-        style={{
-          position: "absolute",
-          right: `${cornerOffset}px`,
+          left: `${500 + cornerOffset}px`,
           top: "40px",
           width: "30px",
           height: "2px",
@@ -1303,11 +1247,11 @@ export default function ThreeDNodeSystem() {
           boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
         }}
       />
-
+  
       <div
         style={{
           position: "absolute",
-          right: `${cornerOffset}px`,
+          left: `${500 + cornerOffset}px`,
           bottom: "40px",
           width: "2px",
           height: "30px",
@@ -1317,11 +1261,67 @@ export default function ThreeDNodeSystem() {
           boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
         }}
       />
-
+  
       <div
         style={{
           position: "absolute",
-          right: `${cornerOffset}px`,
+          left: `${500 + cornerOffset}px`,
+          bottom: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset - 25}px`,
+          top: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset - 25}px`,
+          top: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset - 25}px`,
+          bottom: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `${cornerOffset - 25}px`,
           bottom: "40px",
           width: "30px",
           height: "2px",
@@ -1351,28 +1351,66 @@ export default function ThreeDNodeSystem() {
           textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
         }}
       >
+        {/* ASCII art header */}
+        <pre
+          style={{
+            whiteSpace: "pre",
+            marginBottom: "20px",
+            fontSize: "7px",
+            lineHeight: "1",
+            textShadow: "2px 2px 5px rgba(61, 61, 61, 0.9)",
+          }}
+        >
+          {`
+
+  ########           #########    ###############################    ##########          #########      ###########                   
+##############    #############   ################################  ##############    #############   ###############                 
+################################ #################################  ################################  ###############                 
+################################ #################################  ################################  ###############                 
+###############################  #################################  ###############################   ###############                 
+ #############################   #################################   #############################    ###############                 
+  ###########################    #################################    ###########################     ###############                 
+   #########################     #################################     ##########################     ###############                 
+    #######################      #################################    ############################    ############################### 
+     #####################       #################################   ##############################   ################################
+       ##################        #################################  ################################  ################################
+        ################         #################################  ################################  ################################
+         ##############          #################################  ################################  ################################
+          ############            ################################  ##############    ##############  ################################
+           #########              ###############################     #########          #########      ############################# `
+      
+      }
+        </pre>
+  
         {/* node details */}
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {nodes.map((node, index) => (
-            <li
-              key={index}
-              style={{
-                marginBottom: "10px",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              INFO: Node <strong>{index + 1}</strong> | Position X=
-              <span>{node.x.toFixed(2)}</span>, Y=<span>{node.y.toFixed(2)}</span>, Z=
-              <span>{node.z.toFixed(2)}</span>
-              {node.assignedLabel && (
-                <span style={{ marginLeft: "15px" }}>
-                  | Label: <span>{node.assignedLabel.content}</span>
-                </span>
-              )}
-            </li>
-          ))}
+          {nodes.map((node, index) => {
+            const nodeFontSize = index < 6 ? 9 : 14 - index;
+            if (nodeFontSize <= 0) return null;
+  
+            return (
+              <li
+                key={index}
+                style={{
+                  marginBottom: "10px",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  fontSize: `${nodeFontSize}px`,
+                }}
+              >
+                INFO: Node <strong>{index + 1}</strong> | Position X=
+                <span>{node.x.toFixed(2)}</span>, Y=
+                <span>{node.y.toFixed(2)}</span>, Z=
+                <span>{node.z.toFixed(2)}</span>
+                {node.assignedLabel && (
+                  <span style={{ marginLeft: "15px" }}>
+                    | Label: <span>{node.assignedLabel.content}</span>
+                  </span>
+                )}
+              </li>
+            );
+          })}
         </ul>
   
         {/* labels */}
@@ -1388,9 +1426,14 @@ export default function ThreeDNodeSystem() {
                 textOverflow: "ellipsis",
               }}
             >
-              LABEL: <strong>{label.content}</strong> | Priority = <span>{label.priority}</span> | Function = <span>{label.function}</span> | 
+              LABEL: <strong>{label.content}</strong> | Priority ={" "}
+              <span>{label.priority}</span> | Function ={" "}
+              <span>{label.function}</span> |{" "}
               {label.function === "link" && label.url && (
-                <> URL: <a
+                <>
+                  {" "}
+                  URL:{" "}
+                  <a
                     href={label.url}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -1408,17 +1451,17 @@ export default function ThreeDNodeSystem() {
               {label.function === "interface" && label.interfaceContent && (
                 <a
                   onClick={(e) => {
-                    e.preventDefault(); 
+                    e.preventDefault();
                     setSelectedInterfaceContent(label.interfaceContent || "");
                   }}
                   style={{
-                    color: "#000000", 
+                    color: "#000000",
                     cursor: "pointer",
                     textDecoration: "none",
                     pointerEvents: "auto",
                   }}
                 >
-                  INTERFACE: {label.content.replace('./', '')}
+                  INTERFACE: {label.content.replace("./", "")}
                 </a>
               )}
             </li>
@@ -1430,8 +1473,8 @@ export default function ThreeDNodeSystem() {
             <h3></h3>
             <p
               style={{
-                maxWidth: "600px",      
-                width: "100%",            
+                maxWidth: "600px",
+                width: "100%",
                 wordWrap: "break-word",
               }}
             >
@@ -1446,72 +1489,82 @@ export default function ThreeDNodeSystem() {
         ref={mountRef}
         style={{
           position: "absolute",
-          left: `200px`,
+          left: `275px`,
           width: "100%",
           height: "100%",
           overflow: "hidden",
           zIndex: 10,
         }}
       >
-       {/* node labels */}
-      {nodes.map((node) => {
-        if (!node.assignedLabel || !cameraRef.current) return null;
-
-        const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
-        const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
-        const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-        let displayType = "block"
-        if (boxyVers){
-          displayType = "none"
-        }
-
-        if (x < 0 || x > window.innerWidth - 200 || y < 0 || y > window.innerHeight) {
-          // console.warn(`Label '${node.assignedLabel.content}' is offscreen`);
-          return null;
-        }
-
-        const handleClick = () => {
-          if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
-            window.open(node.assignedLabel!.url, "_blank");
-          } else if (node.assignedLabel!.function === "interface") {
-            if (node.assignedLabel!.content === "./devlog") {
-              router.push("/devlog");
-            } else {
-              setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
-            }
+        {/* node labels */}
+        {nodes.map((node) => {
+          if (!node.assignedLabel || !cameraRef.current) return null;
+  
+          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(
+            cameraRef.current
+          );
+          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
+          const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+          let displayType = "block";
+          if (boxyVers) {
+            displayType = "none";
           }
-        };
-
-        {/* node styling */}
-        return (
-          <div
-            key={node.assignedLabel.content}
-            style={{
-              position: "absolute",
-              left: `${x}px`,
-              top: `${y}px`,
-              color: "black",
-              padding: "0px 0px",
-              zIndex: 30,
-              cursor: "pointer",
-              transform: "translateX(210px) translateY(-10px)",
-              pointerEvents: "auto",
-              fontSize: "11px",
-              fontFamily: "monospace",
-              fontWeight: 100,
-              fontStyle: "normal",
-              textDecoration: "none", 
-              textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-              display:  displayType,
-            }}
-            onClick={handleClick}
-            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")} 
-            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
-          >
-            {node.assignedLabel.content}
-          </div>
-        );
-      })}
+  
+          if (
+            x < 0 ||
+            x > window.innerWidth - 200 ||
+            y < 0 ||
+            y > window.innerHeight
+          ) {
+            // Label is offscreen
+            return null;
+          }
+  
+          const handleClick = () => {
+            if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
+              window.open(node.assignedLabel!.url, "_blank");
+            } else if (node.assignedLabel!.function === "interface") {
+              if (node.assignedLabel!.content === "./devlog") {
+                router.push("/devlog");
+              } else {
+                setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
+              }
+            }
+          };
+  
+          return (
+            <div
+              key={node.assignedLabel.content}
+              style={{
+                position: "absolute",
+                left: `${x}px`,
+                top: `${y}px`,
+                color: "black",
+                padding: "0px 0px",
+                zIndex: 30,
+                cursor: "pointer",
+                transform: "translateX(210px) translateY(-10px)",
+                pointerEvents: "auto",
+                fontSize: "11px",
+                fontFamily: "monospace",
+                fontWeight: 100,
+                fontStyle: "normal",
+                textDecoration: "none",
+                textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+                display: displayType,
+              }}
+              onClick={handleClick}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.textDecoration = "underline")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.textDecoration = "none")
+              }
+            >
+              {node.assignedLabel.content}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
