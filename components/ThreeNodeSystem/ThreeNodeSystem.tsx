@@ -1601,20 +1601,23 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           })}
         </ul>
 
+        {/*article previews*/}
         <div style={{ marginTop: "30px" }}>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {articlesData.map((article) => (
               <li
                 key={article.slug}
                 style={{
-                  marginBottom: "20px", 
-                  whiteSpace: "normal", 
+                  marginBottom: "20px",
+                  whiteSpace: "normal",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
-                  wordBreak: "break-word", 
-                  maxWidth: "600px", 
-                  fontSize: "10px", 
+                  wordBreak: "break-word",
+                  maxWidth: "600px",
+                  fontSize: "10px",
+                  cursor: "pointer",
                 }}
+                onClick={() => router.push("/devlog")}
               >
                 <div
                   style={{
@@ -1636,13 +1639,13 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 </div>
                 <div
                   style={{
-                    fontSize: "8px", 
+                    fontSize: "8px",
                     color: "#555",
-                    marginLeft: "30px", 
-                    textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)", 
+                    marginLeft: "30px",
+                    textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
                   }}
                 >
-                  {article.preview && article.preview.slice(-1) === '.'
+                  {article.preview && article.preview.slice(-1) === "."
                     ? article.preview.slice(0, -1) + " {...}"
                     : article.preview}
                 </div>
