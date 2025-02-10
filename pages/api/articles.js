@@ -5,22 +5,22 @@ import path from 'path';
 export default function handler(req, res) {
   try {
     const articlesDir = path.join(process.cwd(), 'public', 'articles');
-    const filenames = fs.readdirSync(articlesDir).filter(file =>
-      file.endsWith('.html')
-    );
+    const filenames = fs
+      .readdirSync(articlesDir)
+      .filter((file) => file.endsWith('.html'));
 
-    const articlesData = filenames.map((filename) => {
+    const articlesData = filenames.slice(0,3).map((filename) => {
       const filePath = path.join(articlesDir, filename);
       const fileContent = fs.readFileSync(filePath, 'utf8');
 
       const titleMatch = fileContent.match(
-        /<div\s+class=["']title["']>\s*([\s\S]*?)\s*<\/div>/
+        /<div[^>]*class=["']title["'][^>]*>([\s\S]*?)<\/div>/i
       );
       const dateMatch = fileContent.match(
-        /<div\s+class=["']date["']>\s*([\s\S]*?)\s*<\/div>/
+        /<div[^>]*class=["']date["'][^>]*>([\s\S]*?)<\/div>/i
       );
       const authorMatch = fileContent.match(
-        /<div\s+class=["']submit["']>.*?submitted\s+by\s+([^<]+?)\s*<\/div>/
+        /<div[^>]*class=["']submit["'][^>]*>[\s\S]*?submitted\s+by\s+([^<]+?)\s*<\/div>/i
       );
 
       const title = titleMatch ? titleMatch[1].trim() : 'Untitled';
@@ -28,7 +28,23 @@ export default function handler(req, res) {
       const author = authorMatch ? authorMatch[1].trim() : '';
       const slug = filename.replace(/\.html$/, '');
 
-      return { title, date, author, slug };
+      let preview = '';
+      const firstContentMatch = fileContent.match(
+        /<div[^>]*class=["']content["'][^>]*>([\s\S]*?)<\/div>/i
+      );
+
+      if (firstContentMatch) {
+        const firstContent = firstContentMatch[1].trim();
+
+        const sentences = firstContent.match(/[^.!?]+[.!?]+/g);
+        if (sentences && sentences.length > 0) {
+          preview = sentences.slice(0, 4).join(' ').trim();
+        } else {
+          preview = firstContent;
+        }
+      }
+
+      return { title, date, author, slug, preview };
     });
 
     res.status(200).json(articlesData);

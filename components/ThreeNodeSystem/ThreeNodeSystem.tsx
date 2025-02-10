@@ -68,6 +68,7 @@ export interface ArticleData {
   date: string;
   author: string;
   slug: string;
+  preview: string;
 }
 
 interface ThreeNodeSystemProps {
@@ -77,7 +78,7 @@ interface ThreeNodeSystemProps {
 export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) {
 
   console.log("Articles Data:", articlesData);
-  
+
   //external refs 
   const mountRef = useRef<HTMLDivElement>(null);
   const lineCanvasRef = useRef<HTMLCanvasElement>(null);

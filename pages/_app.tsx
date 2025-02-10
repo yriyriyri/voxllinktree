@@ -13,6 +13,7 @@ export interface ArticleData {
   date: string;
   author: string;
   slug: string;
+  preview: string;  
 }
 
 interface MyAppProps extends AppProps {
@@ -50,22 +51,17 @@ function MyApp({ Component, pageProps, articlesData }: MyAppProps) {
 }
 
 MyApp.getInitialProps = async (appContext: AppContext) => {
-  // Get the initial props from Next's App component.
   const appProps = await App.getInitialProps(appContext);
   let articlesData: ArticleData[] = [];
 
   try {
     let response;
     if (appContext.ctx.req) {
-      // On the server, build an absolute URL.
-      const protocol =
-        appContext.ctx.req.headers["x-forwarded-proto"] ||
-        "http";
+      const protocol = appContext.ctx.req.headers["x-forwarded-proto"] || "http";
       const host = appContext.ctx.req.headers.host;
       const baseUrl = `${protocol}://${host}`;
       response = await fetch(`${baseUrl}/api/articles`);
     } else {
-      // On the client, a relative URL is sufficient.
       response = await fetch("/api/articles");
     }
 
