@@ -9,7 +9,6 @@ import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
-
 interface NodeObject {
   x: number;
   y: number;
@@ -64,7 +63,21 @@ interface Label {
   interfaceContent?: string;
 }
 
-export default function ThreeDNodeSystem() {
+export interface ArticleData {
+  title: string;
+  date: string;
+  author: string;
+  slug: string;
+}
+
+interface ThreeNodeSystemProps {
+  articlesData: ArticleData[];
+}
+
+export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) {
+
+  console.log("Articles Data:", articlesData);
+  
   //external refs 
   const mountRef = useRef<HTMLDivElement>(null);
   const lineCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -1641,7 +1654,7 @@ export default function ThreeDNodeSystem() {
             </li>
           ))}
         </ul> */}
-        
+
         {/* interface label content */}
         {typedContent && (
           <div style={{ marginTop: "30px", fontWeight: "normal" }}>
