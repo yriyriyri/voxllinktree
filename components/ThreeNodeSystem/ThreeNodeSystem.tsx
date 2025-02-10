@@ -1616,6 +1616,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                   maxWidth: "600px",
                   fontSize: "10px",
                   cursor: "pointer",
+                  pointerEvents: "auto",
                 }}
                 onClick={() => router.push("/devlog")}
               >
