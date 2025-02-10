@@ -1587,7 +1587,7 @@ export default function ThreeDNodeSystem() {
           })}
         </ul>
   
-        {/* labels */}
+        {/* labels
         <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
         <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
           {labels.map((label, index) => (
@@ -1640,7 +1640,8 @@ export default function ThreeDNodeSystem() {
               )}
             </li>
           ))}
-        </ul>
+        </ul> */}
+        
         {/* interface label content */}
         {typedContent && (
           <div style={{ marginTop: "30px", fontWeight: "normal" }}>
