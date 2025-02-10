@@ -1,13 +1,25 @@
 // pages/_app.tsx
 import "@/styles/globals.css";
-import type { AppProps } from "next/app";
+import type { AppProps, AppContext } from "next/app";
+import App from "next/app";
 import React, { useEffect, useState } from "react";
 import ThreeNodeSystem from "../components/ThreeNodeSystem/ThreeNodeSystem";
 import ThreeNodeSystemMobile from "../components/ThreeNodeSystemMobile/ThreeNodeSystemMobile";
 import { useRouter } from "next/router";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
-export default function App({ Component, pageProps }: AppProps) {
+export interface ArticleData {
+  title: string;
+  date: string;
+  author: string;
+  slug: string;
+}
+
+interface MyAppProps extends AppProps {
+  articlesData: ArticleData[];
+}
+
+function MyApp({ Component, pageProps, articlesData }: MyAppProps) {
   const [isMobile, setIsMobile] = useState<boolean | null>(null);
   const router = useRouter();
 
@@ -27,12 +39,44 @@ export default function App({ Component, pageProps }: AppProps) {
     <>
       {showThreeNodeSystem &&
         (isMobile ? (
-          <ThreeNodeSystemMobile articlesData={pageProps.articlesData} />
+          <ThreeNodeSystemMobile />
         ) : (
-          <ThreeNodeSystem articlesData={pageProps.articlesData} />
+          <ThreeNodeSystem articlesData={articlesData} />
         ))}
       <Component {...pageProps} />
       <SpeedInsights />
     </>
   );
 }
+
+MyApp.getInitialProps = async (appContext: AppContext) => {
+  // Get the initial props from Next's App component.
+  const appProps = await App.getInitialProps(appContext);
+  let articlesData: ArticleData[] = [];
+
+  try {
+    let response;
+    if (appContext.ctx.req) {
+      // On the server, build an absolute URL.
+      const protocol =
+        appContext.ctx.req.headers["x-forwarded-proto"] ||
+        "http";
+      const host = appContext.ctx.req.headers.host;
+      const baseUrl = `${protocol}://${host}`;
+      response = await fetch(`${baseUrl}/api/articles`);
+    } else {
+      // On the client, a relative URL is sufficient.
+      response = await fetch("/api/articles");
+    }
+
+    if (response.ok) {
+      articlesData = await response.json();
+    }
+  } catch (error) {
+    console.error("Error fetching articles:", error);
+  }
+
+  return { ...appProps, articlesData };
+};
+
+export default MyApp;
