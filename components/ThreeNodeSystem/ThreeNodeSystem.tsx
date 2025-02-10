@@ -1692,9 +1692,13 @@ export default function ThreeDNodeSystem() {
           if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
             window.open(node.assignedLabel!.url, "_blank");
           } else if (node.assignedLabel!.function === "interface") {
-            setSelectedInterfaceContent(
-              node.assignedLabel!.interfaceContent || ""
-            );
+            if (node.assignedLabel!.content === "./devlog") {
+              setCurrentHovered(null);
+              currentHoveredRef.current = null;
+              router.push("/devlog");
+            } else {
+              setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
+            }
           }
         };
 
