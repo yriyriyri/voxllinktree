@@ -29,7 +29,10 @@ export default function ThreeNodeSystemMobile() {
   const [showMountRef, setShowMountRef] = useState(false);
   const [startTypewriter, setStartTypewriter] = useState(false);
 
-  const [typedLines, setTypedLines] = useState<string[]>(["", "", "", "", "", "", "", ""]);
+  const baseUrl =
+    typeof window !== "undefined" && window.location.origin
+      ? window.location.origin
+      : "https://fallback.com"; //SET PROPERLY ON LAUNCH
 
   const linesToType = [
     "./X | URL: https://x.com/voxldev",
@@ -40,8 +43,13 @@ export default function ThreeNodeSystemMobile() {
     "    ",
     "./steam | URL: https://example.com/steam",
     "    ",
-    // "./about us | INTERFACE: about us",
   ];
+
+  linesToType.push(`./devlog | URL: ${baseUrl}/devlog`);
+
+  const [typedLines, setTypedLines] = useState<string[]>(
+    Array(linesToType.length).fill("")
+  );
 
   useEffect(() => {
     document.documentElement.style.setProperty("height", "100%");
