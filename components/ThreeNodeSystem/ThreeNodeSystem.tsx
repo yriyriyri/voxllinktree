@@ -305,7 +305,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     if (width <= minWidth) {
       offset = 7;
     } else if (width >= maxWidth) {
-      offset = 13;
+      offset = 10;
     } else {
       offset = 7 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
     }
@@ -1793,13 +1793,77 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           }}
         >
           <div style={{ position: "relative", display: "inline-block" }}>
+            <div
+              style={{
+                position: "absolute",
+                top: "-5px",
+                left: "-5px",
+                width: "20px",
+                height: "20px",
+                borderTop: "1px solid #3d3d3d",
+                borderLeft: "1px solid #3d3d3d",
+                pointerEvents: "none",
+                zIndex: 2,
+                opacity: videoVisible ? 1 : 0,
+                transition: "opacity 0.5s ease",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                top: "-5px",
+                right: "-5px",
+                width: "20px",
+                height: "20px",
+                borderTop: "1px solid #3d3d3d",
+                borderRight: "1px solid #3d3d3d",
+                pointerEvents: "none",
+                zIndex: 2,
+                opacity: videoVisible ? 1 : 0,
+                transition: "opacity 0.5s ease",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-5px",
+                left: "-5px",
+                width: "20px",
+                height: "20px",
+                borderBottom: "1px solid #3d3d3d",
+                borderLeft: "1px solid #3d3d3d",
+                pointerEvents: "none",
+                zIndex: 2,
+                opacity: videoVisible ? 1 : 0,
+                transition: "opacity 0.5s ease",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-5px",
+                right: "-5px",
+                width: "20px",
+                height: "20px",
+                borderBottom: "1px solid #3d3d3d",
+                borderRight: "1px solid #3d3d3d",
+                pointerEvents: "none",
+                zIndex: 2,
+                opacity: videoVisible ? 1 : 0,
+                transition: "opacity 0.5s ease",
+              }}
+            />
+
             <video
               ref={videoRef}
               src="/stream/will_talking-1.mov"
               autoPlay
               loop
               muted
-              onClick={() => setVideoVisible((prev) => !prev)}
+              onClick={() => setVideoVisible(prev => !prev)}
               style={{
                 width: `calc((500px + ${cornerOffsetVW}) / 1.8)`,
                 height: "auto",
@@ -1814,20 +1878,18 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             <div
               style={{
                 position: "absolute",
-                // top: "100%",
-                top: "0px",
+                top: "-5px",
                 left: "100%",
-                marginLeft: "5px", 
+                marginLeft: "10px",
                 whiteSpace: "nowrap",
                 textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
                 opacity: videoVisible ? 1 : 0,
                 transition: "opacity 0.5s ease",
-                // transform: "translateY(-100%)"
               }}
             >
-            {isoTimestamp}
-            <div>dev: Will</div>
-            <div>blood-type: N/A</div>
+              {isoTimestamp}
+              <div>dev: Will</div>
+              <div>blood-type: N/A</div>
             </div>
           </div>
         </div>
