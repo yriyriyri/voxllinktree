@@ -8,6 +8,7 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { VideoAscii, ArtTypeEnum } from "video-stream-ascii";
 
 interface NodeObject {
   x: number;
@@ -88,6 +89,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [selectedInterfaceContent, setSelectedInterfaceContent] = useState<string | null>(null);
   const [typedContent, setTypedContent] = useState<string>("");
   const boxyRef = useRef<BoxyObject | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
 
@@ -1428,6 +1431,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
 
   return (
     <div
+      ref={parentRef}
       style={{
         position: "relative",
         width: "100%",
@@ -1719,6 +1723,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         </div>
 
         <video
+          ref={videoRef}
           src="/stream/will_talking-1.mov"
           autoPlay
           loop
@@ -1740,6 +1745,18 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             pointerEvents: "auto",
           }}
         />
+
+        {videoRef.current && parentRef.current && (
+          <VideoAscii
+            videoStreaming={videoRef.current}
+            parentRef={parentRef as React.RefObject<HTMLElement>}
+            artType={ArtTypeEnum.ASCII_COLOR_BG_IMAGE}
+            charsPerLine={120}
+            charsPerColumn={50}
+            fontColor="white"
+            backgroundColor="black"
+          />
+        )}
   
         {/* labels
         <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
