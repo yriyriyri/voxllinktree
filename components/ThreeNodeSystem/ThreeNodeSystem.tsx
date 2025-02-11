@@ -9,6 +9,7 @@ import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
+
 interface NodeObject {
   x: number;
   y: number;
@@ -121,6 +122,11 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [fps, setFps] = useState(0);
   const lastFrameTime = useRef(performance.now());
   const frameCount = useRef(0);
+
+  //time
+
+  const [japanTime, setJapanTime] = useState("");
+  const [isoTimestamp, setIsoTimestamp] = useState("");
 
   //debug animation keys DEBUG
 
@@ -1406,6 +1412,31 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     return () => clearInterval(interval);
   }, []);
 
+  //##time jpn
+  useEffect(() => {
+    const updateTimestamp = () => {
+      const now = new Date();
+      const formatter = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Asia/Tokyo",
+        hour12: false,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+      const formatted = formatter.format(now);
+      const isoString = formatted.replace(" ", "T") + "+09:00";
+      const finalString = isoString + " (GMT+9)(JPN+9)";
+      setIsoTimestamp(finalString);
+    };
+
+    updateTimestamp();
+    const intervalId = setInterval(updateTimestamp, 1000);
+    return () => clearInterval(intervalId);
+  }, []);
+
   //###DEBUG KEY ANIMATION ######## REMOVE
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -1721,29 +1752,49 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           </ul>
         </div>
 
-        <video
-          ref={videoRef}
-          src="/stream/will_talking-1.mov"
-          autoPlay
-          loop
-          muted
-          onClick={() => setVideoVisible(prev => !prev)}
+        <div
           style={{
             position: "absolute",
             bottom: "7vh",
-            // left: `calc((525px + ${cornerOffsetVW})/2)`,
             left: "3vh",
-            zIndex: 999,  
-            width: `calc(275px + ${cornerOffsetVW})`,
-            height: "auto",
-            // transform: "translateX(-50%)",
-            mixBlendMode: "overlay",
-            opacity: videoVisible ? 1 : 0, 
-            transition: "opacity 0.5s ease", 
-            cursor: "pointer", 
-            pointerEvents: "auto",
+            zIndex: 999,
           }}
-        />
+        >
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <video
+              ref={videoRef}
+              src="/stream/will_talking-1.mov"
+              autoPlay
+              loop
+              muted
+              onClick={() => setVideoVisible((prev) => !prev)}
+              style={{
+                width: `calc(275px + ${cornerOffsetVW})`,
+                height: "auto",
+                mixBlendMode: "overlay",
+                opacity: videoVisible ? 1 : 0,
+                transition: "opacity 0.5s ease",
+                cursor: "pointer",
+                pointerEvents: "auto",
+              }}
+            />
+
+            <div
+              style={{
+                position: "absolute",
+                top: "0px",
+                left: "100%",
+                marginLeft: "5px", 
+                whiteSpace: "nowrap",
+                textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+            {isoTimestamp}
+            <div>dev: Will</div>
+            <div>blood-type: N/A</div>
+            </div>
+          </div>
+        </div>
 
         {/* {videoRef.current && parentRef.current && (
           <VideoAscii
