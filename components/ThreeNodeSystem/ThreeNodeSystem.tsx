@@ -179,6 +179,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [overlayLineSpacing, setOverlayLineSpacing] = useState(10);
   const [cornerOffset, setCornerOffset] = useState(11);
   const [asciiFontSize, setAsciiFontSize] = useState(12)
+  const cornerOffsetVW = `${cornerOffset}vw`;
+  const [videoVisible, setVideoVisible] = useState(false);
 
   //####helper functions
 
@@ -288,10 +290,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const newLineSpacing = Math.min(computedLineSpacing, maxLineSpacing);
     setOverlayLineSpacing(newLineSpacing);
 
-    const baselineCornerOffset = 100; 
-    const maxCornerOffset = 200;
-    const computedCornerOffset = (window.innerWidth / baselineWidth) * baselineCornerOffset;
-    const newCornerOffset = Math.min(computedCornerOffset, maxCornerOffset);
+    const newCornerOffset = 7;
     setCornerOffset(newCornerOffset);
 
     let size;
@@ -299,11 +298,11 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const maxWidth = 2000;
     const width = window.innerWidth;
     if (width <= minWidth) {
-      size = 8;
+      size = 7.5;
     } else if (width >= maxWidth) {
       size = 10;
     } else {
-      size = 8 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
+      size = 7.5 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
     }
     setAsciiFontSize(size);
 
@@ -1460,7 +1459,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       <div
         style={{
           position: "absolute",
-          left: `${500 + cornerOffset}px`,
+          left: `calc(525px + ${cornerOffsetVW})`,
           top: "40px",
           width: "2px",
           height: "30px",
@@ -1474,63 +1473,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       <div
         style={{
           position: "absolute",
-          left: `${500 + cornerOffset}px`,
-          top: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          left: `${500 + cornerOffset}px`,
-          bottom: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          left: `${500 + cornerOffset}px`,
-          bottom: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          right: `${cornerOffset - 25}px`,
-          top: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          right: `${cornerOffset - 25}px`,
+          left: `calc(525px + ${cornerOffsetVW})`,
           top: "40px",
           width: "30px",
           height: "2px",
@@ -1544,7 +1487,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       <div
         style={{
           position: "absolute",
-          right: `${cornerOffset - 25}px`,
+          left: `calc(525px + ${cornerOffsetVW})`,
           bottom: "40px",
           width: "2px",
           height: "30px",
@@ -1558,7 +1501,63 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       <div
         style={{
           position: "absolute",
-          right: `${cornerOffset - 25}px`,
+          left: `calc(525px + ${cornerOffsetVW})`,
+          bottom: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `calc(${cornerOffsetVW} - 50px)`,
+          top: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `calc(${cornerOffsetVW} - 50px)`,
+          top: "40px",
+          width: "30px",
+          height: "2px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `calc(${cornerOffsetVW} - 50px)`,
+          bottom: "40px",
+          width: "2px",
+          height: "30px",
+          backgroundColor: "#3d3d3d",
+          opacity: 0.8,
+          zIndex: 25,
+          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+        }}
+      />
+  
+      <div
+        style={{
+          position: "absolute",
+          right: `calc(${cornerOffsetVW} - 50px)`,
           bottom: "40px",
           width: "30px",
           height: "2px",
@@ -1718,6 +1717,29 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             ))}
           </ul>
         </div>
+
+        <video
+          src="/stream/will_talking-1.mov"
+          autoPlay
+          loop
+          muted
+          onClick={() => setVideoVisible(prev => !prev)}
+          style={{
+            position: "absolute",
+            bottom: "7vh",
+            // left: `calc((525px + ${cornerOffsetVW})/2)`,
+            left: "3vh",
+            zIndex: 999,  
+            width: `calc(275px + ${cornerOffsetVW})`,
+            height: "auto",
+            // transform: "translateX(-50%)",
+            mixBlendMode: "overlay",
+            opacity: videoVisible ? 1 : 0, 
+            transition: "opacity 0.5s ease", 
+            cursor: "pointer", 
+            pointerEvents: "auto",
+          }}
+        />
   
         {/* labels
         <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
@@ -1797,7 +1819,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         ref={mountRef}
         style={{
           position: "absolute",
-          left: `275px`,
+          left: `300px`,
           width: "100%",
           height: "100%",
           overflow: "hidden",
