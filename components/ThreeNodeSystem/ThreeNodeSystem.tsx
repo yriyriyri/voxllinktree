@@ -8,7 +8,6 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import { VideoAscii, ArtTypeEnum } from "video-stream-ascii";
 
 interface NodeObject {
   x: number;
@@ -1746,7 +1745,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           }}
         />
 
-        {videoRef.current && parentRef.current && (
+        {/* {videoRef.current && parentRef.current && (
           <VideoAscii
             videoStreaming={videoRef.current}
             parentRef={parentRef as React.RefObject<HTMLElement>}
@@ -1756,7 +1755,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             fontColor="white"
             backgroundColor="black"
           />
-        )}
+        )} */}
   
         {/* labels
         <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
