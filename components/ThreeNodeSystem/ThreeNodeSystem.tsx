@@ -1435,7 +1435,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       });
       const formatted = formatter.format(now);
       const isoString = formatted.replace(" ", "T") + "+09:00";
-      const finalString = isoString + " (GMT+9)(JPN+9)";
+      const finalString = isoString + " (GMT+9)(TOKYO,JPN)";
       setIsoTimestamp(finalString);
     };
 
