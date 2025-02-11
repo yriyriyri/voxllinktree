@@ -77,8 +77,6 @@ interface ThreeNodeSystemProps {
 
 export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) {
 
-  console.log("Articles Data:", articlesData);
-
   //external refs 
   const mountRef = useRef<HTMLDivElement>(null);
   const lineCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -180,6 +178,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [overlayFontSize, setOverlayFontSize] = useState(8);
   const [overlayLineSpacing, setOverlayLineSpacing] = useState(10);
   const [cornerOffset, setCornerOffset] = useState(11);
+  const [asciiFontSize, setAsciiFontSize] = useState(12)
 
   //####helper functions
 
@@ -294,6 +293,20 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const computedCornerOffset = (window.innerWidth / baselineWidth) * baselineCornerOffset;
     const newCornerOffset = Math.min(computedCornerOffset, maxCornerOffset);
     setCornerOffset(newCornerOffset);
+
+    let size;
+    const minWidth = 1800; 
+    const maxWidth = 2000;
+    const width = window.innerWidth;
+    if (width <= minWidth) {
+      size = 8;
+    } else if (width >= maxWidth) {
+      size = 10;
+    } else {
+      size = 8 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
+    }
+    setAsciiFontSize(size);
+
   };
 
   //####createn odes
@@ -1568,7 +1581,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           padding: "20px",
           zIndex: 20,
           fontFamily: "monospace",
-          lineHeight: `${overlayLineSpacing}px`,
+          lineHeight: `${overlayLineSpacing * 0.8}px`,
           fontSize: `${overlayFontSize}px`,
           color: "#000000",
           pointerEvents: "none",
@@ -1580,7 +1593,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           style={{
             whiteSpace: "pre",
             marginBottom: "20px",
-            fontSize: "8px",
+            fontSize: (`${asciiFontSize}px`), //8px
             lineHeight: "1",
             textShadow: "2px 2px 3px rgba(61, 61, 61, 0.3)",
           }}
