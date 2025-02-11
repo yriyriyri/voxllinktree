@@ -412,7 +412,7 @@ export default function ThreeNodeSystemMobile() {
 
     let currentLineIndex = 0;
     let currentCharIndex = 0;
-    const currentTyped = ["", "", "", "", "", "", "", ""];
+    const currentTyped = ["", "", "", "", "", "", "", "", ""];
 
     const intervalId = setInterval(() => {
       const fullLine = linesToType[currentLineIndex];
