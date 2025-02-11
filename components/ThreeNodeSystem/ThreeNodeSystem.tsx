@@ -298,13 +298,20 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const newLineSpacing = Math.min(computedLineSpacing, maxLineSpacing);
     setOverlayLineSpacing(newLineSpacing);
 
-    const newCornerOffset = 7;
-    setCornerOffset(newCornerOffset);
-
-    let size;
+    let offset;
     const minWidth = 1800; 
     const maxWidth = 2000;
     const width = window.innerWidth;
+    if (width <= minWidth) {
+      offset = 7;
+    } else if (width >= maxWidth) {
+      offset = 13;
+    } else {
+      offset = 7 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
+    }
+    setCornerOffset(offset);
+
+    let size;
     if (width <= minWidth) {
       size = 7.5;
     } else if (width >= maxWidth) {
@@ -1615,7 +1622,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           zIndex: 20,
           fontFamily: "monospace",
           lineHeight: `${overlayLineSpacing * 0.8}px`,
-          fontSize: `${overlayFontSize}px`,
+          fontSize: `${overlayFontSize * 0.8 }px`,
           color: "#000000",
           pointerEvents: "none",
           textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
@@ -1640,6 +1647,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             const nodeFontSize = index < 6 ? 9 : 14 - index;
             if (nodeFontSize < 4) return null;
             const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
+
             return (
               <li
                 key={index}
@@ -1650,7 +1658,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   fontSize: `${nodeFontSize}px`,
-                  pointerEvents: "none", 
+                  pointerEvents: "none"
                 }}
               >
                 INFO: Node <strong>{index + 1}</strong> | Position X=
@@ -1663,6 +1671,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                     <strong
                       className="left-hover"
                       data-hover-label={node.assignedLabel.content}
+                      // On mouse enter/leave, we still show/hide the highlight.
                       onMouseEnter={() => {
                         setCurrentHovered(node.assignedLabel!.content);
                         currentHoveredRef.current = node.assignedLabel!.content;
@@ -1670,6 +1679,28 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                       onMouseLeave={() => {
                         setCurrentHovered(null);
                         currentHoveredRef.current = null;
+                      }}
+                      // IMPORTANT: Add the onClick with the handleClick logic:
+                      onClick={() => {
+                        // Make sure we have assignedLabel before accessing properties
+                        if (node.assignedLabel) {
+                          if (
+                            node.assignedLabel.function === "link" &&
+                            node.assignedLabel.url
+                          ) {
+                            window.open(node.assignedLabel.url, "_blank");
+                          } else if (node.assignedLabel.function === "interface") {
+                            if (node.assignedLabel.content === "./devlog") {
+                              setCurrentHovered(null);
+                              currentHoveredRef.current = null;
+                              router.push("/devlog");
+                            } else {
+                              setSelectedInterfaceContent(
+                                node.assignedLabel.interfaceContent || ""
+                              );
+                            }
+                          }
+                        }
                       }}
                       style={
                         currentHovered === node.assignedLabel.content
@@ -1706,12 +1737,13 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 key={article.slug}
                 style={{
                   marginBottom: "20px",
+                  marginTop: index === 2 ? "-8px" : "0px",
                   whiteSpace: "normal",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   wordBreak: "break-word",
-                  maxWidth: index === 2 ? "550px" : "600px",
-                  fontSize: index === 2 ? "8px" : "10px",
+                  maxWidth: index === 2 ? `calc(450px + 0.7 * ${cornerOffsetVW})` : `calc(500px + ${cornerOffsetVW})`,
+                  fontSize: index === 2 ? `${overlayFontSize * 0.8}px` : `${overlayFontSize}px`,
                   cursor: "pointer",
                   pointerEvents: "auto",
                 }}
@@ -1737,7 +1769,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 </div>
                 <div
                   style={{
-                    fontSize: index === 2 ? "6px" : "8px",
+                    fontSize: index === 2 ? `${overlayFontSize * 0.7}px` : `${overlayFontSize * 0.8}px`,
                     color: "#555",
                     marginLeft: index === 2 ? "20px" : "30px",
                     textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
@@ -1769,7 +1801,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               muted
               onClick={() => setVideoVisible((prev) => !prev)}
               style={{
-                width: `calc(275px + ${cornerOffsetVW})`,
+                width: `calc((500px + ${cornerOffsetVW}) / 1.8)`,
                 height: "auto",
                 mixBlendMode: "overlay",
                 opacity: videoVisible ? 1 : 0,
@@ -1782,11 +1814,15 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             <div
               style={{
                 position: "absolute",
+                // top: "100%",
                 top: "0px",
                 left: "100%",
                 marginLeft: "5px", 
                 whiteSpace: "nowrap",
                 textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
+                opacity: videoVisible ? 1 : 0,
+                transition: "opacity 0.5s ease",
+                // transform: "translateY(-100%)"
               }}
             >
             {isoTimestamp}
@@ -1865,7 +1901,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
 
         {/* interface label content */}
         {typedContent && (
-          <div style={{ marginTop: "30px", fontWeight: "normal" }}>
+          <div style={{ marginTop: "20px", fontWeight: "normal" }}>
             <h3></h3>
             <p
               style={{
