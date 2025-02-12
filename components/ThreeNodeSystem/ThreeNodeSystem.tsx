@@ -1275,6 +1275,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       });
     }
 
+    // 11 2dcanvassetup
+
     const twoDCanvas = document.createElement("canvas");
 
     const dpr = (window.devicePixelRatio || 1) * 2;
@@ -1297,7 +1299,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const ctx = twoDCanvas.getContext("2d")!;
     ctx.scale(dpr, dpr);
 
-    // 11 animate
+    // 12 animate
     animateScene(
       scene,
       camera,
@@ -1323,6 +1325,19 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       cameraRef.current.aspect = width / height;
       cameraRef.current.updateProjectionMatrix();
       updateOverlayFontSize()
+
+      const canvas = twoDCanvas
+      if (!canvas || !ctx) return;
+
+      const dpr = window.devicePixelRatio || 1;
+
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+
+      canvas.style.width = window.innerWidth + "px";
+      canvas.style.height = window.innerHeight + "px";
+
+      ctx.scale(dpr, dpr);
     };
 
     window.addEventListener("resize", handleResize);
