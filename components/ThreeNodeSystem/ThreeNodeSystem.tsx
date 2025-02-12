@@ -168,7 +168,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
            #########              ###############################     #########          #########      ############################# 
 `;
 
-  const symbols = ["@", "%", "#", "*", "+", "=", "-", ":", ".", ":", "-", "=", "+", "*", "#", "%", "@"];
+  const symbols = ["@", "#", "*", "+", "=", "-", ":", ".", ":", "-", "=", "+", "*", "#", "@"];
   const [asciiStep, setAsciiStep] = useState(0);
   const [displayAscii, setDisplayAscii] = useState(originalAscii);
 
