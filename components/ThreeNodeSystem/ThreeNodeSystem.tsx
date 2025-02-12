@@ -156,11 +156,25 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const videoRef = useRef<HTMLVideoElement>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
+  function getDevNameFromVideo(videoPath: string): string {
+    const fileName = videoPath.split("/").pop() || "";
+    const baseName = fileName.replace(/\.[^/.]+$/, "");
+    return baseName.replace(/\d+$/, "");
+  }
 
   const handleVideoEnded = useCallback(() => {
-    const randomIndex = Math.floor(Math.random() * allVideos.length);
-    setCurrentVideo(allVideos[randomIndex]);
-  }, []);
+    const currentDev = getDevNameFromVideo(currentVideo);
+  
+    let newIndex = Math.floor(Math.random() * allVideos.length);
+    let newDev = getDevNameFromVideo(allVideos[newIndex]);
+  
+    while (newDev === currentDev) {
+      newIndex = Math.floor(Math.random() * allVideos.length);
+      newDev = getDevNameFromVideo(allVideos[newIndex]);
+    }
+  
+    setCurrentVideo(allVideos[newIndex]);
+  }, [allVideos, currentVideo]);
 
   const fileName = currentVideo.split("/").pop() || "";   
   const baseName = fileName.replace(/\.[^/.]+$/, "");    
