@@ -1957,7 +1957,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               muted
               onClick={() => setVideoVisible(prev => !prev)}
               style={{
-                width: `calc((500px + ${cornerOffsetVW}) / 2.2)`,
+                width: `calc((500px + ${cornerOffsetVW}) / 4)`,
                 height: "auto",
                 opacity: videoVisible ? 1 : 0,
                 transition: "opacity 0.5s ease",
