@@ -1859,7 +1859,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
 
             <video
               ref={videoRef}
-              src="/stream/will_talking-1.mov"
+              src="/stream/will_talking-1.mp4"
               autoPlay
               loop
               muted
