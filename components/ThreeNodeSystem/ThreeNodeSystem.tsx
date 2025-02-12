@@ -6,8 +6,11 @@ import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { FXAAShader } from "three/examples/jsm/shaders/FXAAShader.js";
+import vertexShader from "../../shaders/blurOverlay.vert.glsl";
+import fragmentShader from "../../shaders/blurOverlay.frag.glsl";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+
 
 
 interface NodeObject {
@@ -615,54 +618,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         radius:      { value: 1.0 },              // how large the blur kernel is
         blurOpacity: { value: 0.5 }               // how strongly to overlay the blurred image
       },
-      vertexShader: `
-        varying vec2 vUv;
-    
-        void main() {
-          vUv = uv;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D tDiffuse;
-        uniform vec2 resolution;
-        uniform float radius;
-        uniform float blurOpacity;
-        varying vec2 vUv;
-    
-        void main() {
-          // We'll do a simple 3x3 box blur
-          // For a stronger blur, increase the sample area or do multiple passes.
-          vec4 blurredColor = vec4(0.0);
-          float totalSamples = 0.0;
-    
-          // Offsets in the 3x3 neighborhood
-          float offX = radius / resolution.x;
-          float offY = radius / resolution.y;
-    
-          for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-              vec2 offset = vec2(float(x) * offX, float(y) * offY);
-              vec4 sampleColor = texture2D(tDiffuse, vUv + offset);
-    
-              blurredColor += sampleColor;
-              totalSamples += 1.0;
-            }
-          }
-    
-          // Average the sum to get the final blurred color
-          blurredColor /= totalSamples;
-    
-          // Grab the original color at this pixel
-          vec4 originalColor = texture2D(tDiffuse, vUv);
-    
-          // Overlay the blurred image over the original
-          // blurOpacity = 0.0 => no blur; 1.0 => fully blurred
-          vec4 finalColor = mix(originalColor, blurredColor, blurOpacity);
-    
-          gl_FragColor = finalColor;
-        }
-      `
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
     };
   
     const blurOverlayPass = new ShaderPass(blurOverlayShader);
