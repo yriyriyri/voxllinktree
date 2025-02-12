@@ -1661,6 +1661,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           {nodes.map((node, index) => {
             const nodeFontSize = index < 6 ? 9 : 14 - index;
             if (nodeFontSize < 4) return null;
+
             const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
 
             return (
@@ -1669,35 +1670,78 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 style={{
                   marginBottom: `${nodeFontSize}px`,
                   paddingLeft: `${dynamicPadding}px`,
+                  display: "block",         
+                  width: "fit-content",     
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   fontSize: `${nodeFontSize}px`,
-                  pointerEvents: "none"
+                  pointerEvents: node.assignedLabel ? "auto" : "none",
+                  cursor: node.assignedLabel ? "pointer" : "default",
+                }}
+                onMouseEnter={() => {
+                  if (node.assignedLabel) {
+                    setCurrentHovered(node.assignedLabel.content);
+                    currentHoveredRef.current = node.assignedLabel.content;
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (node.assignedLabel) {
+                    setCurrentHovered(null);
+                    currentHoveredRef.current = null;
+                  }
+                }}
+                onClick={() => {
+                  if (!node.assignedLabel) return;
+
+                  if (
+                    node.assignedLabel.function === "link" &&
+                    node.assignedLabel.url
+                  ) {
+                    window.open(node.assignedLabel.url, "_blank");
+                  } else if (node.assignedLabel.function === "interface") {
+                    if (node.assignedLabel.content === "./devlog") {
+                      setCurrentHovered(null);
+                      currentHoveredRef.current = null;
+                      router.push("/devlog");
+                    } else {
+                      setSelectedInterfaceContent(
+                        node.assignedLabel.interfaceContent || ""
+                      );
+                    }
+                  }
                 }}
               >
                 INFO: Node <strong>{index + 1}</strong> | Position X=
                 <span>{node.x.toFixed(2)}</span>, Y=
                 <span>{node.y.toFixed(2)}</span>, Z=
                 <span>{node.z.toFixed(2)}</span>
+
                 {node.assignedLabel && (
                   <span style={{ marginLeft: "15px" }}>
                     | Label:{" "}
                     <strong
                       className="left-hover"
                       data-hover-label={node.assignedLabel.content}
-                      // On mouse enter/leave, we still show/hide the highlight.
-                      onMouseEnter={() => {
-                        setCurrentHovered(node.assignedLabel!.content);
-                        currentHoveredRef.current = node.assignedLabel!.content;
-                      }}
-                      onMouseLeave={() => {
-                        setCurrentHovered(null);
-                        currentHoveredRef.current = null;
-                      }}
-                      // IMPORTANT: Add the onClick with the handleClick logic:
-                      onClick={() => {
-                        // Make sure we have assignedLabel before accessing properties
+                      style={
+                        currentHovered === node.assignedLabel.content
+                          ? {
+                              backgroundColor: "black",
+                              color: "#eaeaea",
+                              textShadow: "none",
+                              fontWeight: "normal",
+                              pointerEvents: "auto",
+                              zIndex: 40,
+                              cursor: "pointer",
+                            }
+                          : {
+                              fontWeight: "bold",
+                              pointerEvents: "auto",
+                              cursor: "pointer",
+                            }
+                      }
+                      onClick={(e) => {
+                        e.stopPropagation(); 
                         if (node.assignedLabel) {
                           if (
                             node.assignedLabel.function === "link" &&
@@ -1717,23 +1761,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                           }
                         }
                       }}
-                      style={
-                        currentHovered === node.assignedLabel.content
-                          ? {
-                              backgroundColor: "black",
-                              color: "#eaeaea",
-                              textShadow: "none",
-                              fontWeight: "normal",
-                              pointerEvents: "auto",
-                              zIndex: "40",
-                              cursor: "pointer",
-                            }
-                          : {
-                              fontWeight: "bold",
-                              pointerEvents: "auto",
-                              cursor: "pointer",
-                            }
-                      }
                     >
                       {node.assignedLabel.content}
                     </strong>
