@@ -1,5 +1,5 @@
 // components/ThreeDNodeSystem/ThreeDNodeSystem.tsx
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
@@ -89,8 +89,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [selectedInterfaceContent, setSelectedInterfaceContent] = useState<string | null>(null);
   const [typedContent, setTypedContent] = useState<string>("");
   const boxyRef = useRef<BoxyObject | null>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const parentRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
 
@@ -123,9 +121,49 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const lastFrameTime = useRef(performance.now());
   const frameCount = useRef(0);
 
+  //videos
+
+  const allVideos = [
+    // Amadeo
+    "/stream/amadeo1.mp4",
+    "/stream/amadeo2.mp4",
+    "/stream/amadeo3.mp4",
+    "/stream/amadeo4.mp4",
+    "/stream/amadeo5.mp4",
+    // Will
+    "/stream/will1.mp4",
+    "/stream/will2.mp4",
+    "/stream/will3.mp4",
+    "/stream/will4.mp4",
+    "/stream/will5.mp4",
+    // Beau
+    "/stream/beau1.mp4",
+    "/stream/beau2.mp4",
+    "/stream/beau3.mp4",
+    "/stream/beau4.mp4",
+    // Mugen
+    "/stream/mugen1.mp4",
+    "/stream/mugen2.mp4",
+    "/stream/mugen3.mp4",
+  ];
+
+  const [videoVisible, setVideoVisible] = useState(true);
+  const [currentVideo, setCurrentVideo] = useState(allVideos[0]); 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
+
+
+  const handleVideoEnded = useCallback(() => {
+    const randomIndex = Math.floor(Math.random() * allVideos.length);
+    setCurrentVideo(allVideos[randomIndex]);
+  }, []);
+
+  const fileName = currentVideo.split("/").pop() || "";   
+  const baseName = fileName.replace(/\.[^/.]+$/, "");    
+  const devName = baseName.replace(/\d+$/, "");
+
   //time
 
-  const [japanTime, setJapanTime] = useState("");
   const [isoTimestamp, setIsoTimestamp] = useState("");
 
   //debug animation keys DEBUG
@@ -188,7 +226,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [cornerOffset, setCornerOffset] = useState(11);
   const [asciiFontSize, setAsciiFontSize] = useState(12)
   const cornerOffsetVW = `${cornerOffset}vw`;
-  const [videoVisible, setVideoVisible] = useState(false);
 
   //####helper functions
 
@@ -1459,6 +1496,17 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     return () => clearInterval(intervalId);
   }, []);
 
+  //##handle videoended
+  useEffect(() => {
+    const videoEl = videoRef.current;
+    if (!videoEl) return;
+
+    videoEl.addEventListener("ended", handleVideoEnded);
+    return () => {
+      videoEl.removeEventListener("ended", handleVideoEnded);
+    };
+  }, [handleVideoEnded]);
+
   //###DEBUG KEY ANIMATION ######## REMOVE
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -1825,7 +1873,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             ))}
           </ul>
         </div>
-
+        
+        {/*video + metadata + corner lines for video*/}
         <div
           style={{
             position: "absolute",
@@ -1901,19 +1950,18 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
 
             <video
               ref={videoRef}
-              src="/stream/will_talking-1.mp4"
+              src={currentVideo}
               autoPlay
-              loop
+              loop={false}
               muted
               onClick={() => setVideoVisible(prev => !prev)}
               style={{
                 width: `calc((500px + ${cornerOffsetVW}) / 1.8)`,
                 height: "auto",
-                mixBlendMode: "overlay",
                 opacity: videoVisible ? 1 : 0,
                 transition: "opacity 0.5s ease",
                 cursor: "pointer",
-                pointerEvents: "none",
+                pointerEvents: "auto",
               }}
             />
 
@@ -1930,8 +1978,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               }}
             >
               {isoTimestamp}
-              <div>dev: Will</div>
-              <div>blood-type: N/A</div>
+              <div>dev: {devName}</div>
             </div>
           </div>
         </div>
