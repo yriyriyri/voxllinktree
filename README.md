@@ -98,16 +98,6 @@ the site is implemented with Next.js for the web application framework and Three
 - _methods_:
   - `assignLabelsToNodes(nodes, labels, camera)`: uses the node’s projected screen space to place or skip labels without collisions
 
-**typewriter effect**  
-- when an interface label is clicked, the corresponding text content is displayed with a “typewriter” animation  
-- _logic_:
-  - a React useEffect manages incremental character rendering for the selected interface content
-
-**fps counter**  
-- basic on-screen display of frames per second (fps) for performance debugging  
-- _logic_:
-  - tracks frame times in a useEffect hook, updating a small text overlay every 0.5s
-
 **animated ascii voxl os logo**  
 - renders an ascii-art version of the voxl os logo, scaled dynamically based on viewport or settings  
 - applies a custom “ordered dithering” algorithm to emulate different brightness levels in ascii characters  
@@ -132,12 +122,29 @@ the site is implemented with Next.js for the web application framework and Three
 - _logic_:
   - `handleVideoEnded()`: picks a new random video from `allVideos` whenever the current one finishes
 
+**dev log preview**  
+- displays a short summary of the latest dev articles on the main site, each linking to the full devlog page  
+- fetches data from a dedicated endpoint `/api/articles` that reads and parses .html files in `public/articles`, extracting title, date, author, and a brief preview snippet  
+- sorts these articles by date in descending order and returns only the top entries, providing a concise but informative overview of recent development progress  
+- _methods_:
+  - server-side: uses Node’s fs/path to scan .html files, then applies regex to pull out metadata and a two-sentence preview from each article  
+  - client-side: fetches the JSON response from `/api/articles`, mapping each entry to a clickable preview that navigates to the devlog page
+
 **mobile layout**  
 - a responsive, mobile-oriented version of the interface, with unique layout constraints (reduced camera rotation, simplified 3d interactions)  
 - supports orbital interaction where the user can drag the scene or pinch to zoom in/out  
-- _methods_:
-  - `setupMobileControls(camera, renderer)`: adds touch-based orbital controls  
-  - `adjustLayoutForMobile()`: rearranges or hides certain ui elements to optimize smaller screens
+- _component_:
+  - react component ThreeNodeSystemMobile with custom layout and logic 
+
+**typewriter effect**  
+- when an interface label is clicked, the corresponding text content is displayed with a “typewriter” animation  
+- _logic_:
+  - a React useEffect manages incremental character rendering for the selected interface content
+
+**fps counter**  
+- basic on-screen display of frames per second (fps) for performance debugging  
+- _logic_:
+  - tracks frame times in a useEffect hook, updating a small text overlay every 0.5s
 
 === technical stack
 
