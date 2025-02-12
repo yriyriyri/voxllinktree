@@ -1835,6 +1835,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                     color: "#555",
                     marginLeft: index === 2 ? "20px" : "30px",
                     textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
+                    fontStyle: "italic",
                   }}
                 >
                   {article.preview && article.preview.slice(-1) === "."
