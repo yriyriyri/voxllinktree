@@ -1913,7 +1913,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 opacity: videoVisible ? 1 : 0,
                 transition: "opacity 0.5s ease",
                 cursor: "pointer",
-                pointerEvents: "auto",
+                pointerEvents: "none",
               }}
             />
 
