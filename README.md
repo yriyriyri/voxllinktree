@@ -26,18 +26,13 @@ the requirements are prioritized using the MoSCoW method:
 - basic accessibility features (keyboard navigation, readable visuals)
 - lightweight backend or json configuration for managing link data
 
-=== could-have
-- parallax or audio effects to enhance the aesthetic
-- hidden easter eggs or interactive elements
-- direct feedback feature with supporting backend
-
 === won't-have
 - functional os-level features
 - unnecessary complexity in user interactions
 
 == method
 
-the site is implemented with Next.js for the web application framework and Three.js for 3d rendering. the following describes the core functionality, including features like axes nodes, boxy model loading, fps counter, and more.
+the site is implemented with Next.js for the web application framework and Three.js for 3d rendering. the following describes the core functionality.
 
 === core features
 
@@ -57,14 +52,14 @@ the site is implemented with Next.js for the web application framework and Three
 **wireframe visualization**  
 - each regular node is rendered as a wireframe cube  
 - _methods_:
-  - `createEdgeWireframes(scene, nodes)`: creates edges for cube wireframes using Three.js's EdgesGeometry and LineSegments
+  - `createEdgeWireframes(scene, nodes)`: creates edges for cube wireframes using Three.js's `EdgesGeometry` and `LineSegments`
 
 **connecting lines**  
 - dynamic connections between nodes are drawn, with opacity based on the distance between nodes. lines disappear when the distance exceeds a threshold  
 - additional lines connect regular nodes to axes nodes, factoring in both node distance and the axes node's sine-wave fade  
 - _methods_:
   - `createConnectingLines(scene, nodes)`: handles line creation and adjusts visibility/opacity for node-to-node connections
-  - `createNodeAxesLines(scene, nodes, axes)`: creates lines between each regular node and each axes node
+  - `createNodeAxesLines(scene, nodes, newAxesNodes)`: creates lines between each regular node and each axes node
 
 **grid overlay**  
 - a structured 3d grid adds context and enhances the visual composition  
@@ -79,17 +74,17 @@ the site is implemented with Next.js for the web application framework and Three
 **boxy model loading**  
 - conditionally loads a 3d “boxy” model (GLTF/DRACO) into the scene, supporting animation mixing and dynamic wireframe edges  
 - _methods_:
-  - `loadBoxyModel(url, boundingBox)`: loads the GLTF model, sets initial position/scale, sets up edges, and initializes AnimationMixer
-  - `getDeformedGeometry(mesh)`: for SkinnedMesh objects, calculates a deformed geometry in world space so the wireframe edges can dynamically follow skeletal animation
+  - `loadBoxyModel(url, boundingBox)`: loads the GLTF model, sets initial position/scale, sets up edges, and initializes `AnimationMixer`
+  - `getDeformedGeometry(mesh)`: for `SkinnedMesh` objects, calculates a deformed geometry in world space so the wireframe edges can dynamically follow skeletal animation
 
 **post-processing**  
 - applies a customizable shader pass to create blur or other visual effects on the final rendered scene  
 - _methods_:
-  - uses an EffectComposer with at least one Pass (ShaderPass, RenderPass, etc.)
-  - `blurOverlayPass` is an example pass for adding a subtle blur overlay
+  - uses an `EffectComposer` with at least one Pass (`ShaderPass`, `RenderPass`, etc.)
+  - `blurOverlayPass` is a pass for adding a subtle blur overlay using GLSL
 
 **animation switching**  
-- allows quick switching among multiple animation clips via debug keyboard shortcuts  
+- allows quick switching among multiple animation clips via debug keyboard shortcuts while boxy is active
 - _methods_:
   - `updateAnimation(boxyObject)`: cross-fades from the current action to a newly desired animation clip
 
@@ -112,6 +107,37 @@ the site is implemented with Next.js for the web application framework and Three
 - basic on-screen display of frames per second (fps) for performance debugging  
 - _logic_:
   - tracks frame times in a useEffect hook, updating a small text overlay every 0.5s
+
+**animated ascii voxl os logo**  
+- renders an ascii-art version of the voxl os logo, scaled dynamically based on viewport or settings  
+- applies a custom “ordered dithering” algorithm to emulate different brightness levels in ascii characters  
+- _methods_:
+  - `renderAsciiLogo(textCanvas, scale)`: draws or updates the ascii logo, recalculating characters according to size/dithering parameters
+
+**node information readout**  
+- a textual listing of node coordinates and assigned labels, displayed in a ui panel or overlay  
+- each entry can be hovered or clicked to highlight the associated node in the 3d scene  
+- _logic_:
+  - displays current information about each node in a left side readout as the nodes are organised by a criteria while assigning to labels the least relevant nodes will have a smaller readout on the overlay
+
+**2d line overlay**  
+- on hover, draws a line in a 2d canvas between the hovered node label in the left pane and the corresponding node label in the 3d scene overlay  
+- animates the line drawing progressively, resetting when the hover leaves  
+- _logic_:
+  - renders a transparent `<canvas>` on top of the screen, recalculates the line each frame in `animateScene()`
+
+**developer “stream”**  
+- a small video overlay that automatically loops through short dev clips from a predefined list  
+- metadata such as dev name is inferred by parsing the current video filename  
+- _logic_:
+  - `handleVideoEnded()`: picks a new random video from `allVideos` whenever the current one finishes
+
+**mobile layout**  
+- a responsive, mobile-oriented version of the interface, with unique layout constraints (reduced camera rotation, simplified 3d interactions)  
+- supports orbital interaction where the user can drag the scene or pinch to zoom in/out  
+- _methods_:
+  - `setupMobileControls(camera, renderer)`: adds touch-based orbital controls  
+  - `adjustLayoutForMobile()`: rearranges or hides certain ui elements to optimize smaller screens
 
 === technical stack
 
@@ -141,7 +167,7 @@ the site is implemented with Next.js for the web application framework and Three
   - `animations`: array of THREE.AnimationClip referencing all loaded animations  
   - `currentAction?`: the currently playing AnimationAction  
   - `currentAnimation, desiredAnimation`: indices referencing the active or target animation clip  
-  - `dynamicEdges`: array of edge wireframes updated in real time by getDeformedGeometry()
+  - `dynamicEdges`: array of edge wireframes updated in real time by `getDeformedGeometry()`
 
 - **BoundingBox**  
   - `minX, maxX, minY, maxY, minZ, maxZ`: defines movement boundaries for nodes
@@ -150,7 +176,7 @@ the site is implemented with Next.js for the web application framework and Three
   - `content`: display text  
   - `url?`: if a link-type label, the url to open  
   - `priority`: used to sort label importance in assignment  
-  - `fontsize`: dynamically updated in assignLabelsToNodes()  
+  - `fontsize`: dynamically updated in `assignLabelsToNodes()`  
   - `function`: "link" | "interface", determines behavior on click  
   - `interfaceContent?`: if "interface", the typed message to display
 
