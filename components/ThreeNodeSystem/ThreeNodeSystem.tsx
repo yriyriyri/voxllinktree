@@ -125,11 +125,11 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
 
   const allVideos = [
     // Amadeo
-    "/stream/amadeo1.mp4",
-    "/stream/amadeo2.mp4",
-    "/stream/amadeo3.mp4",
-    "/stream/amadeo4.mp4",
-    "/stream/amadeo5.mp4",
+    "/stream/Amadeo1.mp4",
+    "/stream/Amadeo2.mp4",
+    "/stream/Amadeo3.mp4",
+    "/stream/Amadeo4.mp4",
+    "/stream/Amadeo5.mp4",
     // Will
     "/stream/Will1.mp4",
     "/stream/Will2.mp4",
@@ -137,10 +137,10 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     "/stream/Will4.mp4",
     "/stream/Will5.mp4",
     // Beau
-    "/stream/beau1.mp4",
-    "/stream/beau2.mp4",
-    "/stream/beau3.mp4",
-    "/stream/beau4.mp4",
+    "/stream/Beau1.mp4",
+    "/stream/Beau2.mp4",
+    "/stream/Beau3.mp4",
+    "/stream/Beau4.mp4",
     // Mugen
     "/stream/Mugen1.mp4",
     "/stream/Mugen2.mp4",
