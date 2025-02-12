@@ -148,7 +148,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   ];
 
   const [videoVisible, setVideoVisible] = useState(true);
-  const [currentVideo, setCurrentVideo] = useState(allVideos[0]); 
+  const randomIndex = Math.floor(Math.random() * allVideos.length);
+  const [currentVideo, setCurrentVideo] = useState(allVideos[randomIndex]);
   const videoRef = useRef<HTMLVideoElement>(null);
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -1956,7 +1957,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               muted
               onClick={() => setVideoVisible(prev => !prev)}
               style={{
-                width: `calc((500px + ${cornerOffsetVW}) / 1.8)`,
+                width: `calc((500px + ${cornerOffsetVW}) / 2.2)`,
                 height: "auto",
                 opacity: videoVisible ? 1 : 0,
                 transition: "opacity 0.5s ease",
