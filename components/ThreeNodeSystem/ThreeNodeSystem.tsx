@@ -2059,6 +2059,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               style={{
                 maxWidth: "600px",
                 width: "100%",
+                fontSize: `${overlayFontSize * 1.1}px`,
                 wordWrap: "break-word",
                 textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
               }}
