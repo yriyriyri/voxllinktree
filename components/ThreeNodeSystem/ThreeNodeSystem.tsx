@@ -131,20 +131,20 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     "/stream/amadeo4.mp4",
     "/stream/amadeo5.mp4",
     // Will
-    "/stream/will1.mp4",
-    "/stream/will2.mp4",
-    "/stream/will3.mp4",
-    "/stream/will4.mp4",
-    "/stream/will5.mp4",
+    "/stream/Will1.mp4",
+    "/stream/Will2.mp4",
+    "/stream/Will3.mp4",
+    "/stream/Will4.mp4",
+    "/stream/Will5.mp4",
     // Beau
     "/stream/beau1.mp4",
     "/stream/beau2.mp4",
     "/stream/beau3.mp4",
     "/stream/beau4.mp4",
     // Mugen
-    "/stream/mugen1.mp4",
-    "/stream/mugen2.mp4",
-    "/stream/mugen3.mp4",
+    "/stream/Mugen1.mp4",
+    "/stream/Mugen2.mp4",
+    "/stream/Mugen3.mp4",
   ];
 
   const [videoVisible, setVideoVisible] = useState(true);
