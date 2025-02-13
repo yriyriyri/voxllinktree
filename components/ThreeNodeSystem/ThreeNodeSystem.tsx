@@ -1502,640 +1502,642 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   }, [boxyRef, keyToAnimationIndex]);
 
   return (
-    <div
-      ref={parentRef}
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "100vh",
-        background:
-          "radial-gradient(circle at calc(50% + 200px) 50%, #eaeaea 0%, #d6d6d6 30%, #bfbfbf 60%) no-repeat center center fixed",
-        backgroundSize: "cover",
-        overflow: "hidden",
-      }}
-    >
+    <div style={{ filter: "invert(1)" }}>
       <div
+        ref={parentRef}
         style={{
-          position: "absolute",
-          right: "5px",
-          top: "20px",
-          zIndex: 20,
-          fontFamily: "monospace",
-          fontSize: "8px",
-          color: "#000000",
-          pointerEvents: "none",
-          textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-          display: "none",
-        }}
-      >
-        current_frame_rate = {fps}
-      </div>
-  
-      {/* corner lines */}
-      <div
-        style={{
-          position: "absolute",
-          left: `calc(525px + ${cornerOffsetVW})`,
-          top: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          left: `calc(525px + ${cornerOffsetVW})`,
-          top: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          left: `calc(525px + ${cornerOffsetVW})`,
-          bottom: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          left: `calc(525px + ${cornerOffsetVW})`,
-          bottom: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          right: `calc(${cornerOffsetVW} - 50px)`,
-          top: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          right: `calc(${cornerOffsetVW} - 50px)`,
-          top: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          right: `calc(${cornerOffsetVW} - 50px)`,
-          bottom: "40px",
-          width: "2px",
-          height: "30px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      <div
-        style={{
-          position: "absolute",
-          right: `calc(${cornerOffsetVW} - 50px)`,
-          bottom: "40px",
-          width: "30px",
-          height: "2px",
-          backgroundColor: "#3d3d3d",
-          opacity: 0.8,
-          zIndex: 25,
-          boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
-        }}
-      />
-  
-      {/* left overlay */}
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
+          position: "relative",
           width: "100%",
-          height: "100%",
-          overflowY: "auto",
-          padding: "20px",
-          zIndex: 20,
-          fontFamily: "monospace",
-          lineHeight: `${overlayLineSpacing * 0.8}px`,
-          fontSize: `${overlayFontSize * 0.8 }px`,
-          color: "#000000",
-          pointerEvents: "none",
-          textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+          height: "100vh",
+          background:
+            "radial-gradient(circle at calc(50% + 200px) 50%, #eaeaea 0%, #d6d6d6 30%, #bfbfbf 60%) no-repeat center center fixed",
+          backgroundSize: "cover",
+          overflow: "hidden",
         }}
       >
-        {/* ASCII art header */}
-        <pre
-          style={{
-            whiteSpace: "pre",
-            marginBottom: "20px",
-            fontSize: (`${asciiFontSize}px`), //8px
-            lineHeight: "1",
-            textShadow: "2px 2px 3px rgba(61, 61, 61, 0.3)",
-          }}
-        >
-          {displayAscii}
-        </pre>
-  
-        {/* node details */}
-        <ul style={{ listStyle: "none", padding: "20px 0 0 0", margin: 0 }}>
-          {nodes.map((node, index) => {
-            const nodeFontSize = index < 6 ? 9 : 14 - index;
-            if (nodeFontSize < 4) return null;
-
-            const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
-
-            return (
-              <li
-                key={index}
-                style={{
-                  marginBottom: `${nodeFontSize}px`,
-                  paddingLeft: `${dynamicPadding}px`,
-                  display: "block",         
-                  width: "fit-content",     
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  fontSize: `${nodeFontSize}px`,
-                  pointerEvents: node.assignedLabel ? "auto" : "none",
-                  cursor: node.assignedLabel ? "pointer" : "default",
-                }}
-                onMouseEnter={() => {
-                  if (node.assignedLabel) {
-                    setCurrentHovered(node.assignedLabel.content);
-                    currentHoveredRef.current = node.assignedLabel.content;
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (node.assignedLabel) {
-                    setCurrentHovered(null);
-                    currentHoveredRef.current = null;
-                  }
-                }}
-                onClick={() => {
-                  if (!node.assignedLabel) return;
-
-                  if (
-                    node.assignedLabel.function === "link" &&
-                    node.assignedLabel.url
-                  ) {
-                    window.open(node.assignedLabel.url, "_blank");
-                  } else if (node.assignedLabel.function === "interface") {
-                    if (node.assignedLabel.content === "./devlog") {
-                      setCurrentHovered(null);
-                      currentHoveredRef.current = null;
-                      router.push("/devlog");
-                    } else {
-                      setSelectedInterfaceContent(
-                        node.assignedLabel.interfaceContent || ""
-                      );
-                    }
-                  }
-                }}
-              >
-                INFO: Node <strong>{index + 1}</strong> | Position X=
-                <span>{node.x.toFixed(2)}</span>, Y=
-                <span>{node.y.toFixed(2)}</span>, Z=
-                <span>{node.z.toFixed(2)}</span>
-
-                {node.assignedLabel && (
-                  <span style={{ marginLeft: "15px" }}>
-                    | Label:{" "}
-                    <strong
-                      className="left-hover"
-                      data-hover-label={node.assignedLabel.content}
-                      style={
-                        currentHovered === node.assignedLabel.content
-                          ? {
-                              backgroundColor: "black",
-                              color: "#eaeaea",
-                              textShadow: "none",
-                              fontWeight: "normal",
-                              pointerEvents: "auto",
-                              zIndex: 40,
-                              cursor: "pointer",
-                            }
-                          : {
-                              fontWeight: "bold",
-                              pointerEvents: "auto",
-                              cursor: "pointer",
-                            }
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation(); 
-                        if (node.assignedLabel) {
-                          if (
-                            node.assignedLabel.function === "link" &&
-                            node.assignedLabel.url
-                          ) {
-                            window.open(node.assignedLabel.url, "_blank");
-                          } else if (node.assignedLabel.function === "interface") {
-                            if (node.assignedLabel.content === "./devlog") {
-                              setCurrentHovered(null);
-                              currentHoveredRef.current = null;
-                              router.push("/devlog");
-                            } else {
-                              setSelectedInterfaceContent(
-                                node.assignedLabel.interfaceContent || ""
-                              );
-                            }
-                          }
-                        }
-                      }}
-                    >
-                      {node.assignedLabel.content}
-                    </strong>
-                  </span>
-                )}
-              </li>
-            );
-          })}
-        </ul>
-
-        {/*article previews*/}
-        <div style={{ marginTop: "30px" }}>
-          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-            {articlesData.map((article, index) => (
-              <li
-                key={article.slug}
-                style={{
-                  marginBottom: "20px",
-                  marginTop: index === 2 ? "-8px" : "0px",
-                  whiteSpace: "normal",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  wordBreak: "break-word",
-                  maxWidth: index === 2 ? `calc(450px + 0.7 * ${cornerOffsetVW})` : `calc(500px + ${cornerOffsetVW})`,
-                  fontSize: index === 2 ? `${overlayFontSize * 0.8}px` : `${overlayFontSize}px`,
-                  cursor: "pointer",
-                  pointerEvents: "auto",
-                }}
-                onClick={() => router.push("/devlog")}
-              >
-                <div
-                  style={{
-                    marginBottom: "4px",
-                    textShadow: "0.5px 0.5px 1px rgba(0, 0, 0, 0.1)",
-                  }}
-                >
-                  <span>
-                    <strong>DEVLOG:</strong> {article.title}
-                  </span>
-                  <span> | </span>
-                  <span>
-                    <strong>AUTHOR:</strong> {article.author}
-                  </span>
-                  <span> | </span>
-                  <span>
-                    <strong>DATE:</strong> {article.date}
-                  </span>
-                </div>
-                <div
-                  style={{
-                    fontSize: index === 2 ? `${overlayFontSize * 0.7}px` : `${overlayFontSize * 0.8}px`,
-                    color: "#555",
-                    marginLeft: index === 2 ? "20px" : "30px",
-                    textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
-                    fontStyle: "italic",
-                  }}
-                >
-                  {article.preview && article.preview.slice(-1) === "."
-                    ? article.preview.slice(0, -1) + " {...}"
-                    : article.preview}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-        
-        {/*video + metadata + corner lines for video*/}
         <div
           style={{
             position: "absolute",
-            bottom: "7vh",
-            left: "3vh",
-            zIndex: 999,
+            right: "5px",
+            top: "20px",
+            zIndex: 20,
+            fontFamily: "monospace",
+            fontSize: "8px",
+            color: "#000000",
+            pointerEvents: "none",
+            textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+            display: "none",
           }}
         >
-          <div style={{ position: "relative", display: "inline-block" }}>
-            <div
-              style={{
-                position: "absolute",
-                top: "-5px",
-                left: "-5px",
-                width: "20px",
-                height: "20px",
-                borderTop: "1px solid #3d3d3d",
-                borderLeft: "1px solid #3d3d3d",
-                pointerEvents: "none",
-                zIndex: 2,
-                opacity: videoVisible ? 1 : 0,
-                transition: "opacity 0.5s ease",
-              }}
-            />
+          current_frame_rate = {fps}
+        </div>
+    
+        {/* corner lines */}
+        <div
+          style={{
+            position: "absolute",
+            left: `calc(525px + ${cornerOffsetVW})`,
+            top: "40px",
+            width: "2px",
+            height: "30px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        <div
+          style={{
+            position: "absolute",
+            left: `calc(525px + ${cornerOffsetVW})`,
+            top: "40px",
+            width: "30px",
+            height: "2px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        <div
+          style={{
+            position: "absolute",
+            left: `calc(525px + ${cornerOffsetVW})`,
+            bottom: "40px",
+            width: "2px",
+            height: "30px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        <div
+          style={{
+            position: "absolute",
+            left: `calc(525px + ${cornerOffsetVW})`,
+            bottom: "40px",
+            width: "30px",
+            height: "2px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        <div
+          style={{
+            position: "absolute",
+            right: `calc(${cornerOffsetVW} - 50px)`,
+            top: "40px",
+            width: "2px",
+            height: "30px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        <div
+          style={{
+            position: "absolute",
+            right: `calc(${cornerOffsetVW} - 50px)`,
+            top: "40px",
+            width: "30px",
+            height: "2px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        <div
+          style={{
+            position: "absolute",
+            right: `calc(${cornerOffsetVW} - 50px)`,
+            bottom: "40px",
+            width: "2px",
+            height: "30px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        <div
+          style={{
+            position: "absolute",
+            right: `calc(${cornerOffsetVW} - 50px)`,
+            bottom: "40px",
+            width: "30px",
+            height: "2px",
+            backgroundColor: "#3d3d3d",
+            opacity: 0.8,
+            zIndex: 25,
+            boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
+          }}
+        />
+    
+        {/* left overlay */}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: "100%",
+            height: "100%",
+            overflowY: "auto",
+            padding: "20px",
+            zIndex: 20,
+            fontFamily: "monospace",
+            lineHeight: `${overlayLineSpacing * 0.8}px`,
+            fontSize: `${overlayFontSize * 0.8 }px`,
+            color: "#000000",
+            pointerEvents: "none",
+            textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+          }}
+        >
+          {/* ASCII art header */}
+          <pre
+            style={{
+              whiteSpace: "pre",
+              marginBottom: "20px",
+              fontSize: (`${asciiFontSize}px`), //8px
+              lineHeight: "1",
+              textShadow: "2px 2px 3px rgba(61, 61, 61, 0.3)",
+            }}
+          >
+            {displayAscii}
+          </pre>
+    
+          {/* node details */}
+          <ul style={{ listStyle: "none", padding: "20px 0 0 0", margin: 0 }}>
+            {nodes.map((node, index) => {
+              const nodeFontSize = index < 6 ? 9 : 14 - index;
+              if (nodeFontSize < 4) return null;
 
-            <div
-              style={{
-                position: "absolute",
-                top: "-5px",
-                right: "-5px",
-                width: "20px",
-                height: "20px",
-                borderTop: "1px solid #3d3d3d",
-                borderRight: "1px solid #3d3d3d",
-                pointerEvents: "none",
-                zIndex: 2,
-                opacity: videoVisible ? 1 : 0,
-                transition: "opacity 0.5s ease",
-              }}
-            />
+              const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
 
-            <div
-              style={{
-                position: "absolute",
-                bottom: "-5px",
-                left: "-5px",
-                width: "20px",
-                height: "20px",
-                borderBottom: "1px solid #3d3d3d",
-                borderLeft: "1px solid #3d3d3d",
-                pointerEvents: "none",
-                zIndex: 2,
-                opacity: videoVisible ? 1 : 0,
-                transition: "opacity 0.5s ease",
-              }}
-            />
+              return (
+                <li
+                  key={index}
+                  style={{
+                    marginBottom: `${nodeFontSize}px`,
+                    paddingLeft: `${dynamicPadding}px`,
+                    display: "block",         
+                    width: "fit-content",     
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    fontSize: `${nodeFontSize}px`,
+                    pointerEvents: node.assignedLabel ? "auto" : "none",
+                    cursor: node.assignedLabel ? "pointer" : "default",
+                  }}
+                  onMouseEnter={() => {
+                    if (node.assignedLabel) {
+                      setCurrentHovered(node.assignedLabel.content);
+                      currentHoveredRef.current = node.assignedLabel.content;
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (node.assignedLabel) {
+                      setCurrentHovered(null);
+                      currentHoveredRef.current = null;
+                    }
+                  }}
+                  onClick={() => {
+                    if (!node.assignedLabel) return;
 
-            <div
-              style={{
-                position: "absolute",
-                bottom: "-5px",
-                right: "-5px",
-                width: "20px",
-                height: "20px",
-                borderBottom: "1px solid #3d3d3d",
-                borderRight: "1px solid #3d3d3d",
-                pointerEvents: "none",
-                zIndex: 2,
-                opacity: videoVisible ? 1 : 0,
-                transition: "opacity 0.5s ease",
-              }}
-            />
+                    if (
+                      node.assignedLabel.function === "link" &&
+                      node.assignedLabel.url
+                    ) {
+                      window.open(node.assignedLabel.url, "_blank");
+                    } else if (node.assignedLabel.function === "interface") {
+                      if (node.assignedLabel.content === "./devlog") {
+                        setCurrentHovered(null);
+                        currentHoveredRef.current = null;
+                        router.push("/devlog");
+                      } else {
+                        setSelectedInterfaceContent(
+                          node.assignedLabel.interfaceContent || ""
+                        );
+                      }
+                    }
+                  }}
+                >
+                  INFO: Node <strong>{index + 1}</strong> | Position X=
+                  <span>{node.x.toFixed(2)}</span>, Y=
+                  <span>{node.y.toFixed(2)}</span>, Z=
+                  <span>{node.z.toFixed(2)}</span>
 
-            <video
-              ref={videoRef}
-              src={currentVideo}
-              autoPlay
-              loop={false}
-              muted
-              onClick={() => setVideoVisible(prev => !prev)}
-              style={{
-                width: `calc((500px + ${cornerOffsetVW}) / 4)`,
-                height: "auto",
-                opacity: videoVisible ? 1 : 0,
-                transition: "opacity 0.5s ease",
-                cursor: "pointer",
-                pointerEvents: "auto",
-              }}
-            />
+                  {node.assignedLabel && (
+                    <span style={{ marginLeft: "15px" }}>
+                      | Label:{" "}
+                      <strong
+                        className="left-hover"
+                        data-hover-label={node.assignedLabel.content}
+                        style={
+                          currentHovered === node.assignedLabel.content
+                            ? {
+                                backgroundColor: "black",
+                                color: "#eaeaea",
+                                textShadow: "none",
+                                fontWeight: "normal",
+                                pointerEvents: "auto",
+                                zIndex: 40,
+                                cursor: "pointer",
+                              }
+                            : {
+                                fontWeight: "bold",
+                                pointerEvents: "auto",
+                                cursor: "pointer",
+                              }
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation(); 
+                          if (node.assignedLabel) {
+                            if (
+                              node.assignedLabel.function === "link" &&
+                              node.assignedLabel.url
+                            ) {
+                              window.open(node.assignedLabel.url, "_blank");
+                            } else if (node.assignedLabel.function === "interface") {
+                              if (node.assignedLabel.content === "./devlog") {
+                                setCurrentHovered(null);
+                                currentHoveredRef.current = null;
+                                router.push("/devlog");
+                              } else {
+                                setSelectedInterfaceContent(
+                                  node.assignedLabel.interfaceContent || ""
+                                );
+                              }
+                            }
+                          }
+                        }}
+                      >
+                        {node.assignedLabel.content}
+                      </strong>
+                    </span>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
 
-            <div
-              style={{
-                position: "absolute",
-                top: "-5px",
-                left: "100%",
-                marginLeft: "10px",
-                whiteSpace: "nowrap",
-                textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
-                opacity: videoVisible ? 1 : 0,
-                transition: "opacity 0.5s ease",
-              }}
-            >
-              {isoTimestamp}
-              <div>dev: {devName}</div>
+          {/*article previews*/}
+          <div style={{ marginTop: "30px" }}>
+            <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+              {articlesData.map((article, index) => (
+                <li
+                  key={article.slug}
+                  style={{
+                    marginBottom: "20px",
+                    marginTop: index === 2 ? "-8px" : "0px",
+                    whiteSpace: "normal",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    wordBreak: "break-word",
+                    maxWidth: index === 2 ? `calc(450px + 0.7 * ${cornerOffsetVW})` : `calc(500px + ${cornerOffsetVW})`,
+                    fontSize: index === 2 ? `${overlayFontSize * 0.8}px` : `${overlayFontSize}px`,
+                    cursor: "pointer",
+                    pointerEvents: "auto",
+                  }}
+                  onClick={() => router.push("/devlog")}
+                >
+                  <div
+                    style={{
+                      marginBottom: "4px",
+                      textShadow: "0.5px 0.5px 1px rgba(0, 0, 0, 0.1)",
+                    }}
+                  >
+                    <span>
+                      <strong>DEVLOG:</strong> {article.title}
+                    </span>
+                    <span> | </span>
+                    <span>
+                      <strong>AUTHOR:</strong> {article.author}
+                    </span>
+                    <span> | </span>
+                    <span>
+                      <strong>DATE:</strong> {article.date}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: index === 2 ? `${overlayFontSize * 0.7}px` : `${overlayFontSize * 0.8}px`,
+                      color: "#555",
+                      marginLeft: index === 2 ? "20px" : "30px",
+                      textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    {article.preview && article.preview.slice(-1) === "."
+                      ? article.preview.slice(0, -1) + " {...}"
+                      : article.preview}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          {/*video + metadata + corner lines for video*/}
+          <div
+            style={{
+              position: "absolute",
+              bottom: "7vh",
+              left: "3vh",
+              zIndex: 999,
+            }}
+          >
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-5px",
+                  left: "-5px",
+                  width: "20px",
+                  height: "20px",
+                  borderTop: "1px solid #3d3d3d",
+                  borderLeft: "1px solid #3d3d3d",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                  opacity: videoVisible ? 1 : 0,
+                  transition: "opacity 0.5s ease",
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-5px",
+                  right: "-5px",
+                  width: "20px",
+                  height: "20px",
+                  borderTop: "1px solid #3d3d3d",
+                  borderRight: "1px solid #3d3d3d",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                  opacity: videoVisible ? 1 : 0,
+                  transition: "opacity 0.5s ease",
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "-5px",
+                  left: "-5px",
+                  width: "20px",
+                  height: "20px",
+                  borderBottom: "1px solid #3d3d3d",
+                  borderLeft: "1px solid #3d3d3d",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                  opacity: videoVisible ? 1 : 0,
+                  transition: "opacity 0.5s ease",
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "-5px",
+                  right: "-5px",
+                  width: "20px",
+                  height: "20px",
+                  borderBottom: "1px solid #3d3d3d",
+                  borderRight: "1px solid #3d3d3d",
+                  pointerEvents: "none",
+                  zIndex: 2,
+                  opacity: videoVisible ? 1 : 0,
+                  transition: "opacity 0.5s ease",
+                }}
+              />
+
+              <video
+                ref={videoRef}
+                src={currentVideo}
+                autoPlay
+                loop={false}
+                muted
+                onClick={() => setVideoVisible(prev => !prev)}
+                style={{
+                  width: `calc((500px + ${cornerOffsetVW}) / 4)`,
+                  height: "auto",
+                  opacity: videoVisible ? 1 : 0,
+                  transition: "opacity 0.5s ease",
+                  cursor: "pointer",
+                  pointerEvents: "auto",
+                }}
+              />
+
+              <div
+                style={{
+                  position: "absolute",
+                  top: "-5px",
+                  left: "100%",
+                  marginLeft: "10px",
+                  whiteSpace: "nowrap",
+                  textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
+                  opacity: videoVisible ? 1 : 0,
+                  transition: "opacity 0.5s ease",
+                }}
+              >
+                {isoTimestamp}
+                <div>dev: {devName}</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* {videoRef.current && parentRef.current && (
-          <VideoAscii
-            videoStreaming={videoRef.current}
-            parentRef={parentRef as React.RefObject<HTMLElement>}
-            artType={ArtTypeEnum.ASCII_COLOR_BG_IMAGE}
-            charsPerLine={120}
-            charsPerColumn={50}
-            fontColor="white"
-            backgroundColor="black"
-          />
-        )} */}
-  
-        {/* labels
-        <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-          {labels.map((label, index) => (
-            <li
-              key={index}
-              style={{
-                marginBottom: "8px",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-              }}
-            >
-              LABEL: <strong>{label.content}</strong> | Priority ={" "}
-              <span>{label.priority}</span> | Function ={" "}
-              <span>{label.function}</span> |{" "}
-              {label.function === "link" && label.url && (
-                <>
-                  {" "}
-                  URL:{" "}
+          {/* {videoRef.current && parentRef.current && (
+            <VideoAscii
+              videoStreaming={videoRef.current}
+              parentRef={parentRef as React.RefObject<HTMLElement>}
+              artType={ArtTypeEnum.ASCII_COLOR_BG_IMAGE}
+              charsPerLine={120}
+              charsPerColumn={50}
+              fontColor="white"
+              backgroundColor="black"
+            />
+          )} */}
+    
+          {/* labels
+          <div style={{ marginTop: "30px", fontWeight: "bold" }}></div>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {labels.map((label, index) => (
+              <li
+                key={index}
+                style={{
+                  marginBottom: "8px",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                LABEL: <strong>{label.content}</strong> | Priority ={" "}
+                <span>{label.priority}</span> | Function ={" "}
+                <span>{label.function}</span> |{" "}
+                {label.function === "link" && label.url && (
+                  <>
+                    {" "}
+                    URL:{" "}
+                    <a
+                      href={label.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        color: "#000000",
+                        textDecoration: "none",
+                        cursor: "pointer",
+                        pointerEvents: "auto",
+                      }}
+                    >
+                      {label.url}
+                    </a>
+                  </>
+                )}
+                {label.function === "interface" && label.interfaceContent && (
                   <a
-                    href={label.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setSelectedInterfaceContent(label.interfaceContent || "");
+                    }}
                     style={{
                       color: "#000000",
-                      textDecoration: "none",
                       cursor: "pointer",
+                      textDecoration: "none",
                       pointerEvents: "auto",
                     }}
                   >
-                    {label.url}
+                    INTERFACE: {label.content.replace("./", "")}
                   </a>
-                </>
-              )}
-              {label.function === "interface" && label.interfaceContent && (
-                <a
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setSelectedInterfaceContent(label.interfaceContent || "");
-                  }}
-                  style={{
-                    color: "#000000",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    pointerEvents: "auto",
-                  }}
-                >
-                  INTERFACE: {label.content.replace("./", "")}
-                </a>
-              )}
-            </li>
-          ))}
-        </ul> */}
+                )}
+              </li>
+            ))}
+          </ul> */}
 
-        {/* interface label content */}
-        {typedContent && (
-          <div style={{ marginTop: "20px", fontWeight: "normal" }}>
-            <h3></h3>
-            <p
-              style={{
-                maxWidth: "600px",
-                width: "100%",
-                fontSize: `${overlayFontSize * 1}px`,
-                lineHeight: `${overlayLineSpacing * 1.2}px`,
-                wordWrap: "break-word",
-                textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
+          {/* interface label content */}
+          {typedContent && (
+            <div style={{ marginTop: "20px", fontWeight: "normal" }}>
+              <h3></h3>
+              <p
+                style={{
+                  maxWidth: "600px",
+                  width: "100%",
+                  fontSize: `${overlayFontSize * 1}px`,
+                  lineHeight: `${overlayLineSpacing * 1.2}px`,
+                  wordWrap: "break-word",
+                  textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
+                }}
+              >
+                {typedContent}
+              </p>
+            </div>
+          )}
+        </div>
+    
+        {/* 3D scene */}
+        <div
+          ref={mountRef}
+          style={{
+            position: "absolute",
+            left: `300px`,
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+            zIndex: 16,
+          }}
+        >
+          {/* node labels */}
+          {nodes.map((node) => {
+          if (!node.assignedLabel || !cameraRef.current) return null;
+          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
+          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
+          const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+          let displayType = "block";
+          if (boxyVers) {
+            displayType = "none";
+          }
+          if (
+            x < 0 ||
+            x > window.innerWidth - 200 ||
+            y < 0 ||
+            y > window.innerHeight
+          ) {
+            return null;
+          }
+          const handleClick = () => {
+            if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
+              window.open(node.assignedLabel!.url, "_blank");
+            } else if (node.assignedLabel!.function === "interface") {
+              if (node.assignedLabel!.content === "./devlog") {
+                setCurrentHovered(null);
+                currentHoveredRef.current = null;
+                router.push("/devlog");
+              } else {
+                setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
+              }
+            }
+          };
+
+          const baseStyle: React.CSSProperties = {
+            position: "absolute",
+            left: `${x}px`,
+            top: `${y}px`,
+            color: "black",
+            padding: "0px 0px",
+            zIndex: 40,
+            cursor: "pointer",
+            transform: "translateX(210px) translateY(-10px)",
+            pointerEvents: "auto" as React.CSSProperties["pointerEvents"],
+            fontSize: "11px",
+            fontFamily: "monospace",
+            fontWeight: 100,
+            fontStyle: "normal",
+            textDecoration: "none",
+            textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+            display: displayType,
+          };
+
+          const hoveredStyle: React.CSSProperties =
+            currentHovered === node.assignedLabel.content
+              ? {
+                  backgroundColor: "black",
+                  color: "#eaeaea",
+                  textShadow: "none",
+                  zIndex: 400,
+                }
+              : {};
+
+          return (
+            <div
+              key={node.assignedLabel.content}
+              className="scene-hover"
+              data-hover-label={node.assignedLabel.content}
+              style={{ ...baseStyle, ...hoveredStyle }}
+              onClick={handleClick}
+              onMouseEnter={() => {
+                setCurrentHovered(node.assignedLabel!.content);
+                currentHoveredRef.current = node.assignedLabel!.content;
+              }}
+              onMouseLeave={() => {
+                setCurrentHovered(null)
+                currentHoveredRef.current = null;
               }}
             >
-              {typedContent}
-            </p>
-          </div>
-        )}
-      </div>
-  
-      {/* 3D scene */}
-      <div
-        ref={mountRef}
-        style={{
-          position: "absolute",
-          left: `300px`,
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-          zIndex: 16,
-        }}
-      >
-        {/* node labels */}
-        {nodes.map((node) => {
-        if (!node.assignedLabel || !cameraRef.current) return null;
-        const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
-        const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
-        const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-        let displayType = "block";
-        if (boxyVers) {
-          displayType = "none";
-        }
-        if (
-          x < 0 ||
-          x > window.innerWidth - 200 ||
-          y < 0 ||
-          y > window.innerHeight
-        ) {
-          return null;
-        }
-        const handleClick = () => {
-          if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
-            window.open(node.assignedLabel!.url, "_blank");
-          } else if (node.assignedLabel!.function === "interface") {
-            if (node.assignedLabel!.content === "./devlog") {
-              setCurrentHovered(null);
-              currentHoveredRef.current = null;
-              router.push("/devlog");
-            } else {
-              setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
-            }
-          }
-        };
-
-        const baseStyle: React.CSSProperties = {
-          position: "absolute",
-          left: `${x}px`,
-          top: `${y}px`,
-          color: "black",
-          padding: "0px 0px",
-          zIndex: 40,
-          cursor: "pointer",
-          transform: "translateX(210px) translateY(-10px)",
-          pointerEvents: "auto" as React.CSSProperties["pointerEvents"],
-          fontSize: "11px",
-          fontFamily: "monospace",
-          fontWeight: 100,
-          fontStyle: "normal",
-          textDecoration: "none",
-          textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-          display: displayType,
-        };
-
-        const hoveredStyle: React.CSSProperties =
-          currentHovered === node.assignedLabel.content
-            ? {
-                backgroundColor: "black",
-                color: "#eaeaea",
-                textShadow: "none",
-                zIndex: 400,
-              }
-            : {};
-
-        return (
-          <div
-            key={node.assignedLabel.content}
-            className="scene-hover"
-            data-hover-label={node.assignedLabel.content}
-            style={{ ...baseStyle, ...hoveredStyle }}
-            onClick={handleClick}
-            onMouseEnter={() => {
-              setCurrentHovered(node.assignedLabel!.content);
-              currentHoveredRef.current = node.assignedLabel!.content;
-            }}
-            onMouseLeave={() => {
-              setCurrentHovered(null)
-              currentHoveredRef.current = null;
-            }}
-          >
-            {node.assignedLabel.content}
-          </div>
-        );
-      })}
+              {node.assignedLabel.content}
+            </div>
+          );
+        })}
+        </div>
       </div>
     </div>
   );
