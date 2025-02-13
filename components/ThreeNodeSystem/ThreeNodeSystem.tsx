@@ -1502,7 +1502,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   }, [boxyRef, keyToAnimationIndex]);
 
   return (
-    <div style={{ filter: "invert(1)" }}>
+    <div style={{ filter: "invert(0)" }}>
       <div
         ref={parentRef}
         style={{
