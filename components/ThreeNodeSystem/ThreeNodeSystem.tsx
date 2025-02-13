@@ -1897,7 +1897,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               // cursor: "pointer", 
               // backgroundColor: isHovered ? "black" : "transparent",
               // color: isHovered ? "#eaeaea" : "inherit",
-              pointerEvents: "auto",
+              // pointerEvents: "auto",
             }}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
