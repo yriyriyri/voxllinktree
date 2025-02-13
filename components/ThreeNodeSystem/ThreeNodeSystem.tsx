@@ -2116,7 +2116,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               <h3></h3>
               <p
                 style={{
-                  maxWidth: "600px",
+                  maxWidth: `calc(400px + 0.75 * ${cornerOffsetVW})`,
                   width: "100%",
                   fontSize: `${overlayFontSize * 1}px`,
                   lineHeight: `${overlayLineSpacing * 1.2}px`,
