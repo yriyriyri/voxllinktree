@@ -124,6 +124,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const lastFrameTime = useRef(performance.now());
   const frameCount = useRef(0);
 
+
   //videos
 
   const allVideos = [
@@ -244,6 +245,34 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [cornerOffset, setCornerOffset] = useState(11);
   const [asciiFontSize, setAsciiFontSize] = useState(12)
   const cornerOffsetVW = `${cornerOffset}vw`;
+  const [loadingBarLength, setLoadingBarLength] = useState(100);
+
+  //loading bar
+
+  const loadingBarPercent = 32.2;
+  const loadingBarGradientLength = Math.round(loadingBarLength * 0.07);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const barPoint = Math.floor((loadingBarPercent / 100) * loadingBarLength); 
+
+  const fullCount = Math.max(0, barPoint - loadingBarGradientLength); 
+  const partialCount1 = Math.max(0, Math.min(loadingBarGradientLength, barPoint)); 
+  let partialCount2 = loadingBarGradientLength;
+  partialCount2 = Math.max(
+    0,
+    Math.min(loadingBarLength - (fullCount + partialCount1), partialCount2)
+  );
+
+  const remainder = Math.max(
+    0,
+    loadingBarLength - (fullCount + partialCount1 + partialCount2)
+  );
+
+  const loadingBarContent =
+    "█".repeat(fullCount) +
+    "▓".repeat(partialCount1) +
+    "▒".repeat(partialCount2) +
+    "░".repeat(remainder);
 
   //####helper functions
 
@@ -375,6 +404,13 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       size = 7.5 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
     }
     setAsciiFontSize(size);
+
+    const baselineLoadingBarLength = 100;
+    const maxLoadingBarLength = 130;
+    const computedLoadingBarLength =
+      (window.innerWidth / baselineWidth) * baselineLoadingBarLength;
+    const newLoadingBarLength = Math.min(computedLoadingBarLength, maxLoadingBarLength);
+    setLoadingBarLength(newLoadingBarLength);
 
   };
 
@@ -1847,7 +1883,57 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               ))}
             </ul>
           </div>
-          
+
+          {/* loading bar */}
+          <div
+            style={{
+              marginTop: "13px",
+              marginLeft: `${overlayFontSize * 5}px`,
+              fontSize: `${Math.min(overlayFontSize, 10.45)}px`,
+              whiteSpace: "pre",
+              display: "inline-block",
+              padding: "3px 2px",
+              position: "relative", 
+              // cursor: "pointer", 
+              // backgroundColor: isHovered ? "black" : "transparent",
+              // color: isHovered ? "#eaeaea" : "inherit",
+              pointerEvents: "auto",
+            }}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => setIsHovered(false)}
+          >
+            {loadingBarContent}
+            <div
+              style={{
+                position: "absolute",
+                top: "1px",    
+                left: "-0px",   
+                right: "-0px",  
+                bottom: "-0px",   
+                border: "1px solid #3d3d3d",
+                pointerEvents: "none", 
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                right: "-40px",
+                top: "calc(100% + 10px)",
+                fontSize: `${overlayFontSize * 1}px`,
+                display: "inline-block",
+                // pointerEvents: "auto", 
+                // cursor: "pointer", 
+                // backgroundColor: isHovered ? "black" : "transparent",
+                // color: isHovered ? "#eaeaea" : "inherit",
+                // textShadow: isHovered ? "none" : "inherit",
+              }}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+            >
+              [voxlCompletionPercent = {loadingBarPercent}%]
+            </div>
+          </div>
+                    
           {/*video + metadata + corner lines for video*/}
           <div
             style={{
