@@ -250,30 +250,51 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   //loading bar
 
   const loadingBarPercent = 32.2;
-  const loadingBarGradientLength = Math.round(loadingBarLength * 0.07);
-  const [isHovered, setIsHovered] = useState(false);
 
-  const barPoint = Math.floor((loadingBarPercent / 100) * loadingBarLength); 
+  const fixedGradientLength = 30;
+  const gradientCellsCount = fixedGradientLength;
+  
+  const effectiveFill = (loadingBarPercent / 100) * loadingBarLength;
 
-  const fullCount = Math.max(0, barPoint - loadingBarGradientLength); 
-  const partialCount1 = Math.max(0, Math.min(loadingBarGradientLength, barPoint)); 
-  let partialCount2 = loadingBarGradientLength;
-  partialCount2 = Math.max(
-    0,
-    Math.min(loadingBarLength - (fullCount + partialCount1), partialCount2)
-  );
+  let filledCount = Math.floor(effectiveFill - gradientCellsCount / 2);
+  if (filledCount < 0) {
+    filledCount = 0;
+  }
+  const emptyCount = loadingBarLength - filledCount - gradientCellsCount;
+  const loadingBarSymbols = ["█", "▓", "▒", "░"];
 
-  const remainder = Math.max(
-    0,
-    loadingBarLength - (fullCount + partialCount1 + partialCount2)
-  );
+  // normalized thresholds for a 4x4 Bayer matrix:
+  // bayer 4x4 matrix:
+  // [ 0,  8,  2, 10 ]
+  // [12,  4, 14,  6 ]
+  // [ 3, 11,  1,  9 ]
+  // [15,  7, 13,  5 ]
+  const ditherPattern = [
+    0.03125, 0.53125, 0.15625, 0.65625,
+    0.78125, 0.28125, 0.90625, 0.40625,
+    0.21875, 0.71875, 0.09375, 0.59375,
+    0.96875, 0.46875, 0.84375, 0.34375
+  ];
 
+  let gradientString = "";
+  for (let i = 0; i < gradientCellsCount; i++) {
+
+    const t = i / (gradientCellsCount - 1);
+
+    const x = t * (loadingBarSymbols.length - 1);
+
+    const lower = Math.floor(x);
+    const upper = Math.min(lower + 1, loadingBarSymbols.length - 1);
+    const fraction = x - lower;
+
+    const threshold = ditherPattern[i % ditherPattern.length];
+    
+    const symbolIndex = fraction > threshold ? upper : lower;
+    gradientString += loadingBarSymbols[symbolIndex];
+  }
   const loadingBarContent =
-    "█".repeat(fullCount) +
-    "▓".repeat(partialCount1) +
-    "▒".repeat(partialCount2) +
-    "░".repeat(remainder);
-
+    "█".repeat(filledCount) + gradientString + "░".repeat(emptyCount);
+    
   //####helper functions
 
   const randomInRange = (min: number, max: number) =>
@@ -1899,8 +1920,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               // color: isHovered ? "#eaeaea" : "inherit",
               // pointerEvents: "auto",
             }}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
           >
             {loadingBarContent}
             <div
@@ -1927,8 +1946,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 // color: isHovered ? "#eaeaea" : "inherit",
                 // textShadow: isHovered ? "none" : "inherit",
               }}
-              onMouseEnter={() => setIsHovered(true)}
-              onMouseLeave={() => setIsHovered(false)}
             >
               [voxlCompletionPercent = {loadingBarPercent}%]
             </div>
