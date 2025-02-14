@@ -288,7 +288,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const fraction = x - lower;
 
     const threshold = ditherPattern[i % ditherPattern.length];
-    
+
     const symbolIndex = fraction > threshold ? upper : lower;
     gradientString += loadingBarSymbols[symbolIndex];
   }
