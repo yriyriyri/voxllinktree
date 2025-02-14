@@ -427,7 +427,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     setAsciiFontSize(size);
 
     const baselineLoadingBarLength = 100;
-    const maxLoadingBarLength = 130;
+    const maxLoadingBarLength = 125;
     const computedLoadingBarLength =
       (window.innerWidth / baselineWidth) * baselineLoadingBarLength;
     const newLoadingBarLength = Math.min(computedLoadingBarLength, maxLoadingBarLength);
@@ -1909,16 +1909,13 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           <div
             style={{
               marginTop: "13px",
-              marginLeft: `${overlayFontSize * 5}px`,
+              // marginLeft: `${overlayFontSize * 5}px`,
+              marginLeft: "15px",
               fontSize: `${Math.min(overlayFontSize, 10.45)}px`,
               whiteSpace: "pre",
               display: "inline-block",
               padding: "3px 2px",
               position: "relative", 
-              // cursor: "pointer", 
-              // backgroundColor: isHovered ? "black" : "transparent",
-              // color: isHovered ? "#eaeaea" : "inherit",
-              // pointerEvents: "auto",
             }}
           >
             {loadingBarContent}
@@ -1936,18 +1933,14 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             <div
               style={{
                 position: "absolute",
-                right: "-40px",
+                left: "0px",
                 top: "calc(100% + 10px)",
-                fontSize: `${overlayFontSize * 1}px`,
+                fontSize: `${Math.min(overlayFontSize, 10.45)}px`,
                 display: "inline-block",
-                // pointerEvents: "auto", 
-                // cursor: "pointer", 
-                // backgroundColor: isHovered ? "black" : "transparent",
-                // color: isHovered ? "#eaeaea" : "inherit",
-                // textShadow: isHovered ? "none" : "inherit",
+                whiteSpace: "pre",
               }}
             >
-              [voxlCompletionPercent = {loadingBarPercent}%]
+              { " ".repeat(Math.floor(effectiveFill)) }^ [gamedev = {loadingBarPercent}% done]
             </div>
           </div>
                     
@@ -2129,11 +2122,12 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
 
           {/* interface label content */}
           {typedContent && (
-            <div style={{ marginTop: "20px", fontWeight: "normal" }}>
+            <div style={{ marginTop: "30px", fontWeight: "normal" }}>
               <h3></h3>
               <p
                 style={{
-                  maxWidth: `calc(400px + 0.75 * ${cornerOffsetVW})`,
+                  // maxWidth: `calc(400px + 0.75 * ${cornerOffsetVW})`,
+                  maxWidth: "600px",
                   width: "100%",
                   fontSize: `${overlayFontSize * 1}px`,
                   lineHeight: `${overlayLineSpacing * 1.2}px`,
