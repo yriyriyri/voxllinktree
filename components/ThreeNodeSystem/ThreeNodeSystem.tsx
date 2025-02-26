@@ -1724,6 +1724,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           <pre
             style={{
               whiteSpace: "pre",
+              marginTop: "30px",       
+              marginLeft: "20px",
               marginBottom: "20px",
               fontSize: (`${asciiFontSize}px`), //8px
               lineHeight: "1",
