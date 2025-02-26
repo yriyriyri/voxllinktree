@@ -1589,7 +1589,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         </div>
     
         {/* corner lines */}
-        <div
+        {/* <div
           style={{
             position: "absolute",
             left: `calc(525px + ${cornerOffsetVW})`,
@@ -1699,7 +1699,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             zIndex: 25,
             boxShadow: "0 0 6px rgba(61, 61, 61, 0.7)",
           }}
-        />
+        /> */}
     
         {/* left overlay */}
         <div
