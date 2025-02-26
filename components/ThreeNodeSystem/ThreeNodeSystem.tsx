@@ -999,7 +999,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     let rotationStartAngle = currentAngle; 
     let rotationDeltaAngle = 0;           
     let rotationStartTime = 0;            
-    const rotationDuration = 1000;        
+    const rotationDuration = 650;        
     const angleEpsilon = 0.001;
   
     let lineAnimFrame = 0;
