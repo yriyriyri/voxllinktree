@@ -112,7 +112,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     { content: "./youtube", url: "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw", priority: 1, fontsize: 16, function: "link" },
     { content: "./X", url: "https://x.com/voxldev", priority: 2, fontsize: 16, function: "link" },
     { content: "./instagram", url: "https://www.instagram.com/voxl.online", priority: 3, fontsize: 16, function: "link" },
-    // { content: "./steam", url: "https://example.com/steam", priority: 4, fontsize: 16, function: "link" },
     { content: "./about us", priority: 5, fontsize: 16, function: "interface", interfaceContent: "./about us () VOXL is an innovative social building game that pushes the boundaries of creativity and immersive gameplay. Unleash your imagination, build connections, and shape your own adventure in this stunningly crafted universe—where the only limit is your creativity. " },
     { content: "./contact", priority: 6, fontsize: 16, function: "interface", interfaceContent: "./contact () management@voxl.world" },
     { content: "./devlog", priority: 4, fontsize: 16, function: "interface", interfaceContent: " " },
@@ -229,7 +228,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [asciiStep, setAsciiStep] = useState(0);
   const [displayAscii, setDisplayAscii] = useState(originalAscii);
 
-  //major variable adjusts (make dynamic based on screensize)
+  //major variable adjusts 
 
   let lineDistanceFactor = 30;
   if (boxyVers){
@@ -427,7 +426,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     setAsciiFontSize(size);
 
     const baselineLoadingBarLength = 100;
-    const maxLoadingBarLength = 125;
+    const maxLoadingBarLength = 200;
     const computedLoadingBarLength =
       (window.innerWidth / baselineWidth) * baselineLoadingBarLength;
     const newLoadingBarLength = Math.min(computedLoadingBarLength, maxLoadingBarLength);
@@ -1735,27 +1734,28 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           </pre>
     
           {/* node details */}
-          <ul style={{ listStyle: "none", padding: "20px 0 0 0", margin: 0 }}>
+          <ul style={{ listStyle: "none", padding: "40px 0 0 0", margin: 0 }}>
             {nodes.map((node, index) => {
-              const nodeFontSize = index < 6 ? 9 : 14 - index;
-              if (nodeFontSize < 4) return null;
-
+              if (index >= 6) return null;
+              const nodeFontSize = 10; 
               const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
+              const isHovered = currentHovered === node.assignedLabel?.content;
 
               return (
                 <li
                   key={index}
                   style={{
                     marginBottom: `${nodeFontSize}px`,
-                    paddingLeft: `${dynamicPadding}px`,
-                    display: "block",         
-                    width: "fit-content",     
+                    display: "block",
+                    // Removed paddingLeft here so the li background doesn't include it.
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     fontSize: `${nodeFontSize}px`,
                     pointerEvents: node.assignedLabel ? "auto" : "none",
                     cursor: node.assignedLabel ? "pointer" : "default",
+                    // Remove background styling from li.
+                    backgroundColor: "transparent",
                   }}
                   onMouseEnter={() => {
                     if (node.assignedLabel) {
@@ -1771,7 +1771,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                   }}
                   onClick={() => {
                     if (!node.assignedLabel) return;
-
                     if (
                       node.assignedLabel.function === "link" &&
                       node.assignedLabel.url
@@ -1790,67 +1789,46 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                     }
                   }}
                 >
-                  INFO: Node <strong>{index + 1}</strong> | Position X=
-                  <span>{node.x.toFixed(2)}</span>, Y=
-                  <span>{node.y.toFixed(2)}</span>, Z=
-                  <span>{node.z.toFixed(2)}</span>
+                  {/* Wrap text content in an inner container */}
+                  <div
+                    style={{
+                      marginLeft: `${dynamicPadding * 1.8}px`, // This creates the visual offset without affecting the background.
+                      display: "inline-block",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      fontSize: `${nodeFontSize}px`,
+                      backgroundColor: isHovered ? "black" : "transparent",
+                      color: isHovered ? "#eaeaea" : "#000000",
+                      textShadow: isHovered
+                        ? "none"
+                        : "2px 2px 3px rgba(61, 61, 61, 0.5)",
+                    }}
+                  >
+                    INFO: Node <strong>{index + 1}</strong> | Position X=
+                    <span>{node.x.toFixed(2)}</span>, Y=
+                    <span>{node.y.toFixed(2)}</span>, Z=
+                    <span>{node.z.toFixed(2)}</span>
 
-                  {node.assignedLabel && (
-                    <span style={{ marginLeft: "15px" }}>
-                      | Label:{" "}
-                      <strong
-                        className="left-hover"
-                        data-hover-label={node.assignedLabel.content}
-                        style={
-                          currentHovered === node.assignedLabel.content
-                            ? {
-                                backgroundColor: "black",
-                                color: "#eaeaea",
-                                textShadow: "none",
-                                fontWeight: "normal",
-                                pointerEvents: "auto",
-                                zIndex: 40,
-                                cursor: "pointer",
-                              }
-                            : {
-                                fontWeight: "bold",
-                                pointerEvents: "auto",
-                                cursor: "pointer",
-                              }
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation(); 
-                          if (node.assignedLabel) {
-                            if (
-                              node.assignedLabel.function === "link" &&
-                              node.assignedLabel.url
-                            ) {
-                              window.open(node.assignedLabel.url, "_blank");
-                            } else if (node.assignedLabel.function === "interface") {
-                              if (node.assignedLabel.content === "./devlog") {
-                                setCurrentHovered(null);
-                                currentHoveredRef.current = null;
-                                router.push("/devlog");
-                              } else {
-                                setSelectedInterfaceContent(
-                                  node.assignedLabel.interfaceContent || ""
-                                );
-                              }
-                            }
-                          }
-                        }}
-                      >
-                        {node.assignedLabel.content}
-                      </strong>
-                    </span>
-                  )}
+                    {node.assignedLabel && (
+                      <span style={{ marginLeft: "15px" }}>
+                        | Label:{" "}
+                        <strong
+                          className="left-hover"
+                          data-hover-label={node.assignedLabel.content}
+                        >
+                          {node.assignedLabel.content}
+                        </strong>
+                      </span>
+                    )}
+                  </div>
                 </li>
               );
             })}
           </ul>
 
           {/*article previews*/}
-          <div style={{ marginTop: "30px" }}>
+          <div style={{ marginTop: "80px", paddingLeft: "40px" }}>
             <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
               {articlesData.map((article, index) => (
                 <li
@@ -1905,42 +1883,51 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             </ul>
           </div>
 
-          {/* loading bar */}
+          {/* Loading Bar */}
           <div
             style={{
-              marginTop: "13px",
-              // marginLeft: `${overlayFontSize * 5}px`,
-              marginLeft: "15px",
-              fontSize: `${Math.min(overlayFontSize, 10.45)}px`,
-              whiteSpace: "pre",
-              display: "inline-block",
-              padding: "3px 2px",
-              position: "relative", 
+              position: "absolute",
+              bottom: "75px",
+              left: `calc(525px + ${cornerOffsetVW})`,
+              right: `calc(${cornerOffsetVW} - 50px)`,
+              zIndex: 30,
+              display: "flex",
+              justifyContent: "center",
             }}
           >
-            {loadingBarContent}
             <div
               style={{
-                position: "absolute",
-                top: "1px",    
-                left: "-0px",   
-                right: "-0px",  
-                bottom: "-0px",   
-                border: "1px solid #3d3d3d",
-                pointerEvents: "none", 
-              }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                left: "0px",
-                top: "calc(100% + 10px)",
                 fontSize: `${Math.min(overlayFontSize, 10.45)}px`,
-                display: "inline-block",
                 whiteSpace: "pre",
+                display: "inline-block",
+                padding: "3px 2px",
+                position: "relative", 
               }}
             >
-              { " ".repeat(Math.floor(effectiveFill)) }^ [gamedev = {loadingBarPercent}% done]
+              {loadingBarContent}
+              <div
+                style={{
+                  position: "absolute",
+                  top: "1px",
+                  left: "0px",
+                  right: "0px",
+                  bottom: "0px",
+                  border: "1px solid #3d3d3d",
+                  pointerEvents: "none",
+                }}
+              />
+              <div
+                style={{
+                  position: "absolute",
+                  left: "0px",
+                  top: "calc(100% + 10px)",
+                  fontSize: `${Math.min(overlayFontSize, 10.45)}px`,
+                  display: "inline-block",
+                  whiteSpace: "pre",
+                }}
+              >
+                {" ".repeat(Math.floor(effectiveFill))}^ [gamedev = {loadingBarPercent}% done]
+              </div>
             </div>
           </div>
                     
