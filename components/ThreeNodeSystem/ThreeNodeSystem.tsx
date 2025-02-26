@@ -397,7 +397,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     setOverlayFontSize(newFontSize);
   
     const baselineLineSpacing = 10; 
-    const maxLineSpacing = 400;
+    const maxLineSpacing = 10;
     const computedLineSpacing = (window.innerWidth / baselineWidth) * baselineLineSpacing;
     const newLineSpacing = Math.min(computedLineSpacing, maxLineSpacing);
     setOverlayLineSpacing(newLineSpacing);
@@ -1737,7 +1737,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           <ul style={{ listStyle: "none", padding: "40px 0 0 0", margin: 0 }}>
             {nodes.map((node, index) => {
               if (index >= 6) return null;
-              const nodeFontSize = 10; 
+              const nodeFontSize = overlayFontSize; 
               const dynamicPadding = 56 - 5 * (9 - nodeFontSize);
               const isHovered = currentHovered === node.assignedLabel?.content;
 
