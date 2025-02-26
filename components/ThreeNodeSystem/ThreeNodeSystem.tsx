@@ -2141,7 +2141,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           ref={mountRef}
           style={{
             position: "absolute",
-            left: `300px`,
+            left: `400px`,
             width: "100%",
             height: "100%",
             overflow: "hidden",
