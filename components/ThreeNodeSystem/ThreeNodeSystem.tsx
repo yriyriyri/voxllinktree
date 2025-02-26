@@ -1566,7 +1566,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           width: "100%",
           height: "100vh",
           background:
-            "radial-gradient(circle at calc(50% + 200px) 50%, #eaeaea 0%, #d6d6d6 30%, #bfbfbf 60%) no-repeat center center fixed",
+            "radial-gradient(circle at calc(50% + 200px) 50%, #ffffff 0%, #f2f2f2 30%, #e0e0e0 60%) no-repeat center center fixed",
           backgroundSize: "cover",
           overflow: "hidden",
         }}
