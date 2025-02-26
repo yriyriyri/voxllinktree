@@ -307,6 +307,12 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     return context.measureText(text).width;
   };
 
+  function easeInOutCubic(t: number): number {
+    return t < 0.5
+      ? 4 * t * t * t
+      : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
   function getDeformedGeometry(mesh: THREE.Mesh): THREE.BufferGeometry {
     //ensure update
     mesh.updateMatrixWorld(true);
@@ -976,102 +982,107 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     axesNodes: AxesNodeObject[],
     labels: Label[],
     composer: EffectComposer,
-    boxyRef: { current: BoxyObject | null } ,
+    boxyRef: { current: BoxyObject | null },
     lineCanvasRef: HTMLCanvasElement,
     currentHoveredRef: React.RefObject<string | null>
   ) => {
     const angles = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
     let sideIndex = 0;
+  
     let currentAngle = Math.atan2(camera.position.x, camera.position.z);
     let targetAngle = currentAngle;
     const initX = camera.position.x;
     const initZ = camera.position.z;
     const radius = Math.sqrt(initX * initX + initZ * initZ);
-
-    const lerpSpeed = 0.05;
+  
     let isRotating = false;
+    let rotationStartAngle = currentAngle; 
+    let rotationDeltaAngle = 0;           
+    let rotationStartTime = 0;            
+    const rotationDuration = 1000;        
     const angleEpsilon = 0.001;
-
-    const startTime = performance.now();
-
-    const clock = new THREE.Clock();
-
-    // hover frame data
+  
     let lineAnimFrame = 0;
     const totalFrames = 15;
     let secondLineAnimFrame = 0;
     const secondLineTotalFrames = 5;
     let randomAngle: number | null = null;
-
+  
+    const startTime = performance.now();
+    const clock = new THREE.Clock();
+  
     const handleScroll = (e: WheelEvent) => {
       e.preventDefault();
       if (isRotating) return;
-
+  
       isRotating = true;
       if (e.deltaY < 0) {
-        // up => previous
         sideIndex = (sideIndex + 3) % 4;
       } else {
-        // down => next
         sideIndex = (sideIndex + 1) % 4;
       }
       targetAngle = angles[sideIndex];
+  
+      let diff = targetAngle - currentAngle;
+      if (diff > Math.PI) diff -= 2 * Math.PI;
+      if (diff < -Math.PI) diff += 2 * Math.PI;
+  
+      rotationStartAngle = currentAngle;
+      rotationDeltaAngle = diff;
+      rotationStartTime = performance.now();
     };
-
+  
     if (renderer.domElement) {
       renderer.domElement.addEventListener("wheel", handleScroll, {
         passive: false,
       });
     }
-
+  
     function updateCameraAngle() {
-      let diff = targetAngle - currentAngle;
-      // make sure -PI < diff < PI
-      if (diff > Math.PI) diff -= 2 * Math.PI;
-      if (diff < -Math.PI) diff += 2 * Math.PI;
-
-      const step = diff * lerpSpeed;
-      currentAngle += step;
-
+      const elapsed = performance.now() - rotationStartTime;
+      let t = elapsed / rotationDuration;
+      if (t > 1) t = 1;
+  
+      const easedT = easeInOutCubic(t);
+  
+      currentAngle = rotationStartAngle + rotationDeltaAngle * easedT;
+  
       const x = radius * Math.sin(currentAngle);
       const z = radius * Math.cos(currentAngle);
       const y = camera.position.y;
       camera.position.set(x, y, z);
       camera.lookAt(0, 0, 0);
-
-      if (Math.abs(diff) < angleEpsilon) {
+  
+      if (t >= 1 || Math.abs(rotationDeltaAngle) < angleEpsilon) {
         currentAngle = targetAngle;
         isRotating = false;
       }
     }
-
+  
     function updateAnimation(boxy: BoxyObject) {
       if (boxy.currentAnimation !== boxy.desiredAnimation) {
         const newClip = boxy.animations[boxy.desiredAnimation];
         const newAction = boxy.mixer.clipAction(newClip);
         newAction.reset();
         newAction.play();
-        
+  
         if (boxy.currentAction) {
           boxy.currentAction.crossFadeTo(newAction, 0.5, false);
         }
-        
+  
         boxy.currentAction = newAction;
         boxy.currentAnimation = boxy.desiredAnimation;
       }
     }
-
+  
     function animate() {
       requestAnimationFrame(animate);
-
       const delta = clock.getDelta();
-
+  
       if (boxyRef.current) {
         boxyRef.current.mixer.update(delta);
-
-        const desiredAnimation = boxyRef.current.currentAnimation; 
         updateAnimation(boxyRef.current);
-      
+  
         boxyRef.current.model.updateMatrixWorld(true);
         boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
           const deformedGeom = getDeformedGeometry(mesh);
@@ -1079,9 +1090,9 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           line.geometry = new THREE.EdgesGeometry(deformedGeom, thresholdAngle);
         });
       }
-
-      const elapsed = (performance.now() - startTime) * 0.001; 
-
+  
+      const elapsed = (performance.now() - startTime) * 0.001;
+  
       for (let i = 0; i < nodes.length; i++) {
         const node = nodes[i];
         node.x += node.dx;
@@ -1090,7 +1101,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         clampAndBounce(node, boundingBox);
         cubeEdges[i].position.set(node.x, node.y, node.z);
       }
-
+  
       for (let i = 0; i < axesNodes.length; i++) {
         const axNode = axesNodes[i];
         axNode.x += axNode.dx;
@@ -1098,11 +1109,10 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         axNode.z += axNode.dz;
         clampAndBounce(axNode, boundingBox);
         axNode.axesGroup.position.set(axNode.x, axNode.y, axNode.z);
-
-        // sine function
+  
         const fade = Math.sin(axNode.frequency * elapsed + axNode.offset) * 0.5 + 0.5;
         axNode.opacity = fade;
-
+  
         axNode.axesGroup.traverse((child) => {
           if (child instanceof THREE.Line) {
             const mat = child.material as THREE.LineBasicMaterial;
@@ -1111,7 +1121,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           }
         });
       }
-
+  
       // node <-> node lines
       let lineIndex = 0;
       for (let i = 0; i < nodes.length; i++) {
@@ -1121,19 +1131,19 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           const dist = new THREE.Vector3(nodeA.x, nodeA.y, nodeA.z).distanceTo(
             new THREE.Vector3(nodeB.x, nodeB.y, nodeB.z)
           );
-
+  
           let baseOpacity = 1 - dist / lineDistanceFactor;
           baseOpacity = Math.max(0, Math.min(1, baseOpacity));
-
+  
           const lineItem = lines[lineIndex];
           const mat = lineItem.line.material;
-
+  
           if (baseOpacity === 0) {
             lineItem.line.visible = false;
           } else {
             lineItem.line.visible = true;
             mat.opacity = baseOpacity;
-
+  
             const newPoints = [
               new THREE.Vector3(nodeA.x, nodeA.y, nodeA.z),
               new THREE.Vector3(nodeB.x, nodeB.y, nodeB.z),
@@ -1143,31 +1153,30 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           lineIndex++;
         }
       }
-
+  
       // node <-> axes lines
       for (let i = 0; i < nodeAxesLines.length; i++) {
         const { line, nodeIndex: nIndex, axesIndex: aIndex } = nodeAxesLines[i];
-
+  
         const node = nodes[nIndex];
         const axNode = axesNodes[aIndex];
-
+  
         const dist = new THREE.Vector3(node.x, node.y, node.z).distanceTo(
           new THREE.Vector3(axNode.x, axNode.y, axNode.z)
         );
         let baseOpacity = 1 - dist / lineDistanceFactor;
         baseOpacity = Math.max(0, Math.min(1, baseOpacity));
-
+  
         if (baseOpacity === 0) {
           line.visible = false;
         } else {
           const finalOpacity = baseOpacity * axNode.opacity;
-
           if (finalOpacity <= 0) {
             line.visible = false;
           } else {
             line.visible = true;
             (line.material as THREE.LineBasicMaterial).opacity = finalOpacity;
-
+  
             line.geometry.setFromPoints([
               new THREE.Vector3(node.x, node.y, node.z),
               new THREE.Vector3(axNode.x, axNode.y, axNode.z),
@@ -1175,9 +1184,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           }
         }
       }
-
-      //2d hovered line drawing
-
+  
+      // 2D hovered line drawing
       if (lineCanvasRef) {
         const canvas = lineCanvasRef;
         const ctx = canvas.getContext("2d");
@@ -1185,7 +1193,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           canvas.width = window.innerWidth;
           canvas.height = window.innerHeight;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+  
           if (currentHoveredRef.current) {
             const leftElement = document.querySelector(
               `.left-hover[data-hover-label="${currentHoveredRef.current}"]`
@@ -1193,7 +1201,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             const sceneElement = document.querySelector(
               `.scene-hover[data-hover-label="${currentHoveredRef.current}"]`
             ) as HTMLElement;
-      
+  
             if (leftElement && sceneElement) {
               let sourceElement: HTMLElement;
               let destElement: HTMLElement;
@@ -1207,14 +1215,14 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 sourceElement = sceneElement;
                 destElement = leftElement;
               }
-      
+  
               const sourceRect = sourceElement.getBoundingClientRect();
               const destRect = destElement.getBoundingClientRect();
               const sourceX = sourceRect.left + sourceRect.width / 2;
               const sourceY = sourceRect.top + sourceRect.height / 2;
               const destX = destRect.left + destRect.width / 2;
               const destY = destRect.top + destRect.height / 2;
-      
+  
               if (lineAnimFrame < totalFrames) {
                 lineAnimFrame++;
               } else {
@@ -1227,33 +1235,34 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                   secondLineAnimFrame++;
                 }
               }
-      
+  
               const t = lineAnimFrame / totalFrames;
               const interpX = sourceX + (destX - sourceX) * t;
               const interpY = sourceY + (destY - sourceY) * t;
-      
+  
               ctx.beginPath();
               ctx.moveTo(sourceX, sourceY);
               ctx.lineTo(interpX, interpY);
               ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
               ctx.lineWidth = 0.5;
               ctx.stroke();
-      
+  
               /*
+              // If you want the second line & cross effect:
               if (lineAnimFrame >= totalFrames) {
                 const t2 = secondLineAnimFrame / secondLineTotalFrames;
                 const offsetX = 100 * Math.cos(randomAngle!);
                 const offsetY = 100 * Math.sin(randomAngle!);
                 const secondEndX = destX + offsetX * t2;
                 const secondEndY = destY + offsetY * t2;
-            
+  
                 ctx.beginPath();
                 ctx.moveTo(destX, destY);
                 ctx.lineTo(secondEndX, secondEndY);
                 ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
                 ctx.lineWidth = 0.5;
                 ctx.stroke();
-            
+  
                 if (secondLineAnimFrame >= secondLineTotalFrames) {
                   const crossHalf = 10;
                   ctx.beginPath();
@@ -1275,19 +1284,17 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           }
         }
       }
-
-      //  re-assign labels for normal nodes
+  
       const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
       setNodes([...updatedNodes]);
-
+  
       if (isRotating) {
         updateCameraAngle();
       }
-
-      // renderer.render(scene, camera);
-      composer.render()
+  
+      composer.render();
     }
-
+  
     animate();
   };
 
@@ -1843,6 +1850,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                     fontSize: index === 2 ? `${overlayFontSize * 0.8}px` : `${overlayFontSize}px`,
                     cursor: "pointer",
                     pointerEvents: "auto",
+                    lineHeight: `${overlayLineSpacing}px`
                   }}
                   onClick={() => router.push("/devlog")}
                 >
@@ -1871,6 +1879,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                       marginLeft: index === 2 ? "20px" : "30px",
                       textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
                       fontStyle: "italic",
+                      lineHeight: `${overlayLineSpacing}px`
                     }}
                   >
                     {article.preview && article.preview.slice(-1) === "."
