@@ -1320,7 +1320,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     });
 
     // 7 grid
-    // createGrid(scene);
+    createGrid(scene);
 
     // 8 lines between normal nodes
     const { lines } = createConnectingLines(scene, newNodes);
