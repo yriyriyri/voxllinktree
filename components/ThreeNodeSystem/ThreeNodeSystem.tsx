@@ -1320,7 +1320,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     });
 
     // 7 grid
-    createGrid(scene);
+    // createGrid(scene);
 
     // 8 lines between normal nodes
     const { lines } = createConnectingLines(scene, newNodes);
@@ -1747,14 +1747,12 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                   style={{
                     marginBottom: `${nodeFontSize}px`,
                     display: "block",
-                    // Removed paddingLeft here so the li background doesn't include it.
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     fontSize: `${nodeFontSize}px`,
                     pointerEvents: node.assignedLabel ? "auto" : "none",
                     cursor: node.assignedLabel ? "pointer" : "default",
-                    // Remove background styling from li.
                     backgroundColor: "transparent",
                   }}
                   onMouseEnter={() => {
@@ -1789,10 +1787,9 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                     }
                   }}
                 >
-                  {/* Wrap text content in an inner container */}
                   <div
                     style={{
-                      marginLeft: `${dynamicPadding * 1.8}px`, // This creates the visual offset without affecting the background.
+                      marginLeft: `${dynamicPadding * 1.8}px`, 
                       display: "inline-block",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
