@@ -2235,8 +2235,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           position: "absolute",
           top: "40px",
           right: "40px",
-          width: "15px",
-          height: "15px",
+          width: "400px",
+          height: "400px",
           backgroundColor: "black",
           zIndex: 999,
         }}
