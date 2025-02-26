@@ -431,7 +431,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     }
     setAsciiFontSize(size);
 
-    const baselineLoadingBarLength = 100;
+    const baselineLoadingBarLength = 120;
     const maxLoadingBarLength = 200;
     const computedLoadingBarLength =
       (window.innerWidth / baselineWidth) * baselineLoadingBarLength;
@@ -2230,6 +2230,17 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           );
         })}
         </div>
+        <div
+        style={{
+          position: "absolute",
+          top: "40px",
+          right: "40px",
+          width: "20px",
+          height: "20px",
+          backgroundColor: "black",
+          zIndex: 999,
+        }}
+      />
       </div>
     </div>
   );
