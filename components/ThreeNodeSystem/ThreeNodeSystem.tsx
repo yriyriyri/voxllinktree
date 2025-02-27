@@ -1760,45 +1760,13 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     fontSize: `${nodeFontSize}px`,
-                    pointerEvents: node.assignedLabel ? "auto" : "none",
-                    cursor: node.assignedLabel ? "pointer" : "default",
+                    pointerEvents: "none",
                     backgroundColor: "transparent",
-                  }}
-                  onMouseEnter={() => {
-                    if (node.assignedLabel) {
-                      setCurrentHovered(node.assignedLabel.content);
-                      currentHoveredRef.current = node.assignedLabel.content;
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    if (node.assignedLabel) {
-                      setCurrentHovered(null);
-                      currentHoveredRef.current = null;
-                    }
-                  }}
-                  onClick={() => {
-                    if (!node.assignedLabel) return;
-                    if (
-                      node.assignedLabel.function === "link" &&
-                      node.assignedLabel.url
-                    ) {
-                      window.open(node.assignedLabel.url, "_blank");
-                    } else if (node.assignedLabel.function === "interface") {
-                      if (node.assignedLabel.content === "./devlog") {
-                        setCurrentHovered(null);
-                        currentHoveredRef.current = null;
-                        router.push("/devlog");
-                      } else {
-                        setSelectedInterfaceContent(
-                          node.assignedLabel.interfaceContent || ""
-                        );
-                      }
-                    }
                   }}
                 >
                   <div
                     style={{
-                      marginLeft: `${dynamicPadding * 1.8}px`, 
+                      marginLeft: `${dynamicPadding * 1.8}px`,
                       display: "inline-block",
                       whiteSpace: "nowrap",
                       overflow: "hidden",
@@ -1809,6 +1777,39 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                       textShadow: isHovered
                         ? "none"
                         : "2px 2px 3px rgba(61, 61, 61, 0.5)",
+                      pointerEvents: "auto",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={() => {
+                      if (node.assignedLabel) {
+                        setCurrentHovered(node.assignedLabel.content);
+                        currentHoveredRef.current = node.assignedLabel.content;
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (node.assignedLabel) {
+                        setCurrentHovered(null);
+                        currentHoveredRef.current = null;
+                      }
+                    }}
+                    onClick={() => {
+                      if (!node.assignedLabel) return;
+                      if (
+                        node.assignedLabel.function === "link" &&
+                        node.assignedLabel.url
+                      ) {
+                        window.open(node.assignedLabel.url, "_blank");
+                      } else if (node.assignedLabel.function === "interface") {
+                        if (node.assignedLabel.content === "./devlog") {
+                          setCurrentHovered(null);
+                          currentHoveredRef.current = null;
+                          router.push("/devlog");
+                        } else {
+                          setSelectedInterfaceContent(
+                            node.assignedLabel.interfaceContent || ""
+                          );
+                        }
+                      }
                     }}
                   >
                     INFO: Node <strong>{index + 1}</strong> | Position X=
