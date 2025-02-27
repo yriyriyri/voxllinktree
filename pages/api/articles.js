@@ -1,6 +1,5 @@
 // pages/api/articles.js
 
-//test change
 import qs from 'qs';
 
 export default async function handler(req, res) {
@@ -16,14 +15,12 @@ export default async function handler(req, res) {
 
     const queryString = qs.stringify(queryObj, { encode: false });
     const cmsUrl = `${baseUrl}/api/articles?${queryString}`;
-    console.log('Fetching articles from:', cmsUrl);
 
     const response = await fetch(cmsUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch articles from CMS: ${response.status} ${response.statusText}`);
     }
     const cmsData = await response.json();
-    console.log('CMS Data:', JSON.stringify(cmsData, null, 2));
 
     const articlesData = Array.isArray(cmsData.data) ? cmsData.data : [];
     const articles = articlesData.map(article => {
