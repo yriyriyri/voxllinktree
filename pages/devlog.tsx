@@ -25,7 +25,7 @@ export default function WhatsNew() {
         zIndex: isFullscreen ? 999 : 0,
         overflow: "hidden",
         background:
-          "radial-gradient(circle at calc(50%) 50%, #eaeaea 0%, #d6d6d6 30%, #bfbfbf 60%) no-repeat center center fixed",
+          "radial-gradient(circle at calc(50%) 50%, #ffffff 0%, #ffffff 30%, #ffffff 60%) no-repeat center center fixed",
       }}
     >
       <iframe

@@ -68,7 +68,7 @@ export default function ThreeNodeSystemMobile() {
     document.body.style.paddingRight = "env(safe-area-inset-right)";
   
     document.body.style.background =
-      "radial-gradient(circle at 50%, #eaeaea 0%, #d6d6d6 30%, #bfbfbf 60%) no-repeat center center fixed";
+      "radial-gradient(circle at 50%, #ffffff 0%, #ffffff 30%, #ffffff 60%) no-repeat center center fixed";
     document.body.style.backgroundSize = "cover";
   
     return () => {
