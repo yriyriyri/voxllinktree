@@ -1,60 +1,46 @@
 // pages/api/articles.js
-import fs from 'fs';
-import path from 'path';
+import qs from 'qs';
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
   try {
-    const articlesDir = path.join(process.cwd(), 'public', 'articles');
-    const filenames = fs
-      .readdirSync(articlesDir)
-      .filter((file) => file.endsWith('.html'));
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL
 
-    const articlesData = filenames.map((filename) => {
-      const filePath = path.join(articlesDir, filename);
-      const fileContent = fs.readFileSync(filePath, 'utf8');
-
-      const titleMatch = fileContent.match(
-        /<div[^>]*class=["']title["'][^>]*>([\s\S]*?)<\/div>/i
-      );
-      const dateMatch = fileContent.match(
-        /<div[^>]*class=["']date["'][^>]*>([\s\S]*?)<\/div>/i
-      );
-      const authorMatch = fileContent.match(
-        /<div[^>]*class=["']submit["'][^>]*>[\s\S]*?submitted\s+by\s+([^<]+?)\s*<\/div>/i
-      );
-
-      const title = titleMatch ? titleMatch[1].trim() : 'Untitled';
-      const date = dateMatch ? dateMatch[1].trim() : '';
-      const author = authorMatch ? authorMatch[1].trim() : '';
-      const slug = filename.replace(/\.html$/, '');
-
-      let preview = '';
-      const firstContentMatch = fileContent.match(
-        /<div[^>]*class=["']content["'][^>]*>([\s\S]*?)<\/div>/i
-      );
-
-      if (firstContentMatch) {
-        const firstContent = firstContentMatch[1].trim();
-        const sentences = firstContent.match(/[^.!?]+[.!?]+/g);
-        if (sentences && sentences.length > 0) {
-          preview = sentences.slice(0, 2).join(' ').trim();
-        } else {
-          preview = firstContent;
-        }
+    const queryObj = {
+      populate: {
+        cover: { populate: '*' },
+        author: { populate: '*' }
       }
+    };
 
-      return { title, date, author, slug, preview };
+    const queryString = qs.stringify(queryObj, { encode: false });
+    const cmsUrl = `${baseUrl}/api/articles?${queryString}`;
+    console.log('Fetching articles from:', cmsUrl);
+
+    const response = await fetch(cmsUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch articles from CMS: ${response.status} ${response.statusText}`);
+    }
+    const cmsData = await response.json();
+    console.log('CMS Data:', JSON.stringify(cmsData, null, 2));
+
+    const articlesData = Array.isArray(cmsData.data) ? cmsData.data : [];
+    const articles = articlesData.map(article => {
+      const { title, publishedAt, description, slug, author } = article;
+      const authorName = author?.name || '';
+      return {
+        title,
+        date: publishedAt, 
+        author: authorName,
+        slug,
+        preview: description 
+      };
     });
 
-    const sortedArticlesData = articlesData.sort((a, b) => {
-      return new Date(b.date) - new Date(a.date);
-    });
+    articles.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    const topThreeArticles = sortedArticlesData.slice(0, 3);
-
-    res.status(200).json(topThreeArticles);
+    res.status(200).json(articles.slice(0, 3));
   } catch (error) {
-    console.error('Error reading articles:', error);
+    console.error('Error fetching devlog articles:', error);
     res.status(500).json([]);
   }
 }
