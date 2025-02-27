@@ -1875,7 +1875,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                   </div>
                   <div
                     style={{
-                      fontSize: index === 2 ? `${overlayFontSize * 0.7}px` : `${overlayFontSize * 0.8}px`,
+                      fontSize: index === 2 ? `${overlayFontSize * 0.8}px` : `${overlayFontSize * 0.9}px`,
                       color: "#555",
                       marginLeft: index === 2 ? "20px" : "30px",
                       textShadow: "0.2px 0.2px 0.5px rgba(0, 0, 0, 0.05)",
