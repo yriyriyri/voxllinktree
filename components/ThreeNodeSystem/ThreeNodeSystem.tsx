@@ -1212,8 +1212,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 sourceElement = leftElement;
                 destElement = sceneElement;
               } else {
-                sourceElement = sceneElement;
-                destElement = leftElement;
+                sourceElement = leftElement;
+                destElement = sceneElement;
               }
   
               const sourceRect = sourceElement.getBoundingClientRect();
