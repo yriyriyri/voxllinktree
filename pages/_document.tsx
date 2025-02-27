@@ -8,7 +8,7 @@ export default function Document() {
           name="viewport"
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
-        <meta name="theme-color" content="#bfbfbf"></meta>
+        <meta name="theme-color" content="#ffffff"></meta>
       </Head>
       <body>
         <Main />
