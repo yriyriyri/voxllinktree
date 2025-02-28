@@ -996,10 +996,10 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const radius = Math.sqrt(initX * initX + initZ * initZ);
   
     let isRotating = false;
-    let rotationStartAngle = currentAngle; 
-    let rotationDeltaAngle = 0;           
-    let rotationStartTime = 0;            
-    const rotationDuration = 650;        
+    let rotationStartAngle = currentAngle;
+    let rotationDeltaAngle = 0;
+    let rotationStartTime = 0;
+    const rotationDuration = 650;
     const angleEpsilon = 0.001;
   
     let lineAnimFrame = 0;
@@ -1075,8 +1075,10 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       }
     }
   
+    let animationFrameId: number; //for cleanup
+  
     function animate() {
-      requestAnimationFrame(animate);
+      animationFrameId = requestAnimationFrame(animate);
       const delta = clock.getDelta();
   
       if (boxyRef.current) {
@@ -1246,36 +1248,6 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
               ctx.lineWidth = 0.5;
               ctx.stroke();
-  
-              /*
-              // If you want the second line & cross effect:
-              if (lineAnimFrame >= totalFrames) {
-                const t2 = secondLineAnimFrame / secondLineTotalFrames;
-                const offsetX = 100 * Math.cos(randomAngle!);
-                const offsetY = 100 * Math.sin(randomAngle!);
-                const secondEndX = destX + offsetX * t2;
-                const secondEndY = destY + offsetY * t2;
-  
-                ctx.beginPath();
-                ctx.moveTo(destX, destY);
-                ctx.lineTo(secondEndX, secondEndY);
-                ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
-                ctx.lineWidth = 0.5;
-                ctx.stroke();
-  
-                if (secondLineAnimFrame >= secondLineTotalFrames) {
-                  const crossHalf = 10;
-                  ctx.beginPath();
-                  ctx.moveTo(secondEndX - crossHalf, secondEndY - crossHalf);
-                  ctx.lineTo(secondEndX + crossHalf, secondEndY + crossHalf);
-                  ctx.moveTo(secondEndX - crossHalf, secondEndY + crossHalf);
-                  ctx.lineTo(secondEndX + crossHalf, secondEndY - crossHalf);
-                  ctx.strokeStyle = "rgba(0, 0, 0, 0.3)";
-                  ctx.lineWidth = 0.5;
-                  ctx.stroke();
-                }
-              }
-              */
             }
           } else {
             lineAnimFrame = 0;
@@ -1296,6 +1268,14 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     }
   
     animate();
+  
+    // return cleanup
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      if (renderer.domElement) {
+        renderer.domElement.removeEventListener("wheel", handleScroll);
+      }
+    };
   };
 
   //####main functionality useffect
@@ -1303,76 +1283,68 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     // 1 create normal nodes
     const newNodes = createRandomNodes(nodeCount);
     setNodes(newNodes);
-
+  
     // 2 create axes nodes
     const newAxesNodes = createAxesNodes(axesNodeCount);
     setAxesNodes(newAxesNodes);
-
+  
     // 3 set up scene
     const boxyRef = { current: null as BoxyObject | null };
     const currentMount = mountRef.current;
     if (!currentMount) return;
-    const { scene, camera, renderer, composer, } = initializeScene(currentMount);
-
+    const { scene, camera, renderer, composer } = initializeScene(currentMount);
+  
     // 4 initial font size calc
-
     updateOverlayFontSize();
-
+  
     // 5 wireframes for normal nodes
     const cubeEdges = createEdgeWireframes(scene, newNodes);
-
+  
     // 6 add axes nodes to scene
     newAxesNodes.forEach((axNode) => {
       scene.add(axNode.axesGroup);
     });
-
+  
     // 7 grid
     createGrid(scene);
-
+  
     // 8 lines between normal nodes
     const { lines } = createConnectingLines(scene, newNodes);
-
+  
     // 9 lines between each normal node and each axes node
     const nodeAxesLines = createNodeAxesLines(scene, newNodes, newAxesNodes);
-
+  
     // 10 load Boxy.glb 
-    if (boxyVers){
+    if (boxyVers) {
       loadBoxyModel("/Boxy.glb", boundingBox)
-      .then((loadedBoxy) => {
-        boxyRef.current = loadedBoxy;
-        scene.add(loadedBoxy.model);
-      })
-      .catch((error) => {
-        console.error("Failed to load Boxy model:", error);
-      });
+        .then((loadedBoxy) => {
+          boxyRef.current = loadedBoxy;
+          scene.add(loadedBoxy.model);
+        })
+        .catch((error) => {
+          console.error("Failed to load Boxy model:", error);
+        });
     }
-
+  
     // 11 2dcanvassetup
-
     const twoDCanvas = document.createElement("canvas");
-
     const dpr = (window.devicePixelRatio || 1) * 2;
-
     twoDCanvas.width = window.innerWidth * dpr;
     twoDCanvas.height = window.innerHeight * dpr;
-
     twoDCanvas.style.width = window.innerWidth + "px";
     twoDCanvas.style.height = window.innerHeight + "px";
-
     twoDCanvas.style.position = "fixed";
     twoDCanvas.style.top = "0";
     twoDCanvas.style.left = "0";
     twoDCanvas.style.zIndex = "15";
     twoDCanvas.style.pointerEvents = "none";
     twoDCanvas.style.backgroundColor = "transparent";
-
     document.body.appendChild(twoDCanvas);
-
     const ctx = twoDCanvas.getContext("2d")!;
     ctx.scale(dpr, dpr);
-
-    // 12 animate
-    animateScene(
+  
+    // 12 animate - capture cleanup function from animateScene
+    const cancelAnimationLoop = animateScene(
       scene,
       camera,
       renderer,
@@ -1387,7 +1359,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       twoDCanvas,
       currentHoveredRef
     );
-
+  
     // handle window resize
     const handleResize = () => {
       if (!mountRef.current || !cameraRef.current) return;
@@ -1396,27 +1368,30 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       renderer.setSize(width, height);
       cameraRef.current.aspect = width / height;
       cameraRef.current.updateProjectionMatrix();
-      updateOverlayFontSize()
-
-      const canvas = twoDCanvas
+      updateOverlayFontSize();
+  
+      const canvas = twoDCanvas;
       if (!canvas || !ctx) return;
-
       const dpr = window.devicePixelRatio || 1;
-
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
-
       canvas.style.width = window.innerWidth + "px";
       canvas.style.height = window.innerHeight + "px";
-
       ctx.scale(dpr, dpr);
     };
-
+  
     window.addEventListener("resize", handleResize);
+  
     return () => {
+      if (cancelAnimationLoop) cancelAnimationLoop();
       renderer.dispose();
-      currentMount.removeChild(renderer.domElement);
+      if (currentMount.contains(renderer.domElement)) {
+        currentMount.removeChild(renderer.domElement);
+      }
       window.removeEventListener("resize", handleResize);
+      if (twoDCanvas.parentNode) {
+        twoDCanvas.parentNode.removeChild(twoDCanvas);
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

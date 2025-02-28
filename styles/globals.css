@@ -33,7 +33,7 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
-    cursor: url('/favicon.cur') 16 16, auto !important;
+    cursor: url('/cursor.cur') 16 16, auto !important;
 }
   
 
