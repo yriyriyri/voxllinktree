@@ -122,6 +122,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const [fps, setFps] = useState(0);
   const lastFrameTime = useRef(performance.now());
   const frameCount = useRef(0);
+  const totalFrameCount = useRef(0);
 
 
   //videos
@@ -1079,6 +1080,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   
     function animate() {
       animationFrameId = requestAnimationFrame(animate);
+      totalFrameCount.current++;
+
       const delta = clock.getDelta();
   
       if (boxyRef.current) {
@@ -1257,8 +1260,10 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
         }
       }
   
-      const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
-      setNodes([...updatedNodes]);
+      if (totalFrameCount.current % 2 === 0) {
+        const updatedNodes = assignLabelsToNodes(nodes, labels, camera);
+        setNodes([...updatedNodes]);
+      }
   
       if (isRotating) {
         updateCameraAngle();
@@ -1564,7 +1569,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             color: "#000000",
             pointerEvents: "none",
             textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-            display: "none",
+            display: "block",
           }}
         >
           current_frame_rate = {fps}
