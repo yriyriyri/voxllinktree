@@ -37,7 +37,7 @@ function MyApp({ Component, pageProps, articlesData }: MyAppProps) {
   const showThreeNodeSystem = router.pathname !== "/devlog";
 
   return (
-    <>
+    <div style={{ cursor: 'url(/favicon.cur) 16 16, auto' }}>
       {showThreeNodeSystem &&
         (isMobile ? (
           <ThreeNodeSystemMobile />
@@ -46,7 +46,7 @@ function MyApp({ Component, pageProps, articlesData }: MyAppProps) {
         ))}
       <Component {...pageProps} />
       <SpeedInsights />
-    </>
+    </div>
   );
 }
 

@@ -1565,7 +1565,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   }, [boxyRef, keyToAnimationIndex]);
 
   return (
-    <div style={{ filter: "invert(0)" }}>
+    <div style={{ filter: "invert(0)", cursor: 'url(/cursor.cur) 16 16, auto' }}>
       <div
         ref={parentRef}
         style={{
@@ -1883,9 +1883,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                       lineHeight: `${overlayLineSpacing}px`
                     }}
                   >
-                    {article.preview && article.preview.slice(-1) === "."
-                      ? article.preview.slice(0, -1) + " {...}"
-                      : article.preview}
+                    {article.preview ? article.preview + " {...}" : ""}
                   </div>
                 </li>
               ))}

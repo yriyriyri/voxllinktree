@@ -33,8 +33,7 @@ html, body {
     padding: 0;
     width: 100%;
     height: 100%;
-    filter: invert(1);
-
+    cursor: url('/favicon.cur') 16 16, auto !important;
 }
   
 
@@ -54,7 +53,7 @@ html, body {
 
 html, body {
     height: 100%;
-    filter: invert(1);
+    cursor: url('/favicon.cur') 16 16, auto !important;
 }
 
 body, input::placeholder {
@@ -99,6 +98,8 @@ body, input::placeholder {
     font-weight: 700;
     font-style: italic;
 }
+
+
 
 
 
