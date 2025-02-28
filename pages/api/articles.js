@@ -24,11 +24,11 @@ export default async function handler(req, res) {
 
     const articlesData = Array.isArray(cmsData.data) ? cmsData.data : [];
     const articles = articlesData.map(article => {
-      const { title, publishedAt, description, slug, author } = article;
+      const { title, createdAt, description, slug, author } = article;
       const authorName = author?.name || '';
       return {
         title,
-        date: publishedAt, 
+        date: createdAt, 
         author: authorName,
         slug,
         preview: description 
