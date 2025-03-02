@@ -247,6 +247,22 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
   const cornerOffsetVW = `${cornerOffset}vw`;
   const [loadingBarLength, setLoadingBarLength] = useState(100);
 
+  //thresholds
+
+  const nodeSceneThreshold = 800;
+  const nodeFadeRange = 100;
+  const computedOpacity =
+  window.innerWidth <= nodeSceneThreshold
+    ? 0
+    : Math.min(1, (window.innerWidth - nodeSceneThreshold) / nodeFadeRange);
+
+  const videoThreshold = 700;
+  const videoFadeRange = 20;
+  const computedVideoOpacity =
+    window.innerHeight <= videoThreshold
+      ? 0
+      : Math.min(1, (window.innerHeight - videoThreshold) / videoFadeRange);
+
   //loading bar
 
   const loadingBarPercent = 32.2;
@@ -1880,6 +1896,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               zIndex: 30,
               display: "flex",
               justifyContent: "center",
+              opacity: computedOpacity,
+              transition: "opacity 0.3s ease",
             }}
           >
             <div
@@ -1888,7 +1906,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
                 whiteSpace: "pre",
                 display: "inline-block",
                 padding: "3px 2px",
-                position: "relative", 
+                position: "relative",
               }}
             >
               {loadingBarContent}
@@ -1924,6 +1942,8 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
               position: "absolute",
               bottom: "7vh",
               left: "3vh",
+              opacity: computedVideoOpacity,
+              transition: "opacity 0.3s ease",
               zIndex: 999,
             }}
           >
@@ -2120,94 +2140,105 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
           ref={mountRef}
           style={{
             position: "absolute",
-            left: `300px`,
+            left: "300px",
             width: "100%",
             height: "100%",
             overflow: "hidden",
             zIndex: 16,
+            opacity: computedOpacity,
+            transition: "opacity 0.3s ease"
           }}
         >
           {/* node labels */}
           {nodes.map((node) => {
-          if (!node.assignedLabel || !cameraRef.current) return null;
-          const screenPos = new THREE.Vector3(node.x, node.y, node.z).project(cameraRef.current);
-          const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
-          const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
-          let displayType = "block";
-          if (boxyVers) {
-            displayType = "none";
-          }
-          if (
-            x < 0 ||
-            x > window.innerWidth - 200 ||
-            y < 0 ||
-            y > window.innerHeight
-          ) {
-            return null;
-          }
-          const handleClick = () => {
-            if (node.assignedLabel!.function === "link" && node.assignedLabel!.url) {
-              window.open(node.assignedLabel!.url, "_blank");
-            } else if (node.assignedLabel!.function === "interface") {
-              if (node.assignedLabel!.content === "./devlog") {
-                setCurrentHovered(null);
-                currentHoveredRef.current = null;
-                router.push("/devlog");
-              } else {
-                setSelectedInterfaceContent(node.assignedLabel!.interfaceContent || "");
-              }
+            if (!node.assignedLabel || !cameraRef.current) return null;
+            const screenPos = new THREE.Vector3(
+              node.x,
+              node.y,
+              node.z
+            ).project(cameraRef.current);
+            const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth - 200;
+            const y = (screenPos.y * -0.5 + 0.5) * window.innerHeight;
+            let displayType = "block";
+            if (boxyVers) {
+              displayType = "none";
             }
-          };
-
-          const baseStyle: React.CSSProperties = {
-            position: "absolute",
-            left: `${x}px`,
-            top: `${y}px`,
-            color: "black",
-            padding: "0px 0px",
-            zIndex: 40,
-            cursor: "pointer",
-            transform: "translateX(210px) translateY(-10px)",
-            pointerEvents: "auto" as React.CSSProperties["pointerEvents"],
-            fontSize: "11px",
-            fontFamily: "monospace",
-            fontWeight: 100,
-            fontStyle: "normal",
-            textDecoration: "none",
-            textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-            display: displayType,
-          };
-
-          const hoveredStyle: React.CSSProperties =
-            currentHovered === node.assignedLabel.content
-              ? {
-                  backgroundColor: "black",
-                  color: "#eaeaea",
-                  textShadow: "none",
-                  zIndex: 400,
+            if (
+              x < 0 ||
+              x > window.innerWidth - 200 ||
+              y < 0 ||
+              y > window.innerHeight
+            ) {
+              return null;
+            }
+            const handleClick = () => {
+              if (
+                node.assignedLabel!.function === "link" &&
+                node.assignedLabel!.url
+              ) {
+                window.open(node.assignedLabel!.url, "_blank");
+              } else if (node.assignedLabel!.function === "interface") {
+                if (node.assignedLabel!.content === "./devlog") {
+                  setCurrentHovered(null);
+                  currentHoveredRef.current = null;
+                  router.push("/devlog");
+                } else {
+                  setSelectedInterfaceContent(
+                    node.assignedLabel!.interfaceContent || ""
+                  );
                 }
-              : {};
+              }
+            };
 
-          return (
-            <div
-              key={node.assignedLabel.content}
-              className="scene-hover"
-              data-hover-label={node.assignedLabel.content}
-              style={{ ...baseStyle, ...hoveredStyle }}
-              onClick={handleClick}
-              onMouseEnter={() => {
-                setCurrentHovered(node.assignedLabel!.content);
-                currentHoveredRef.current = node.assignedLabel!.content;
-              }}
-              onMouseLeave={() => {
-                setCurrentHovered(null)
-                currentHoveredRef.current = null;
-              }}
-            >
-              {node.assignedLabel.content}
-            </div>
-          );
-        })}
+            const baseStyle: React.CSSProperties = {
+              position: "absolute",
+              left: `${x}px`,
+              top: `${y}px`,
+              color: "black",
+              padding: "0px 0px",
+              zIndex: 40,
+              cursor: "pointer",
+              transform: "translateX(210px) translateY(-10px)",
+              pointerEvents: "auto",
+              fontSize: "11px",
+              fontFamily: "monospace",
+              fontWeight: 100,
+              fontStyle: "normal",
+              textDecoration: "none",
+              textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
+              display: displayType,
+            };
+
+            const hoveredStyle: React.CSSProperties =
+              currentHovered === node.assignedLabel.content
+                ? {
+                    backgroundColor: "black",
+                    color: "#eaeaea",
+                    textShadow: "none",
+                    zIndex: 400,
+                  }
+                : {};
+
+            return (
+              <div
+                key={node.assignedLabel.content}
+                className="scene-hover"
+                data-hover-label={node.assignedLabel.content}
+                style={{ ...baseStyle, ...hoveredStyle }}
+                onClick={handleClick}
+                onMouseEnter={() => {
+                  setCurrentHovered(node.assignedLabel!.content);
+                  currentHoveredRef.current = node.assignedLabel!.content;
+                }}
+                onMouseLeave={() => {
+                  setCurrentHovered(null);
+                  currentHoveredRef.current = null;
+                }}
+              >
+                {node.assignedLabel.content}
+              </div>
+            );
+          })}
         </div>
         <div
         style={{
