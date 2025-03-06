@@ -422,17 +422,20 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     const baselineWidth = 1400;
   
     const baselineFontSize = 8;
+    const minFontSize = 6;    
     const maxFontSize = 12;
+    
     const computedFontSize = (window.innerWidth / baselineWidth) * baselineFontSize;
-    const newFontSize = Math.min(computedFontSize, maxFontSize);
+    const newFontSize = Math.max(minFontSize, Math.min(computedFontSize, maxFontSize));
     setOverlayFontSize(newFontSize);
   
     const baselineLineSpacing = 10; 
+    const minLineSpacing = 10;  
     const maxLineSpacing = 10;
     const computedLineSpacing = (window.innerWidth / baselineWidth) * baselineLineSpacing;
-    const newLineSpacing = Math.min(computedLineSpacing, maxLineSpacing);
+    const newLineSpacing = Math.max(minLineSpacing, Math.min(computedLineSpacing, maxLineSpacing));
     setOverlayLineSpacing(newLineSpacing);
-
+  
     let offset;
     const minWidth = 1800; 
     const maxWidth = 2000;
@@ -445,7 +448,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       offset = 7 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
     }
     setCornerOffset(offset);
-
+  
     let size;
     if (width <= minWidth) {
       size = 7.5;
@@ -455,14 +458,13 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
       size = 7.5 + ((width - minWidth) / (maxWidth - minWidth)) * 2;
     }
     setAsciiFontSize(size);
-
+  
     const baselineLoadingBarLength = 120;
     const maxLoadingBarLength = 200;
     const computedLoadingBarLength =
       (window.innerWidth / baselineWidth) * baselineLoadingBarLength;
     const newLoadingBarLength = Math.min(computedLoadingBarLength, maxLoadingBarLength);
     setLoadingBarLength(newLoadingBarLength);
-
   };
 
   //####createn odes
