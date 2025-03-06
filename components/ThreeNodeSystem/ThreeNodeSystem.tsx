@@ -149,6 +149,10 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
     "/stream/Mugen1.mp4",
     "/stream/Mugen2.mp4",
     "/stream/Mugen3.mp4",
+    //Quy
+    "/stream/Quy1.mp4",
+    "/stream/Quy2.mp4",
+    "/stream/Quy3.mp4",
   ];
 
   const [videoVisible, setVideoVisible] = useState(true);
