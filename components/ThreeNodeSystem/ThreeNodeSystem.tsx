@@ -129,30 +129,34 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
 
   const allVideos = [
     // Amadeo
-    "/stream/Amadeo1.mp4",
-    "/stream/Amadeo2.mp4",
-    "/stream/Amadeo3.mp4",
-    "/stream/Amadeo4.mp4",
-    "/stream/Amadeo5.mp4",
+    "/stream/amadeo1.mp4",
+    "/stream/amadeo2.mp4",
+    "/stream/amadeo3.mp4",
+    "/stream/amadeo4.mp4",
+    "/stream/amadeo5.mp4",
     // Will
-    "/stream/Will1.mp4",
-    "/stream/Will2.mp4",
-    "/stream/Will3.mp4",
-    "/stream/Will4.mp4",
-    "/stream/Will5.mp4",
+    "/stream/will1.mp4",
+    "/stream/will2.mp4",
+    "/stream/will3.mp4",
+    "/stream/will4.mp4",
+    "/stream/will5.mp4",
+    "/stream/will6.mp4",
+    "/stream/will7.mp4",
+    "/stream/will8.mp4",
+    "/stream/will9.mp4",
     // Beau
-    "/stream/Beau1.mp4",
-    "/stream/Beau2.mp4",
-    "/stream/Beau3.mp4",
-    "/stream/Beau4.mp4",
+    "/stream/beau1.mp4",
+    "/stream/beau2.mp4",
+    "/stream/beau3.mp4",
+    "/stream/beau4.mp4",
     // Mugen
-    "/stream/Mugen1.mp4",
-    "/stream/Mugen2.mp4",
-    "/stream/Mugen3.mp4",
+    "/stream/mugen1.mp4",
+    "/stream/mugen2.mp4",
+    "/stream/mugen3.mp4",
     //Quy
-    "/stream/Quy1.mp4",
-    "/stream/Quy2.mp4",
-    "/stream/Quy3.mp4",
+    "/stream/quy1.mp4",
+    "/stream/quy2.mp4",
+    "/stream/quy3.mp4",
   ];
 
   const [videoVisible, setVideoVisible] = useState(true);
