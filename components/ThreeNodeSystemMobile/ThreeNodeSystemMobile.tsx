@@ -178,8 +178,8 @@ export default function ThreeNodeSystemMobile() {
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.02;
-    controls.rotateSpeed = 4.0;
+    controls.dampingFactor = 0.05;
+    controls.rotateSpeed = 2.0;
     controls.enableZoom = true;
     controls.enablePan = false;
 
