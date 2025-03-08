@@ -167,7 +167,7 @@ export default function ThreeNodeSystemMobile() {
       0.1,
       1000
     );
-    camera.position.set(0, 0, 120);
+    camera.position.set(0, 0, 140);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
