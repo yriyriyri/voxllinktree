@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect } from "react";
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -20,57 +20,78 @@ interface BoxyObject {
   dynamicEdges: { mesh: THREE.Mesh; line: THREE.LineSegments; thresholdAngle: number }[];
 }
 
+interface DebugCubeEntry {
+  mesh: THREE.Mesh;
+  cubes: THREE.Mesh[];
+  vertexCount: number;
+}
+
+
+const spawnAllCubes = false;
+
+const cubesToMake = [
+  "vox005-560",
+  "vox005-110",
+  "vox013_4-93",
+  "vox013_4-231",
+  "vox013_4-96",
+  "vox013_4-114",
+  "vox013_2-162",
+  "vox013-266",
+  "vox013-271",
+  "vox013_2-63",
+  "vox013_2-72",
+  "vox013-126",
+  "vox013_2-330",
+  "vox013_2-91",
+  "vox013-150",
+  "vox013_2-318",
+  "vox003_1-0",
+  "vox001_1-17",
+  "vox002_4-31",
+  "vox004_4-29",
+  "vox013_2-5",
+  "vox013_2-14"
+];
+
 export default function ThreeNodeSystemMobile() {
   const mountRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const boxyRef = useRef<BoxyObject | null>(null);
-
-  const [showAscii, setShowAscii] = useState(false);
-  const [showMountRef, setShowMountRef] = useState(false);
-  const [startTypewriter, setStartTypewriter] = useState(false);
+  const debugCubeEntries: DebugCubeEntry[] = [];
 
   const baseUrl =
     typeof window !== "undefined" && window.location.origin
       ? window.location.origin
-      : "https://fallback.com"; //SET PROPERLY ON LAUNCH
+      : "https://fallback.com";
 
-  const linesToType = [
+  const labels = [
     "./X | URL: https://x.com/voxldev",
-    "    ",
     "./youtube | URL: https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",
-    "    ",
     "./instagram | URL: https://www.instagram.com/voxl.online//",
-    "    ",
     "./steam | URL: https://example.com/steam",
-    "    ",
+    `./devlog | URL: ${baseUrl}/devlog`
   ];
 
-  linesToType.push(`./devlog | URL: ${baseUrl}/devlog`);
-
-  const [typedLines, setTypedLines] = useState<string[]>(
-    Array(linesToType.length).fill("")
-  );
-
   useEffect(() => {
-    document.documentElement.style.setProperty("height", "100%");
-    document.documentElement.style.setProperty("min-height", "100%");
-    document.documentElement.style.setProperty("overflow", "hidden");
-    
-    document.body.style.setProperty("height", "100vh");
-    document.body.style.setProperty("min-height", "100vh");
-    document.body.style.setProperty("overflow", "hidden");
-    document.body.style.setProperty("margin", "0");
-    document.body.style.setProperty("padding", "0");
+    document.documentElement.style.height = "100%";
+    document.documentElement.style.minHeight = "100%";
+    document.documentElement.style.overflow = "hidden";
 
+    document.body.style.height = "100vh";
+    document.body.style.minHeight = "100vh";
+    document.body.style.overflow = "hidden";
+    document.body.style.margin = "0";
+    document.body.style.padding = "0";
     document.body.style.paddingTop = "env(safe-area-inset-top)";
     document.body.style.paddingBottom = "env(safe-area-inset-bottom)";
     document.body.style.paddingLeft = "env(safe-area-inset-left)";
     document.body.style.paddingRight = "env(safe-area-inset-right)";
-  
+
     document.body.style.background =
       "radial-gradient(circle at 50%, #ffffff 0%, #ffffff 30%, #ffffff 60%) no-repeat center center fixed";
     document.body.style.backgroundSize = "cover";
-  
+
     return () => {
       document.body.style.background = "";
     };
@@ -86,18 +107,22 @@ export default function ThreeNodeSystemMobile() {
       const skinWeightAttr = sourceGeom.attributes.skinWeight as THREE.BufferAttribute;
       const vertexCount = posAttr.count;
       const deformedPositions = new Float32Array(vertexCount * 3);
+
       const tempPos = new THREE.Vector3();
       const skinnedPos = new THREE.Vector3();
       const tempVec = new THREE.Vector3();
       const boneMatrix = new THREE.Matrix4();
       const skinIndices = new THREE.Vector4();
       const skinWeights = new THREE.Vector4();
+
       for (let i = 0; i < vertexCount; i++) {
         tempPos.fromBufferAttribute(posAttr, i);
         tempPos.applyMatrix4(skinnedMesh.bindMatrix);
         skinnedPos.set(0, 0, 0);
+
         skinIndices.fromBufferAttribute(skinIndexAttr, i);
         skinWeights.fromBufferAttribute(skinWeightAttr, i);
+
         for (let j = 0; j < 4; j++) {
           const boneIndex = skinIndices.getComponent(j);
           const weight = skinWeights.getComponent(j);
@@ -109,11 +134,13 @@ export default function ThreeNodeSystemMobile() {
         }
         skinnedPos.setY(skinnedPos.y - 5);
         skinnedPos.setZ(skinnedPos.z - 5);
-        skinnedPos.multiplyScalar(1 / 14);
+        skinnedPos.multiplyScalar(1 / 12);
+
         deformedPositions[i * 3] = skinnedPos.x;
         deformedPositions[i * 3 + 1] = skinnedPos.y;
         deformedPositions[i * 3 + 2] = skinnedPos.z;
       }
+
       const deformedGeometry = new THREE.BufferGeometry();
       deformedGeometry.setAttribute("position", new THREE.BufferAttribute(deformedPositions, 3));
       if (sourceGeom.index) {
@@ -135,25 +162,25 @@ export default function ThreeNodeSystemMobile() {
     );
     camera.position.set(0, 0, 80);
     cameraRef.current = camera;
-    
+
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     const dpr = window.devicePixelRatio || 1;
     renderer.setPixelRatio(dpr);
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
-    
+
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; 
-    controls.dampingFactor = 0.1;
-    controls.enableZoom = false; 
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.2;
+    controls.enableZoom = true;
     controls.enablePan = false;
-    
+
     const composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     renderPass.clearColor = new THREE.Color(0x000000);
     renderPass.clearAlpha = 0;
     composer.addPass(renderPass);
-    
+
     const blurOverlayShader = {
       uniforms: {
         tDiffuse: { value: null },
@@ -194,13 +221,13 @@ export default function ThreeNodeSystemMobile() {
         }
       `,
     };
-    
+
     const blurOverlayPass = new ShaderPass(blurOverlayShader);
     blurOverlayPass.material.uniforms.resolution.value.set(mount.clientWidth, mount.clientHeight);
     blurOverlayPass.material.uniforms.radius.value = 3.0;
     blurOverlayPass.material.uniforms.blurOpacity.value = 0.4;
     composer.addPass(blurOverlayPass);
-    
+
     return { scene, camera, renderer, composer, controls };
   }
 
@@ -210,11 +237,12 @@ export default function ThreeNodeSystemMobile() {
       const dracoLoader = new DRACOLoader();
       dracoLoader.setDecoderPath("/draco/");
       loader.setDRACOLoader(dracoLoader);
+
       loader.load(
         url,
         (gltf) => {
           const model = gltf.scene;
-          const scaleFactor = 14;
+          const scaleFactor = 12;
           const selfOcclude = true;
           model.scale.set(scaleFactor, scaleFactor, scaleFactor);
           const randomX = 0;
@@ -223,8 +251,10 @@ export default function ThreeNodeSystemMobile() {
           const position = new THREE.Vector3(randomX, randomY, randomZ);
           model.position.copy(position);
           model.rotation.set(0, 0, 0);
+
           const dynamicEdges: { mesh: THREE.Mesh; line: THREE.LineSegments; thresholdAngle: number }[] = [];
           const thresholdAngle = Math.PI;
+
           model.traverse((child) => {
             if (child instanceof THREE.Mesh) {
               const edgesGeometry = new THREE.EdgesGeometry(child.geometry, thresholdAngle);
@@ -235,6 +265,7 @@ export default function ThreeNodeSystemMobile() {
               const edgeWireframe = new THREE.LineSegments(edgesGeometry, lineMaterial);
               edgeWireframe.layers.set(0);
               dynamicEdges.push({ mesh: child, line: edgeWireframe, thresholdAngle });
+
               if (Array.isArray(child.material)) {
                 child.material.forEach((mat) => {
                   mat.colorWrite = false;
@@ -250,10 +281,54 @@ export default function ThreeNodeSystemMobile() {
                 child.material.polygonOffsetFactor = 4;
                 child.material.polygonOffsetUnits = 10;
               }
+
               edgeWireframe.renderOrder = 999;
               model.add(edgeWireframe);
             }
           });
+
+          model.traverse((child) => {
+            if (child instanceof THREE.Mesh && !child.userData.hasDebugCubes) {
+              const defGeom = getDeformedGeometry(child);
+              const posAttr = defGeom.getAttribute("position");
+              if (!posAttr) return;
+
+              const vertexCount = posAttr.count;
+              const meshName = child.name || "UnnamedMesh";
+              const cubes: THREE.Mesh[] = [];
+
+              for (let i = 0; i < vertexCount; i++) {
+                const globalDebugCubeId = `${meshName}-${i}`;
+
+                if (spawnAllCubes || cubesToMake.includes(globalDebugCubeId)) {
+                  const x = posAttr.getX(i);
+                  const y = posAttr.getY(i);
+                  const z = posAttr.getZ(i);
+
+                  const debugCube = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.05, 0.05, 0.05),
+                    new THREE.MeshBasicMaterial({ color: 0xff0000 })
+                  );
+
+                  debugCube.userData.debugCubeId = i;
+                  debugCube.userData.meshName = meshName;
+                  debugCube.userData.globalDebugCubeId = globalDebugCubeId;
+
+                  debugCube.position.set(x, y, z);
+                  model.add(debugCube);
+                  cubes.push(debugCube);
+                }
+              }
+
+              child.userData.hasDebugCubes = true;
+              debugCubeEntries.push({
+                mesh: child,
+                cubes,
+                vertexCount
+              });
+            }
+          });
+
           const mixer = new THREE.AnimationMixer(model);
           let currentAction: THREE.AnimationAction | undefined = undefined;
           if (gltf.animations && gltf.animations.length > 0) {
@@ -263,6 +338,7 @@ export default function ThreeNodeSystemMobile() {
           }
           const currentAnimation = 16;
           const desiredAnimation = 16;
+
           const boxyObj: BoxyObject = {
             model,
             position,
@@ -275,6 +351,7 @@ export default function ThreeNodeSystemMobile() {
             currentAction,
             dynamicEdges,
           };
+
           boxyRef.current = boxyObj;
           resolve(boxyObj);
         },
@@ -302,56 +379,60 @@ export default function ThreeNodeSystemMobile() {
     }
   }
 
-  function formatTypedLine(line: string) {
-    const patterns = ["URL: ", "INTERFACE: "];
-    let earliestIdx = -1;
-    let foundPattern = "";
-  
-    for (let pattern of patterns) {
-      const idx = line.indexOf(pattern);
-      if (idx !== -1 && (earliestIdx === -1 || idx < earliestIdx)) {
-        earliestIdx = idx;
-        foundPattern = pattern;
-      }
-    }
-  
-    if (earliestIdx === -1) return line;
-  
-    const prefix = line.substring(0, earliestIdx + foundPattern.length);
-    const suffix = line.substring(earliestIdx + foundPattern.length);
-  
-    if (foundPattern === "URL: ") {
-      return (
-        <>
-          {prefix}
-          <a
-            href={suffix.trim()}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ textDecoration: "underline", color: "inherit" }} 
-          >
-            {suffix}
-          </a>
-        </>
-      );
-    }
-  
-    return (
-      <>
-        {prefix}
-        <span style={{ textDecoration: "underline" }}>
-          {suffix}
-        </span>
-      </>
-    );
+
+  function updateDebugCubes() {
+    debugCubeEntries.forEach((entry) => {
+      const defGeom = getDeformedGeometry(entry.mesh);
+      const posAttr = defGeom.getAttribute("position");
+      if (!posAttr) return; 
+
+      entry.cubes.forEach((cube) => {
+        const i = cube.userData.debugCubeId;
+        if (i < posAttr.count) {
+          const x = posAttr.getX(i);
+          const y = posAttr.getY(i);
+          const z = posAttr.getZ(i);
+          cube.position.set(x, y, z);
+        }
+      });
+    });
   }
 
   useEffect(() => {
     const currentMount = mountRef.current;
     const clock = new THREE.Clock();
-
     if (!currentMount) return;
+
     const { scene, camera, renderer, composer, controls } = initializeScene(currentMount);
+
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+
+    function onMouseClick(event: MouseEvent) {
+      if (!spawnAllCubes) return;
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+
+      const clickableObjects: THREE.Mesh[] = [];
+      debugCubeEntries.forEach((entry) => {
+        clickableObjects.push(...entry.cubes);
+      });
+
+      const intersects = raycaster.intersectObjects(clickableObjects);
+      if (intersects.length > 0) {
+        const firstHit = intersects[0];
+        const clickedObject = firstHit.object;
+        if (clickedObject instanceof THREE.Mesh) {
+          (clickedObject.material as THREE.MeshBasicMaterial).color.set(0x0000ff);
+          console.log("Clicked global cube id:", clickedObject.userData.globalDebugCubeId);
+        }
+      }
+    }
+
+    renderer.domElement.addEventListener("click", onMouseClick);
 
     loadBoxyModel("/Boxy.glb")
       .then((loadedBoxy) => {
@@ -361,22 +442,32 @@ export default function ThreeNodeSystemMobile() {
         console.error("Error loading Boxy model:", error);
       });
 
-    const targetFrameInterval = 1 / 60; // seconds
+    const targetFrameInterval = 1 / 60;
     let accumulator = 0;
 
     function animate() {
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
       accumulator += delta;
-    
+
       if (controls) controls.update();
-    
+
       if (accumulator >= targetFrameInterval) {
         if (boxyRef.current) {
           boxyRef.current.mixer.update(accumulator);
           updateAnimation(boxyRef.current);
-    
+
+          // Reposition debug cubes with stable indexing
+          updateDebugCubes();
+
+          // optional slow-down
+          if (boxyRef.current.currentAction) {
+            boxyRef.current.currentAction.timeScale = 0.2;
+          }
+
           boxyRef.current.model.updateMatrixWorld(true);
+
+          // Update black edges (still uses EdgesGeometry just for lines)
           boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
             const deformedGeom = getDeformedGeometry(mesh);
             line.geometry.dispose();
@@ -388,131 +479,23 @@ export default function ThreeNodeSystemMobile() {
       }
     }
     animate();
+
+    return () => {
+      renderer.domElement.removeEventListener("click", onMouseClick);
+    };
   }, []);
-
-  useEffect(() => {
-    setShowMountRef(true);
-    const t1 = setTimeout(() => setShowAscii(true), 2000);
-
-    return () => clearTimeout(t1);
-  }, []);
-
-  useEffect(() => {
-    if (!setShowAscii) return;
-  
-    const t2 = setTimeout(() => {
-      setStartTypewriter(true);
-    }, 4000);
-  
-    return () => clearTimeout(t2);
-  }, [showMountRef]);
-
-  useEffect(() => {
-    if (!startTypewriter) return;
-
-    let currentLineIndex = 0;
-    let currentCharIndex = 0;
-    const currentTyped = ["", "", "", "", "", "", "", "", ""];
-
-    const intervalId = setInterval(() => {
-      const fullLine = linesToType[currentLineIndex];
-      if (currentCharIndex < fullLine.length) {
-        currentTyped[currentLineIndex] += fullLine[currentCharIndex];
-        currentCharIndex++;
-      } else {
-        currentLineIndex++;
-        currentCharIndex = 0;
-        if (currentLineIndex >= linesToType.length) {
-          clearInterval(intervalId);
-        }
-      }
-      setTypedLines([...currentTyped]);
-    }, 1);
-
-    return () => clearInterval(intervalId);
-  }, [startTypewriter]);
-
 
   return (
     <div
+      ref={mountRef}
       style={{
-        position: "fixed", 
+        position: "fixed",
         top: 0,
         left: 0,
         width: "100vw",
         height: "100vh",
-        overflow: "hidden", 
+        overflow: "hidden",
       }}
-    >
-      {/* ASCII  container */}
-      <div
-        id="ascii-container"
-        style={{
-          position: "absolute",
-          top: "60%", 
-          left: "50%",
-          transform: "translate(-50%, 0%)", 
-          fontSize: "4.7px", 
-          opacity: showAscii ? 1 : 0,
-          transition: "opacity 2s ease",
-          whiteSpace: "pre",
-          lineHeight: "1.4em",
-        }}
-      >
-        {`
-    ########           #########    ###############################    ##########          #########      ###########                   
-  ##############    #############   ################################  ##############    #############   ###############                 
-  ################################ #################################  ################################  ###############                 
-  ################################ #################################  ################################  ###############                 
-  ###############################  #################################  ###############################   ###############                 
-   #############################   #################################   #############################    ###############                 
-    ###########################    #################################    ###########################     ###############                 
-     #########################     #################################     ##########################     ###############                 
-      #######################      #################################    ############################    ############################### 
-       #####################       #################################   ##############################   ################################
-         ##################        #################################  ################################  ################################
-          ################         #################################  ################################  ################################
-           ##############          #################################  ################################  ################################
-            ############            ################################  ##############    ##############  ################################
-             #########              ###############################     #########          #########      ############################# 
-          `}
-      </div>
-  
-      {/* three container */}
-      <div
-        ref={mountRef}
-        style={{
-          opacity: showMountRef ? 1 : 0,
-          transition: "opacity 1.5s ease",
-          position: "absolute",
-          top: "30%",
-          left: "50%",
-          transform: "translate(-50%, -45%)",
-          width: "100vw",
-          height: "100vw",
-          overflow: "hidden",
-          zIndex: 10,
-        }}
-      ></div>
-  
-      {/* links container */}
-      <div
-        style={{
-          position: "absolute",
-          top: "75%",
-          whiteSpace: "pre",
-          fontSize: 10,
-          textAlign: "left",
-          width: "80vw",
-          lineHeight: "0.8em",
-          transform: "translateX(5px)",
-        }}
-      >
-        {typedLines.map((line, i) => {
-          const renderedLine = formatTypedLine(line);
-          return <div key={i}>{renderedLine}</div>;
-        })}
-      </div>
-    </div>
+    />
   );
 }
