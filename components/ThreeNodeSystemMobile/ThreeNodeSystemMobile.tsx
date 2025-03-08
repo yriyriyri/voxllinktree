@@ -167,7 +167,7 @@ export default function ThreeNodeSystemMobile() {
       0.1,
       1000
     );
-    camera.position.set(0, 0, 80);
+    camera.position.set(0, 0, 120);
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -178,7 +178,8 @@ export default function ThreeNodeSystemMobile() {
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.dampingFactor = 0.2;
+    controls.dampingFactor = 0.02;
+    controls.rotateSpeed = 2.0;
     controls.enableZoom = true;
     controls.enablePan = false;
 
