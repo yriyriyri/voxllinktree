@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import * as THREE from "three";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -26,16 +26,15 @@ interface DebugCubeEntry {
   vertexCount: number;
 }
 
-
 const spawnAllCubes = false;
 
 const cubesToMake = [
   "vox005-560",
   "vox005-110",
-  "vox013_4-93",
-  "vox013_4-231",
-  "vox013_4-96",
-  "vox013_4-114",
+  // "vox013_4-93",
+  // "vox013_4-231", 
+  // "vox013_4-96", 
+  // "vox013_4-114", 
   "vox013_2-162",
   "vox013-266",
   "vox013-271",
@@ -59,20 +58,31 @@ export default function ThreeNodeSystemMobile() {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const boxyRef = useRef<BoxyObject | null>(null);
   const debugCubeEntries: DebugCubeEntry[] = [];
+  
+  const [overlayPositions, setOverlayPositions] = useState<
+    { id: string; label: string; x: number; y: number }[]
+  >([]);
 
   const baseUrl =
     typeof window !== "undefined" && window.location.origin
       ? window.location.origin
       : "https://fallback.com";
 
-  const labels = [
-    "./X | URL: https://x.com/voxldev",
-    "./youtube | URL: https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw",
-    "./instagram | URL: https://www.instagram.com/voxl.online//",
-    "./steam | URL: https://example.com/steam",
-    `./devlog | URL: ${baseUrl}/devlog`
-  ];
-
+      const labels = [
+        "./devlog",
+        "./X",
+        "./instagram",
+        "./steam",
+        "./youtube"
+      ];
+      
+      const labelUrls = [
+        `${baseUrl}/devlog`,
+        "https://x.com/voxldev",
+        "https://www.instagram.com/voxl.online//",
+        "https://example.com/steam",
+        "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw"
+      ];
   useEffect(() => {
     document.documentElement.style.height = "100%";
     document.documentElement.style.minHeight = "100%";
@@ -87,7 +97,6 @@ export default function ThreeNodeSystemMobile() {
     document.body.style.paddingBottom = "env(safe-area-inset-bottom)";
     document.body.style.paddingLeft = "env(safe-area-inset-left)";
     document.body.style.paddingRight = "env(safe-area-inset-right)";
-
     document.body.style.background =
       "radial-gradient(circle at 50%, #ffffff 0%, #ffffff 30%, #ffffff 60%) no-repeat center center fixed";
     document.body.style.backgroundSize = "cover";
@@ -265,7 +274,6 @@ export default function ThreeNodeSystemMobile() {
               const edgeWireframe = new THREE.LineSegments(edgesGeometry, lineMaterial);
               edgeWireframe.layers.set(0);
               dynamicEdges.push({ mesh: child, line: edgeWireframe, thresholdAngle });
-
               if (Array.isArray(child.material)) {
                 child.material.forEach((mat) => {
                   mat.colorWrite = false;
@@ -281,7 +289,6 @@ export default function ThreeNodeSystemMobile() {
                 child.material.polygonOffsetFactor = 4;
                 child.material.polygonOffsetUnits = 10;
               }
-
               edgeWireframe.renderOrder = 999;
               model.add(edgeWireframe);
             }
@@ -292,40 +299,30 @@ export default function ThreeNodeSystemMobile() {
               const defGeom = getDeformedGeometry(child);
               const posAttr = defGeom.getAttribute("position");
               if (!posAttr) return;
-
               const vertexCount = posAttr.count;
               const meshName = child.name || "UnnamedMesh";
               const cubes: THREE.Mesh[] = [];
-
               for (let i = 0; i < vertexCount; i++) {
                 const globalDebugCubeId = `${meshName}-${i}`;
-
-                if (spawnAllCubes || cubesToMake.includes(globalDebugCubeId)) {
-                  const x = posAttr.getX(i);
-                  const y = posAttr.getY(i);
-                  const z = posAttr.getZ(i);
-
-                  const debugCube = new THREE.Mesh(
-                    new THREE.BoxGeometry(0.05, 0.05, 0.05),
-                    new THREE.MeshBasicMaterial({ color: 0xff0000 })
-                  );
-
-                  debugCube.userData.debugCubeId = i;
-                  debugCube.userData.meshName = meshName;
-                  debugCube.userData.globalDebugCubeId = globalDebugCubeId;
-
-                  debugCube.position.set(x, y, z);
-                  model.add(debugCube);
-                  cubes.push(debugCube);
+                const x = posAttr.getX(i);
+                const y = posAttr.getY(i);
+                const z = posAttr.getZ(i);
+                const debugCube = new THREE.Mesh(
+                  new THREE.BoxGeometry(0.05, 0.05, 0.05),
+                  new THREE.MeshBasicMaterial({ color: 0xff0000 })
+                );
+                debugCube.userData.debugCubeId = i;
+                debugCube.userData.meshName = meshName;
+                debugCube.userData.globalDebugCubeId = globalDebugCubeId;
+                debugCube.position.set(x, y, z);
+                model.add(debugCube);
+                if (!spawnAllCubes) {
+                  debugCube.visible = false;
                 }
+                cubes.push(debugCube);
               }
-
               child.userData.hasDebugCubes = true;
-              debugCubeEntries.push({
-                mesh: child,
-                cubes,
-                vertexCount
-              });
+              debugCubeEntries.push({ mesh: child, cubes, vertexCount });
             }
           });
 
@@ -338,7 +335,6 @@ export default function ThreeNodeSystemMobile() {
           }
           const currentAnimation = 16;
           const desiredAnimation = 16;
-
           const boxyObj: BoxyObject = {
             model,
             position,
@@ -351,7 +347,6 @@ export default function ThreeNodeSystemMobile() {
             currentAction,
             dynamicEdges,
           };
-
           boxyRef.current = boxyObj;
           resolve(boxyObj);
         },
@@ -369,23 +364,19 @@ export default function ThreeNodeSystemMobile() {
       const newAction = boxy.mixer.clipAction(newClip);
       newAction.reset();
       newAction.play();
-
       if (boxy.currentAction) {
         boxy.currentAction.crossFadeTo(newAction, 0.5, false);
       }
-
       boxy.currentAction = newAction;
       boxy.currentAnimation = boxy.desiredAnimation;
     }
   }
 
-
   function updateDebugCubes() {
     debugCubeEntries.forEach((entry) => {
       const defGeom = getDeformedGeometry(entry.mesh);
       const posAttr = defGeom.getAttribute("position");
-      if (!posAttr) return; 
-
+      if (!posAttr) return;
       entry.cubes.forEach((cube) => {
         const i = cube.userData.debugCubeId;
         if (i < posAttr.count) {
@@ -398,29 +389,66 @@ export default function ThreeNodeSystemMobile() {
     });
   }
 
+  function updateOverlayPositions() {
+    if (!cameraRef.current) return;
+    const camera = cameraRef.current;
+    
+    let allCubes: THREE.Mesh[] = [];
+    debugCubeEntries.forEach((entry) => {
+      allCubes.push(...entry.cubes);
+    });
+    
+    if (!spawnAllCubes) {
+      allCubes = allCubes.filter(cube =>
+        cubesToMake.includes(cube.userData.globalDebugCubeId)
+      );
+    }
+    
+    const cubesWithDistance = allCubes.map(cube => {
+      const pos = cube.getWorldPosition(new THREE.Vector3());
+      return { cube, distance: camera.position.distanceTo(pos) };
+    });
+    
+    cubesWithDistance.sort((a, b) => a.distance - b.distance);
+    
+    const candidateCubes = cubesWithDistance.slice(0, 6);
+    
+    const selected: { id: string; label: string; x: number; y: number }[] = [];
+    for (let i = 0; i < candidateCubes.length && selected.length < 4; i++) {
+      const pos = candidateCubes[i].cube.getWorldPosition(new THREE.Vector3());
+      const vector = pos.clone().project(camera);
+      const x = (vector.x + 1) / 2 * window.innerWidth;
+      const y = (-vector.y + 1) / 2 * window.innerHeight;
+      if (x >= 0 && x <= window.innerWidth && y >= 0 && y <= window.innerHeight) {
+        const overlayLabel = labels[selected.length] || (selected.length + 1).toString();
+        selected.push({
+          id: candidateCubes[i].cube.userData.globalDebugCubeId,
+          label: overlayLabel,
+          x,
+          y
+        });
+      }
+    }
+    setOverlayPositions(selected);
+  }
+
   useEffect(() => {
     const currentMount = mountRef.current;
     const clock = new THREE.Clock();
     if (!currentMount) return;
-
     const { scene, camera, renderer, composer, controls } = initializeScene(currentMount);
-
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-
     function onMouseClick(event: MouseEvent) {
       if (!spawnAllCubes) return;
       const rect = renderer.domElement.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
       raycaster.setFromCamera(mouse, camera);
-
       const clickableObjects: THREE.Mesh[] = [];
       debugCubeEntries.forEach((entry) => {
         clickableObjects.push(...entry.cubes);
       });
-
       const intersects = raycaster.intersectObjects(clickableObjects);
       if (intersects.length > 0) {
         const firstHit = intersects[0];
@@ -431,9 +459,7 @@ export default function ThreeNodeSystemMobile() {
         }
       }
     }
-
     renderer.domElement.addEventListener("click", onMouseClick);
-
     loadBoxyModel("/Boxy.glb")
       .then((loadedBoxy) => {
         scene.add(loadedBoxy.model);
@@ -441,33 +467,22 @@ export default function ThreeNodeSystemMobile() {
       .catch((error) => {
         console.error("Error loading Boxy model:", error);
       });
-
     const targetFrameInterval = 1 / 60;
     let accumulator = 0;
-
     function animate() {
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
       accumulator += delta;
-
       if (controls) controls.update();
-
       if (accumulator >= targetFrameInterval) {
         if (boxyRef.current) {
           boxyRef.current.mixer.update(accumulator);
           updateAnimation(boxyRef.current);
-
-          // Reposition debug cubes with stable indexing
           updateDebugCubes();
-
-          // optional slow-down
           if (boxyRef.current.currentAction) {
-            boxyRef.current.currentAction.timeScale = 0.2;
+            boxyRef.current.currentAction.timeScale = 0.5;
           }
-
           boxyRef.current.model.updateMatrixWorld(true);
-
-          // Update black edges (still uses EdgesGeometry just for lines)
           boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
             const deformedGeom = getDeformedGeometry(mesh);
             line.geometry.dispose();
@@ -475,27 +490,53 @@ export default function ThreeNodeSystemMobile() {
           });
         }
         composer.render();
+        updateOverlayPositions();
         accumulator %= targetFrameInterval;
       }
     }
     animate();
-
     return () => {
       renderer.domElement.removeEventListener("click", onMouseClick);
     };
   }, []);
 
   return (
-    <div
-      ref={mountRef}
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        width: "100vw",
-        height: "100vh",
-        overflow: "hidden",
-      }}
-    />
+    <div style={{ position: "relative", width: "100vw", height: "100vh" }}>
+      <div
+        ref={mountRef}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          overflow: "hidden"
+        }}
+      />
+      {overlayPositions.map((overlay, index) => (
+      <div
+        key={overlay.id}
+        onClick={() => {
+          if (index === 0) {
+            window.location.href = labelUrls[index];
+          } else {
+            window.open(labelUrls[index], "_blank");
+          }
+        }}
+        style={{
+          position: "absolute",
+          left: overlay.x,
+          top: overlay.y,
+          backgroundColor: "black",
+          color: "white",
+          fontSize: "10px",
+          padding: "0px",
+          cursor: "pointer"
+        }}
+      >
+        {overlay.label}
+      </div>
+    ))}
+    </div>
   );
 }
