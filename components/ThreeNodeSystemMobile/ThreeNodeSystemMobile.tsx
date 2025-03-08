@@ -72,7 +72,6 @@ export default function ThreeNodeSystemMobile() {
         "./devlog",
         "./X",
         "./instagram",
-        "./steam",
         "./youtube"
       ];
       
@@ -80,7 +79,6 @@ export default function ThreeNodeSystemMobile() {
         `${baseUrl}/devlog`,
         "https://x.com/voxldev",
         "https://www.instagram.com/voxl.online//",
-        "https://example.com/steam",
         "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw"
       ];
   useEffect(() => {
@@ -390,7 +388,7 @@ export default function ThreeNodeSystemMobile() {
   }
 
   function updateOverlayPositions() {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current || !mountRef.current) return;
     const camera = cameraRef.current;
     
     let allCubes: THREE.Mesh[] = [];
@@ -414,12 +412,15 @@ export default function ThreeNodeSystemMobile() {
     const candidateCubes = cubesWithDistance.slice(0, 6);
     
     const selected: { id: string; label: string; x: number; y: number }[] = [];
+    const containerWidth = mountRef.current.clientWidth || window.innerWidth;
+    const containerHeight = mountRef.current.clientHeight || window.innerHeight;
+    
     for (let i = 0; i < candidateCubes.length && selected.length < 4; i++) {
       const pos = candidateCubes[i].cube.getWorldPosition(new THREE.Vector3());
       const vector = pos.clone().project(camera);
-      const x = (vector.x + 1) / 2 * window.innerWidth;
-      const y = (-vector.y + 1) / 2 * window.innerHeight;
-      if (x >= 0 && x <= window.innerWidth && y >= 0 && y <= window.innerHeight) {
+      const x = (vector.x + 1) / 2 * containerWidth;
+      const y = (-vector.y + 1) / 2 * containerHeight;
+      if (x >= 0 && x <= containerWidth && y >= 0 && y <= containerHeight) {
         const overlayLabel = labels[selected.length] || (selected.length + 1).toString();
         selected.push({
           id: candidateCubes[i].cube.userData.globalDebugCubeId,
