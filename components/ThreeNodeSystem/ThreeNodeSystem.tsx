@@ -1595,7 +1595,7 @@ export default function ThreeNodeSystem({ articlesData }: ThreeNodeSystemProps) 
             color: "#000000",
             pointerEvents: "none",
             textShadow: "2px 2px 3px rgba(61, 61, 61, 0.5)",
-            display: "block",
+            display: "none",
           }}
         >
           current_frame_rate = {fps}
