@@ -32,9 +32,9 @@ const cubesToMake = [
   "vox005-560",
   "vox005-110",
   // "vox013_4-93",
-  // "vox013_4-231", 
-  // "vox013_4-96", 
-  // "vox013_4-114", 
+  // "vox013_4-231",
+  // "vox013_4-96",
+  // "vox013_4-114",
   "vox013_2-162",
   "vox013-266",
   "vox013-271",
@@ -58,7 +58,32 @@ export default function ThreeNodeSystemMobile() {
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const boxyRef = useRef<BoxyObject | null>(null);
   const debugCubeEntries: DebugCubeEntry[] = [];
-  
+  const prevOverlayMappingRef = useRef<string[]>([]);
+  const overlayPositionsRef = useRef<{ id: string; label: string; x: number; y: number }[]>([]);
+  const startDelay = 0.4;
+  const transitionLockTime = 0.6;
+
+  const [typedLabels, setTypedLabels] = useState<string[]>(["", "", "", ""]);
+  const prevTypedLabelsRef = useRef<string[]>(["", "", "", ""]);
+
+  const typewriterProgressRef = useRef<
+    { currentText: string; charIndex: number; timer: number; delay: number }[]
+  >([
+    { currentText: "", charIndex: 0, timer: 0, delay: 0 },
+    { currentText: "", charIndex: 0, timer: 0, delay: 0 },
+    { currentText: "", charIndex: 0, timer: 0, delay: 0 },
+    { currentText: "", charIndex: 0, timer: 0, delay: 0 },
+  ]);
+
+  const transitionsRef = useRef<Array<{
+    oldText: string;
+    target: string;
+    oldCubeId: string;
+    newCubeId: string;  // <--- new
+    newPos: { x: number; y: number };
+    elapsed: number;
+  } | null>>([null, null, null, null]);
+
   const [overlayPositions, setOverlayPositions] = useState<
     { id: string; label: string; x: number; y: number }[]
   >([]);
@@ -68,19 +93,20 @@ export default function ThreeNodeSystemMobile() {
       ? window.location.origin
       : "https://fallback.com";
 
-      const labels = [
-        "./devlog",
-        "./X",
-        "./instagram",
-        "./youtube"
-      ];
-      
-      const labelUrls = [
-        `${baseUrl}/devlog`,
-        "https://x.com/voxldev",
-        "https://www.instagram.com/voxl.online//",
-        "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw"
-      ];
+  const labels = [
+    "./devlog",
+    "./X",
+    "./instagram",
+    "./youtube"
+  ];
+
+  const labelUrls = [
+    `${baseUrl}/devlog`,
+    "https://x.com/voxldev",
+    "https://www.instagram.com/voxl.online//",
+    "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw"
+  ];
+
   useEffect(() => {
     document.documentElement.style.height = "100%";
     document.documentElement.style.minHeight = "100%";
@@ -161,12 +187,7 @@ export default function ThreeNodeSystemMobile() {
 
   function initializeScene(mount: HTMLDivElement) {
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(
-      70,
-      mount.clientWidth / mount.clientHeight,
-      0.1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(70, mount.clientWidth / mount.clientHeight, 0.1, 1000);
     camera.position.set(0, 0, 150);
     cameraRef.current = camera;
 
@@ -388,39 +409,78 @@ export default function ThreeNodeSystemMobile() {
     });
   }
 
+  function getOverlayPositionForCubeId(cubeId: string): { x: number; y: number } | null {
+    console.log(`[getOverlayPositionForCubeId] Searching for oldCubeId: "${cubeId}"`);
+  
+    if (!cameraRef.current || !mountRef.current) {
+      console.warn("[getOverlayPositionForCubeId] cameraRef or mountRef not ready, returning null");
+      return null;
+    }
+  
+    const camera = cameraRef.current;
+    const containerWidth = mountRef.current.clientWidth || window.innerWidth;
+    const containerHeight = mountRef.current.clientHeight || window.innerHeight;
+    
+    for (const entry of debugCubeEntries) {
+      for (const cube of entry.cubes) {
+        const currentId = cube.userData.globalDebugCubeId;
+        if (currentId === cubeId) {
+          console.log(`[getOverlayPositionForCubeId] Found match! Cube ID: "${cubeId}"`);
+          const pos = cube.getWorldPosition(new THREE.Vector3());
+          const vector = pos.clone().project(camera);
+          const position = {
+            x: (vector.x + 1) / 2 * containerWidth,
+            y: (-vector.y + 1) / 2 * containerHeight
+          };
+          console.log(`[getOverlayPositionForCubeId] Position for "${cubeId}":`, position);
+          return position;
+        } else {
+          // If you want verbose logging of *every* cube ID, uncomment next line:
+          // console.log(`Checking cube: "${currentId}", no match for "${cubeId}"`);
+        }
+      }
+    }
+  
+    console.warn(`[getOverlayPositionForCubeId] Could not find a cube with ID: "${cubeId}"`);
+    return null;
+  }
+
   function updateOverlayPositions() {
     if (!cameraRef.current || !mountRef.current) return;
     const camera = cameraRef.current;
-    
+  
     let allCubes: THREE.Mesh[] = [];
     debugCubeEntries.forEach((entry) => {
       allCubes.push(...entry.cubes);
     });
-    
+  
     if (!spawnAllCubes) {
       allCubes = allCubes.filter(cube =>
         cubesToMake.includes(cube.userData.globalDebugCubeId)
       );
     }
-    
-    const cubesWithDistance = allCubes.map(cube => {
+  
+    // Sort cubes by distance
+    const cubesWithDistance = allCubes.map((cube) => {
       const pos = cube.getWorldPosition(new THREE.Vector3());
       return { cube, distance: camera.position.distanceTo(pos) };
     });
-    
     cubesWithDistance.sort((a, b) => a.distance - b.distance);
-    
+  
+    // Pick a few up‐close cubes
     const candidateCubes = cubesWithDistance.slice(0, 6);
-    
+  
+    // Convert them to overlay positions
     const selected: { id: string; label: string; x: number; y: number }[] = [];
     const containerWidth = mountRef.current.clientWidth || window.innerWidth;
     const containerHeight = mountRef.current.clientHeight || window.innerHeight;
-    
+  
     for (let i = 0; i < candidateCubes.length && selected.length < 4; i++) {
       const pos = candidateCubes[i].cube.getWorldPosition(new THREE.Vector3());
       const vector = pos.clone().project(camera);
       const x = (vector.x + 1) / 2 * containerWidth;
       const y = (-vector.y + 1) / 2 * containerHeight;
+  
       if (x >= 0 && x <= containerWidth && y >= 0 && y <= containerHeight) {
         const overlayLabel = labels[selected.length] || (selected.length + 1).toString();
         selected.push({
@@ -431,7 +491,106 @@ export default function ThreeNodeSystemMobile() {
         });
       }
     }
+  
+    // Build the new mapping from selected overlays.
+    const newMapping = selected.map((item) => item.id);
+    const prevMapping = prevOverlayMappingRef.current;
+  
+    // LOG the arrays each time
+    console.log("updateOverlayPositions -- newMapping:", newMapping);
+    console.log("updateOverlayPositions -- prevMapping:", prevMapping);
+  
+    // For each overlay, check if the mapping has changed.
+    for (let i = 0; i < newMapping.length; i++) {
+      // Only trigger a transition if:
+      // 1) The new cube ID differs from old,
+      // 2) The current label is "full" (i.e. the final typed-out string),
+      // 3) No transition is already active,
+      // 4) We actually had a valid old ID (avoid fallback to new ID).
+      if (
+        prevMapping[i] !== newMapping[i] &&
+        prevTypedLabelsRef.current[i] === labels[i] &&
+        transitionsRef.current[i] === null &&
+        prevMapping[i] !== undefined &&  // or !== null, depending on your data
+        prevMapping[i] !== null
+      ) {
+        console.log(
+          `** Transition Triggered for overlay index ${i} **\n` +
+          `   Old ID: ${prevMapping[i]}\n` +
+          `   New ID: ${newMapping[i]}`
+        );
+  
+        // Now we have a *real* oldCubeId; don’t fallback to new ID.
+        transitionsRef.current[i] = {
+          oldText: labels[i],
+          target: labels[i],
+          oldCubeId: prevMapping[i],  // Use only the old ID
+          newCubeId: newMapping[i],
+          newPos: selected[i],
+          elapsed: 0
+        };
+  
+        // Log the transition object so we know what's being stored
+        console.log("Created transition:", transitionsRef.current[i]);
+  
+        // Reset normal typewriter progress for this overlay
+        typewriterProgressRef.current[i] = { currentText: "", charIndex: 0, timer: 0, delay: 0 };
+      }
+    }
+  
+    // Update prevMapping for items that are not in transition
+    for (let i = 0; i < newMapping.length; i++) {
+      if (transitionsRef.current[i] === null) {
+        prevMapping[i] = newMapping[i];
+      }
+    }
+  
+    prevOverlayMappingRef.current = [...prevMapping];
+    overlayPositionsRef.current = selected;
     setOverlayPositions(selected);
+  }
+  
+  function updateTypewriterEffect(delta: number) {
+    setTypedLabels((prev) => {
+      const newTypedLabels = [...prev];
+      for (let i = 0; i < overlayPositionsRef.current.length; i++) {
+        const transition = transitionsRef.current[i];
+        if (transition) {
+          // Increase elapsed time
+          transition.elapsed += delta;
+          // Erase one letter per frame
+          if (transition.oldText.length > 0) {
+            transition.oldText = transition.oldText.slice(0, -1);
+            newTypedLabels[i] = transition.oldText;
+          } else {
+            newTypedLabels[i] = "";
+          }
+          // Once transitionLockTime is reached, finish the transition.
+          if (transition.elapsed >= transitionLockTime) {
+            prevOverlayMappingRef.current[i] = transition.newCubeId;
+            transitionsRef.current[i] = null;
+            typewriterProgressRef.current[i] = { currentText: "", charIndex: 0, timer: 0, delay: 0 };
+            newTypedLabels[i] = "";
+          }
+        } else {
+          // Normal branch: wait for startDelay, then build text letter by letter.
+          const target = labels[i];
+          const progress = typewriterProgressRef.current[i];
+          if (progress.delay < startDelay) {
+            progress.delay += delta;
+            newTypedLabels[i] = "";
+          } else {
+            if (progress.charIndex < target.length) {
+              progress.charIndex++;
+              progress.currentText = target.slice(0, progress.charIndex);
+            }
+            newTypedLabels[i] = progress.currentText;
+          }
+        }
+      }
+      prevTypedLabelsRef.current = newTypedLabels.slice();
+      return newTypedLabels;
+    });
   }
 
   useEffect(() => {
@@ -439,8 +598,10 @@ export default function ThreeNodeSystemMobile() {
     const clock = new THREE.Clock();
     if (!currentMount) return;
     const { scene, camera, renderer, composer, controls } = initializeScene(currentMount);
+
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
+
     function onMouseClick(event: MouseEvent) {
       if (!spawnAllCubes) return;
       const rect = renderer.domElement.getBoundingClientRect();
@@ -461,29 +622,35 @@ export default function ThreeNodeSystemMobile() {
         }
       }
     }
+
     renderer.domElement.addEventListener("click", onMouseClick);
-    loadBoxyModel("/Boxy.glb")
-      .then((loadedBoxy) => {
-        scene.add(loadedBoxy.model);
-      })
-      .catch((error) => {
-        console.error("Error loading Boxy model:", error);
-      });
+
+    loadBoxyModel("/Boxy.glb").then((loadedBoxy) => {
+      scene.add(loadedBoxy.model);
+    }).catch((error) => {
+      console.error("Error loading Boxy model:", error);
+    });
+
     const targetFrameInterval = 1 / 60;
     let accumulator = 0;
+
     function animate() {
       requestAnimationFrame(animate);
       const delta = clock.getDelta();
       accumulator += delta;
+
       if (controls) controls.update();
+
       if (accumulator >= targetFrameInterval) {
         if (boxyRef.current) {
           boxyRef.current.mixer.update(accumulator);
           updateAnimation(boxyRef.current);
           updateDebugCubes();
+
           if (boxyRef.current.currentAction) {
             boxyRef.current.currentAction.timeScale = 0.5;
           }
+
           boxyRef.current.model.updateMatrixWorld(true);
           boxyRef.current.dynamicEdges.forEach(({ mesh, line, thresholdAngle }) => {
             const deformedGeom = getDeformedGeometry(mesh);
@@ -491,11 +658,14 @@ export default function ThreeNodeSystemMobile() {
             line.geometry = new THREE.EdgesGeometry(deformedGeom, thresholdAngle);
           });
         }
+
         composer.render();
         updateOverlayPositions();
+        updateTypewriterEffect(accumulator);
         accumulator %= targetFrameInterval;
       }
     }
+
     animate();
     return () => {
       renderer.domElement.removeEventListener("click", onMouseClick);
@@ -515,30 +685,57 @@ export default function ThreeNodeSystemMobile() {
           overflow: "hidden"
         }}
       />
-      {overlayPositions.map((overlay, index) => (
-      <div
-        key={overlay.id}
-        onClick={() => {
-          if (index === 0) {
-            window.location.href = labelUrls[index];
-          } else {
-            window.open(labelUrls[index], "_blank");
-          }
-        }}
-        style={{
-          position: "absolute",
-          left: overlay.x,
-          top: overlay.y,
-          backgroundColor: "black",
-          color: "white",
-          fontSize: "10px",
-          padding: "0px",
-          cursor: "pointer"
-        }}
-      >
-        {overlay.label}
-      </div>
-    ))}
+      {overlayPositions.map((overlay, index) => {
+        const transition = transitionsRef.current[index];
+        if (transition) {
+          const oldPos =
+            getOverlayPositionForCubeId(transition.oldCubeId) || overlay;
+          return (
+            <div
+              key={overlay.id}
+              style={{
+                position: "absolute",
+                left: oldPos.x,
+                top: oldPos.y,
+                backgroundColor: "black",
+                color: "white",
+                fontSize: "10px",
+                display: "none",
+                cursor: "pointer",
+                zIndex: 10,              }}
+            >
+              {transition.oldText}
+            </div>
+          );
+        } else {
+          // Normal label
+          return (
+            <div
+              key={overlay.id}
+              onClick={() => {
+                if (index === 0) {
+                  window.location.href = labelUrls[index];
+                } else {
+                  window.open(labelUrls[index], "_blank");
+                }
+              }}
+              style={{
+                position: "absolute",
+                left: overlay.x,
+                top: overlay.y,
+                backgroundColor: "black",
+                color: "white",
+                fontSize: "10px",
+                padding: "0px",
+                cursor: "pointer",
+                zIndex: 10,
+              }}
+            >
+              {typedLabels[index] || ""}
+            </div>
+          );
+        }
+      })}
     </div>
   );
 }
