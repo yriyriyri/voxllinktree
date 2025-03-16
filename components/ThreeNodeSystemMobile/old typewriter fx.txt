@@ -1,0 +1,38 @@
+function updateTypewriterEffect(delta: number) {
+  setTypedLabels((prev) => {
+    const newTypedLabels = [...prev];
+    for (let i = 0; i < overlayPositionsRef.current.length; i++) {
+      const transition = transitionsRef.current[i];
+      if (transition) {
+        transition.elapsed += delta;
+        if (transition.oldText.length > 0) {
+          transition.oldText = transition.oldText.slice(0, -1);
+          newTypedLabels[i] = transition.oldText;
+        } else {
+          newTypedLabels[i] = "";
+        }
+        if (transition.elapsed >= transitionLockTime) {
+          prevOverlayMappingRef.current[i] = transition.newCubeId;
+          transitionsRef.current[i] = null;
+          typewriterProgressRef.current[i] = { currentText: "", charIndex: 0, timer: 0, delay: 0 };
+          newTypedLabels[i] = "";
+        }
+      } else {
+        const target = labels[i];
+        const progress = typewriterProgressRef.current[i];
+        if (progress.delay < startDelay) {
+          progress.delay += delta;
+          newTypedLabels[i] = "";
+        } else {
+          if (progress.charIndex < target.length) {
+            progress.charIndex++;
+            progress.currentText = target.slice(0, progress.charIndex);
+          }
+          newTypedLabels[i] = progress.currentText;
+        }
+      }
+    }
+    prevTypedLabelsRef.current = newTypedLabels.slice();
+    return newTypedLabels;
+  });
+}

@@ -29,7 +29,7 @@ interface DebugCubeEntry {
 const spawnAllCubes = false;
 
 const cubesToMake = [
-  "vox005-560",
+
   "vox005-110",
   // "vox013_4-93",
   // "vox013_4-231",
@@ -435,8 +435,7 @@ export default function ThreeNodeSystemMobile() {
           console.log(`[getOverlayPositionForCubeId] Position for "${cubeId}":`, position);
           return position;
         } else {
-          // If you want verbose logging of *every* cube ID, uncomment next line:
-          // console.log(`Checking cube: "${currentId}", no match for "${cubeId}"`);
+
         }
       }
     }
@@ -460,17 +459,14 @@ export default function ThreeNodeSystemMobile() {
       );
     }
   
-    // Sort cubes by distance
     const cubesWithDistance = allCubes.map((cube) => {
       const pos = cube.getWorldPosition(new THREE.Vector3());
       return { cube, distance: camera.position.distanceTo(pos) };
     });
     cubesWithDistance.sort((a, b) => a.distance - b.distance);
   
-    // Pick a few up‐close cubes
     const candidateCubes = cubesWithDistance.slice(0, 6);
   
-    // Convert them to overlay positions
     const selected: { id: string; label: string; x: number; y: number }[] = [];
     const containerWidth = mountRef.current.clientWidth || window.innerWidth;
     const containerHeight = mountRef.current.clientHeight || window.innerHeight;
@@ -492,26 +488,15 @@ export default function ThreeNodeSystemMobile() {
       }
     }
   
-    // Build the new mapping from selected overlays.
     const newMapping = selected.map((item) => item.id);
     const prevMapping = prevOverlayMappingRef.current;
   
-    // LOG the arrays each time
-    console.log("updateOverlayPositions -- newMapping:", newMapping);
-    console.log("updateOverlayPositions -- prevMapping:", prevMapping);
-  
-    // For each overlay, check if the mapping has changed.
     for (let i = 0; i < newMapping.length; i++) {
-      // Only trigger a transition if:
-      // 1) The new cube ID differs from old,
-      // 2) The current label is "full" (i.e. the final typed-out string),
-      // 3) No transition is already active,
-      // 4) We actually had a valid old ID (avoid fallback to new ID).
       if (
         prevMapping[i] !== newMapping[i] &&
         prevTypedLabelsRef.current[i] === labels[i] &&
         transitionsRef.current[i] === null &&
-        prevMapping[i] !== undefined &&  // or !== null, depending on your data
+        prevMapping[i] !== undefined &&  
         prevMapping[i] !== null
       ) {
         console.log(
@@ -520,25 +505,21 @@ export default function ThreeNodeSystemMobile() {
           `   New ID: ${newMapping[i]}`
         );
   
-        // Now we have a *real* oldCubeId; don’t fallback to new ID.
         transitionsRef.current[i] = {
           oldText: labels[i],
           target: labels[i],
-          oldCubeId: prevMapping[i],  // Use only the old ID
+          oldCubeId: prevMapping[i], 
           newCubeId: newMapping[i],
           newPos: selected[i],
           elapsed: 0
         };
   
-        // Log the transition object so we know what's being stored
         console.log("Created transition:", transitionsRef.current[i]);
   
-        // Reset normal typewriter progress for this overlay
         typewriterProgressRef.current[i] = { currentText: "", charIndex: 0, timer: 0, delay: 0 };
       }
     }
   
-    // Update prevMapping for items that are not in transition
     for (let i = 0; i < newMapping.length; i++) {
       if (transitionsRef.current[i] === null) {
         prevMapping[i] = newMapping[i];
@@ -551,46 +532,7 @@ export default function ThreeNodeSystemMobile() {
   }
   
   function updateTypewriterEffect(delta: number) {
-    setTypedLabels((prev) => {
-      const newTypedLabels = [...prev];
-      for (let i = 0; i < overlayPositionsRef.current.length; i++) {
-        const transition = transitionsRef.current[i];
-        if (transition) {
-          // Increase elapsed time
-          transition.elapsed += delta;
-          // Erase one letter per frame
-          if (transition.oldText.length > 0) {
-            transition.oldText = transition.oldText.slice(0, -1);
-            newTypedLabels[i] = transition.oldText;
-          } else {
-            newTypedLabels[i] = "";
-          }
-          // Once transitionLockTime is reached, finish the transition.
-          if (transition.elapsed >= transitionLockTime) {
-            prevOverlayMappingRef.current[i] = transition.newCubeId;
-            transitionsRef.current[i] = null;
-            typewriterProgressRef.current[i] = { currentText: "", charIndex: 0, timer: 0, delay: 0 };
-            newTypedLabels[i] = "";
-          }
-        } else {
-          // Normal branch: wait for startDelay, then build text letter by letter.
-          const target = labels[i];
-          const progress = typewriterProgressRef.current[i];
-          if (progress.delay < startDelay) {
-            progress.delay += delta;
-            newTypedLabels[i] = "";
-          } else {
-            if (progress.charIndex < target.length) {
-              progress.charIndex++;
-              progress.currentText = target.slice(0, progress.charIndex);
-            }
-            newTypedLabels[i] = progress.currentText;
-          }
-        }
-      }
-      prevTypedLabelsRef.current = newTypedLabels.slice();
-      return newTypedLabels;
-    });
+    setTypedLabels(labels);
   }
 
   useEffect(() => {
@@ -708,7 +650,6 @@ export default function ThreeNodeSystemMobile() {
             </div>
           );
         } else {
-          // Normal label
           return (
             <div
               key={overlay.id}
