@@ -103,7 +103,7 @@ export default function ThreeNodeSystemMobile() {
   const labelUrls = [
     `${baseUrl}/devlog`,
     "https://x.com/voxldev",
-    "https://www.instagram.com/voxl.online//",
+    "https://www.instagram.com/voxl.online",
     "https://www.youtube.com/channel/UCgCwjJJ7qHF0QV27CzHSZnw"
   ];
 
