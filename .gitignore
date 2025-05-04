@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files  opt out
 .env*
+!.env.example
 
 # vercel
 .vercel

@@ -7,6 +7,7 @@ import ThreeNodeSystem from "../components/ThreeNodeSystem/ThreeNodeSystem";
 import ThreeNodeSystemMobile from "../components/ThreeNodeSystemMobile/ThreeNodeSystemMobile";
 import { useRouter } from "next/router";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { PostHogProvider } from "@/components/PostHog/PostHogProvider";
 
 export interface ArticleData {
   title: string;
@@ -37,16 +38,18 @@ function MyApp({ Component, pageProps, articlesData }: MyAppProps) {
   const showThreeNodeSystem = router.pathname !== "/devlog";
 
   return (
-    <div style={{ cursor: 'url(/cursor.cur) 16 16, auto' }}>
-      {showThreeNodeSystem &&
-        (isMobile ? (
-          <ThreeNodeSystemMobile />
-        ) : (
-          <ThreeNodeSystem articlesData={articlesData} />
-        ))}
-      <Component {...pageProps} />
-      <SpeedInsights />
-    </div>
+    <PostHogProvider>
+      <div style={{ cursor: 'url(/cursor.cur) 16 16, auto' }}>
+        {showThreeNodeSystem &&
+          (isMobile ? (
+            <ThreeNodeSystemMobile />
+          ) : (
+            <ThreeNodeSystem articlesData={articlesData} />
+          ))}
+        <Component {...pageProps} />
+        <SpeedInsights />
+      </div>
+    </PostHogProvider>
   );
 }
 
